@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+
+<html class="h-full bg-surface-canvas" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Eko InstaBoard - SBI CSP Recruitment Campaign Report Preview</title>
+<!-- Google Fonts: Inter & Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS v3 -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-tertiary-container": "#004b74",
+            "on-tertiary": "#ffffff",
+            "on-primary": "#ffffff",
+            "on-background": "#0b1c30",
+            "surface-canvas": "#F8FAFC",
+            "tertiary": "#006398",
+            "on-primary-fixed-variant": "#633f00",
+            "brand-primary-hover": "#D97706",
+            "border-subtle": "#F1F5F9",
+            "status-draft-subtle": "#F1F5F9",
+            "error": "#ba1a1a",
+            "ai-accent": "#6366F1",
+            "status-paused": "#F59E0B",
+            "inverse-primary": "#ffb955",
+            "secondary-fixed-dim": "#bec6e0",
+            "on-primary-container": "#644000",
+            "on-tertiary-fixed": "#001d31",
+            "secondary-container": "#dae2fd",
+            "primary": "#835500",
+            "surface-container-highest": "#d3e4fe",
+            "status-active": "#10B981",
+            "text-primary": "#0F172A",
+            "surface-tint": "#835500",
+            "on-primary-fixed": "#291800",
+            "surface-container": "#e5eeff",
+            "primary-fixed": "#ffddb4",
+            "ai-border": "#C7D2FE",
+            "on-secondary-fixed": "#131b2e",
+            "border-strong": "#E2E8F0",
+            "error-container": "#ffdad6",
+            "on-secondary": "#ffffff",
+            "surface": "#f8f9ff",
+            "tertiary-fixed": "#cce5ff",
+            "surface-container-lowest": "#ffffff",
+            "primary-fixed-dim": "#ffb955",
+            "status-paused-subtle": "#FFFBEB",
+            "ai-subtle": "#EEF2FF",
+            "tertiary-fixed-dim": "#93ccff",
+            "text-secondary": "#475569",
+            "border-focused": "#0F172A",
+            "outline-variant": "#d7c3ae",
+            "status-completed": "#0284C7",
+            "secondary-fixed": "#dae2fd",
+            "background": "#f8f9ff",
+            "outline": "#857462",
+            "on-secondary-fixed-variant": "#3f465c",
+            "inverse-on-surface": "#eaf1ff",
+            "on-tertiary-fixed-variant": "#004b73",
+            "surface-card-subtle": "#F1F5F9",
+            "surface-bright": "#f8f9ff",
+            "on-surface-variant": "#524534",
+            "primary-container": "#f5a623",
+            "text-tertiary": "#94A3B8",
+            "on-error-container": "#93000a",
+            "on-error": "#ffffff",
+            "surface-variant": "#d3e4fe",
+            "status-active-subtle": "#ECFDF5",
+            "secondary": "#565e74",
+            "status-completed-subtle": "#F0F9FF",
+            "surface-container-low": "#eff4ff",
+            "on-secondary-container": "#5c647a",
+            "inverse-surface": "#213145",
+            "status-draft": "#64748B",
+            "surface-card": "#FFFFFF",
+            "surface-dim": "#cbdbf5",
+            "on-surface": "#0b1c30",
+            "tertiary-container": "#6abdff",
+            "surface-container-high": "#dce9ff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "space-sm": "0.5rem",
+            "space-xl": "2rem",
+            "space-lg": "1.25rem",
+            "margin": "1rem",
+            "gutter-desktop": "1.5rem",
+            "space-xs": "0.25rem",
+            "gutter": "1rem",
+            "margin-desktop": "2rem",
+            "space-md": "0.75rem"
+          },
+          "fontFamily": {
+            "label-code": ["Inter"],
+            "headline-lg": ["Plus Jakarta Sans"],
+            "metric-stat-sm": ["Inter"],
+            "body-md": ["Inter"],
+            "label-md": ["Inter"],
+            "metric-stat-lg": ["Inter"],
+            "body-sm": ["Inter"],
+            "label-sm": ["Inter"],
+            "body-lg": ["Inter"],
+            "headline-md": ["Plus Jakarta Sans"],
+            "display-hero": ["Plus Jakarta Sans"],
+            "display-hero-mobile": ["Plus Jakarta Sans"],
+            "headline-sm": ["Plus Jakarta Sans"]
+          },
+          "fontSize": {
+            "label-code": ["10px", { "lineHeight": "12px", "letterSpacing": "0.06em", "fontWeight": "700" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "metric-stat-sm": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "label-md": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
+            "metric-stat-lg": ["32px", { "lineHeight": "38px", "letterSpacing": "-0.025em", "fontWeight": "700" }],
+            "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "600" }],
+            "body-lg": ["15px", { "lineHeight": "22px", "fontWeight": "400" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.015em", "fontWeight": "700" }],
+            "display-hero": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.03em", "fontWeight": "800" }],
+            "display-hero-mobile": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+      font-size: 18px;
+      line-height: 1;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .material-symbols-outlined.filled {
+      font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 20;
+    }
+    .tnum {
+      font-feature-settings: "tnum" 1;
+    }
+    /* Custom subtle scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #F8FAFC;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body class="h-full bg-surface-canvas font-body-md text-text-primary antialiased flex flex-col">
+<!-- ========================================================================= -->
+<!-- PERSISTENT SIDEBAR NAVIGATION (SideNavBar shared component)              -->
+<!-- ========================================================================= -->
+<aside class="fixed top-0 left-0 h-screen w-60 z-30 bg-surface-card border-r border-border-strong flex flex-col justify-between p-4 shadow-none">
+<div class="flex flex-col gap-4">
+<!-- Brand & Organization Block -->
+<div class="flex items-center gap-3 px-1 py-1">
+<img alt="Eko India Financial Services official brand avatar" class="w-9 h-9 rounded-lg border border-border-strong object-contain bg-white p-0.5 shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCiaE-qjmYtgJd_ZVd-nkTOwyKuOd2KAoRNHULO1ZxjfLW4MrJm8dEmtpPh8OVgfiLX47Ey1HnQnnOZ-WK11-RhLzqlVibgu9emXZvPK0C-0HeGj7WKfWzTVWbLzbrnj8kJOc-OVmTvBIvHV35UOBjI4hETCFNItopLDS0Rn7y2JlMzZJ5tYLNyWTO_bISrpAVYbvP5Kd3IAJSRPktuO_sME0VdWWffZtpv581L-mC-hxsxJI2RimrodfqwmxVVTB-h"/>
+<div class="flex flex-col overflow-hidden">
+<div class="flex items-center gap-1.5">
+<span class="font-headline-sm text-headline-sm text-text-primary font-bold tracking-tight">InstaBoard</span>
+<span class="px-1.5 py-0.5 rounded bg-primary-container text-on-primary-container font-label-code text-[9px] font-bold">PRO</span>
+</div>
+<span class="font-label-sm text-[11px] text-text-secondary leading-none">Enterprise Analytics</span>
+</div>
+</div>
+<!-- Quick Action CTA -->
+<button class="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-primary-container hover:bg-brand-primary-hover text-text-primary font-label-md text-label-md font-bold transition-colors duration-150 shadow-none border border-amber-600/20">
+<span class="material-symbols-outlined text-[17px]">add</span>
+<span>New Campaign</span>
+</button>
+<!-- Main Navigation Links -->
+<nav class="flex flex-col gap-1 mt-2">
+<div class="px-3 pt-1 pb-1 font-label-code text-[10px] uppercase text-text-tertiary tracking-wider font-bold">Workspace</div>
+<!-- Dashboard -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-canvas hover:text-text-primary font-label-md text-label-md font-medium transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Dashboard</span>
+</a>
+<!-- Campaigns -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-canvas hover:text-text-primary font-label-md text-label-md font-medium transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">campaign</span>
+<span>Campaigns</span>
+</a>
+<!-- Content -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-canvas hover:text-text-primary font-label-md text-label-md font-medium transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">movie</span>
+<span>Content</span>
+</a>
+<!-- Audience -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-canvas hover:text-text-primary font-label-md text-label-md font-medium transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">group</span>
+<span>Audience</span>
+</a>
+<!-- Comments -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-canvas hover:text-text-primary font-label-md text-label-md font-medium transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span>Comments</span>
+</a>
+<!-- Leads -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-canvas hover:text-text-primary font-label-md text-label-md font-medium transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">contact_page</span>
+<span>Leads</span>
+</a>
+<div class="px-3 pt-3 pb-1 font-label-code text-[10px] uppercase text-text-tertiary tracking-wider font-bold">Intelligence</div>
+<!-- AI Insights -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-canvas hover:text-text-primary font-label-md text-label-md font-medium transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-ai-accent">auto_awesome</span>
+<span>AI Insights</span>
+</a>
+<div class="px-3 pt-3 pb-1 font-label-code text-[10px] uppercase text-text-tertiary tracking-wider font-bold">Reporting</div>
+<!-- Reports - ACTIVE STATE LOCK -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-surface-container-low text-text-primary font-label-md text-label-md font-semibold border-l-2 border-primary-container" href="#">
+<span class="material-symbols-outlined text-primary-container filled">assessment</span>
+<span>Reports</span>
+<span class="ml-auto w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+</a>
+</nav>
+</div>
+<!-- Footer Utility Links -->
+<div class="flex flex-col gap-1 border-t border-border-strong pt-3">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-canvas hover:text-text-primary font-label-md text-label-md font-medium transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">switch_account</span>
+<span>Instagram Accounts</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-canvas hover:text-text-primary font-label-md text-label-md font-medium transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">notifications</span>
+<span>Notifications</span>
+<span class="ml-auto px-1.5 py-0.2 rounded-full bg-status-active-subtle text-status-active font-label-code text-[10px] font-bold">3</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-canvas hover:text-text-primary font-label-md text-label-md font-medium transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+</div>
+</aside>
+<!-- ========================================================================= -->
+<!-- TOP APP BAR NAVIGATION (TopNavBar shared component)                       -->
+<!-- ========================================================================= -->
+<header class="fixed top-0 right-0 left-60 h-14 z-20 bg-surface-card border-b border-border-strong flex items-center justify-between px-6">
+<!-- Left: Account & Verified Indicator -->
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2.5">
+<div class="w-7 h-7 rounded-full bg-surface-card-subtle border border-border-strong flex items-center justify-center overflow-hidden">
+<img alt="Eko India Financial Services official brand avatar" class="w-6 h-6 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCiaE-qjmYtgJd_ZVd-nkTOwyKuOd2KAoRNHULO1ZxjfLW4MrJm8dEmtpPh8OVgfiLX47Ey1HnQnnOZ-WK11-RhLzqlVibgu9emXZvPK0C-0HeGj7WKfWzTVWbLzbrnj8kJOc-OVmTvBIvHV35UOBjI4hETCFNItopLDS0Rn7y2JlMzZJ5tYLNyWTO_bISrpAVYbvP5Kd3IAJSRPktuO_sME0VdWWffZtpv581L-mC-hxsxJI2RimrodfqwmxVVTB-h"/>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="font-headline-sm text-headline-sm text-text-primary font-bold">Eko India Financial Services</span>
+<span class="text-text-secondary font-body-sm text-body-sm">@ekoindia</span>
+<span class="material-symbols-outlined text-status-completed text-[16px] filled" title="Verified Account">verified</span>
+</div>
+</div>
+<div class="h-4 w-[1px] bg-border-strong"></div>
+<!-- Followers & Sync Badge -->
+<div class="flex items-center gap-2">
+<span class="font-label-code text-[11px] text-text-secondary font-semibold bg-surface-card-subtle px-2 py-0.5 rounded border border-border-strong">142.8K Followers</span>
+<span class="inline-flex items-center gap-1 text-text-tertiary font-body-sm text-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-status-active"></span>
+          Synced 12m ago
+        </span>
+</div>
+</div>
+<!-- Center/Right: Date filter, State Pill indicators & Actions -->
+<div class="flex items-center gap-3">
+<!-- Date Range Indicator -->
+<div class="flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-canvas border border-border-strong font-label-sm text-label-sm text-text-secondary">
+<span class="material-symbols-outlined text-text-tertiary text-[16px]">calendar_today</span>
+<span class="font-medium text-text-primary">Oct 01 – Oct 31, 2024</span>
+</div>
+<!-- Quick interactive UI state pills -->
+<div class="hidden lg:flex items-center bg-surface-card-subtle p-0.5 rounded border border-border-strong font-label-code text-[11px]">
+<button class="px-2 py-0.5 rounded font-bold bg-white text-text-primary shadow-xs" id="stateNormalBtn">Normal Loaded</button>
+<button class="px-2 py-0.5 rounded text-text-secondary hover:text-text-primary" id="stateExportModalBtn">Export Modal Open</button>
+<button class="px-2 py-0.5 rounded text-text-secondary hover:text-text-primary" id="stateGeneratingBtn">Generating State</button>
+</div>
+<!-- Action Buttons -->
+<button class="inline-flex items-center gap-1 px-3 py-1.5 rounded border border-border-strong bg-white hover:bg-surface-canvas text-text-primary font-label-md text-label-md font-semibold transition-colors duration-150">
+<span class="material-symbols-outlined text-[16px]">refresh</span>
+<span>Sync Data</span>
+</button>
+<button class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-primary-container hover:bg-brand-primary-hover text-text-primary font-label-md text-label-md font-bold transition-colors duration-150 shadow-none" id="triggerExportHeaderBtn">
+<span class="material-symbols-outlined text-[17px]">file_download</span>
+<span>Export</span>
+</button>
+<div class="h-4 w-[1px] bg-border-strong mx-0.5"></div>
+<!-- User Profile -->
+<div class="flex items-center gap-2 pl-1 cursor-pointer">
+<img class="w-8 h-8 rounded-full border border-border-strong object-cover" data-alt="Close-up professional studio portrait of an Indian analytics director wearing navy formal blazer with crisp neutral lighting and modern corporate enterprise ambiance." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQWNXYRA35ltCoYQsTDfRbukyW1nPlmlI4ZpOupyQJoywYVVDJZ2xwHGg2jgYMtDoFSbFM8usv6m-ZuevrrWeAbxFhBaqg_baPH1uY8VSYm55ZS3j5tQxWDpk-2H7g51StrVhqvI4KeVh-gQHiDUoqWRgc1zYok4Xx-AwAwVRL7F0uQO9UHJxxObpwdiNy_nT8Bj7JtK7vBAuv1kR31dRVOVhMoM53e7xg4qdMe4daD9RRI5Z90AE"/>
+</div>
+</div>
+</header>
+<!-- ========================================================================= -->
+<!-- MAIN REPORT CONTENT CANVAS                                               -->
+<!-- ========================================================================= -->
+<main class="ml-60 pt-14 pb-16 flex-1 px-8">
+<div class="max-w-[1440px] mx-auto pt-6 space-y-6">
+<!-- ===================================================================== -->
+<!-- SECTION 1: REPORT BREADCRUMB & HEADER BLOCK                           -->
+<!-- ===================================================================== -->
+<div class="bg-surface-card rounded-xl border border-border-strong p-6 space-y-4">
+<!-- Breadcrumbs & Navigation Back -->
+<div class="flex items-center justify-between border-b border-border-strong pb-3">
+<div class="flex items-center gap-2 text-text-secondary font-label-sm text-label-sm">
+<span>Reporting</span>
+<span class="text-text-tertiary">/</span>
+<a class="hover:text-text-primary hover:underline font-medium" href="#">Reports</a>
+<span class="text-text-tertiary">/</span>
+<span class="text-text-primary font-bold">SBI CSP Recruitment Campaign Report (#REP-2024-884)</span>
+</div>
+<a class="inline-flex items-center gap-1 text-text-secondary hover:text-text-primary font-label-md text-label-md font-semibold transition-colors" href="#">
+<span class="material-symbols-outlined text-[16px]">arrow_back</span>
+<span>← Back to Reports</span>
+</a>
+</div>
+<!-- Title, Badges & Primary Actions -->
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+<div class="space-y-2">
+<div class="flex flex-wrap items-center gap-2.5">
+<h1 class="font-headline-lg text-headline-lg text-text-primary tracking-tight">
+                SBI CSP Recruitment Campaign Report
+              </h1>
+<!-- Badges -->
+<span class="px-2.5 py-0.5 rounded-full bg-status-draft-subtle border border-border-strong font-label-sm text-[11px] font-semibold text-text-secondary">
+                Campaign Performance
+              </span>
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-status-active-subtle border border-emerald-200 text-status-active font-label-sm text-[11px] font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-status-active animate-pulse"></span>
+                Status: Ready
+              </span>
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-status-completed-subtle border border-sky-200 text-status-completed font-label-sm text-[11px] font-semibold">
+<span class="material-symbols-outlined text-[13px]">verified_user</span>
+                Verified Meta Graph API Data
+              </span>
+</div>
+<!-- Metadata sub-strip -->
+<div class="flex flex-wrap items-center gap-y-1 gap-x-4 font-body-sm text-xs text-text-secondary">
+<span class="inline-flex items-center gap-1">
+<strong class="text-text-primary font-medium">Generated on:</strong> Oct 31, 2024 10:30 AM IST
+              </span>
+<span class="text-text-tertiary">•</span>
+<span class="inline-flex items-center gap-1">
+<strong class="text-text-primary font-medium">Period:</strong> Oct 01 – Oct 31, 2024 (vs Sep 01 – Sep 30 baseline)
+              </span>
+<span class="text-text-tertiary">•</span>
+<span class="inline-flex items-center gap-1">
+<strong class="text-text-primary font-medium">Target:</strong> @ekoindia
+              </span>
+<span class="text-text-tertiary">•</span>
+<span class="inline-flex items-center gap-1">
+<strong class="text-text-primary font-medium">Included Campaigns:</strong>
+<span class="underline decoration-border-strong cursor-pointer hover:text-text-primary">SBI CSP October Campaign</span>, 
+                <span class="underline decoration-border-strong cursor-pointer hover:text-text-primary">SBI CSP Mitra Recruitment</span>
+</span>
+</div>
+</div>
+<!-- Header Action Buttons -->
+<div class="flex items-center gap-2.5 shrink-0">
+<button class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-border-strong bg-white hover:bg-surface-canvas text-text-primary font-label-md text-label-md font-semibold transition-colors duration-150">
+<span class="material-symbols-outlined text-[17px]">tune</span>
+<span>Edit Configuration</span>
+</button>
+<button class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-border-strong bg-white hover:bg-surface-canvas text-text-primary font-label-md text-label-md font-semibold transition-colors duration-150" id="regenerateActionBtn">
+<span class="material-symbols-outlined text-[17px]">refresh</span>
+<span>Regenerate</span>
+</button>
+<div class="relative inline-block text-left">
+<button class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-container hover:bg-brand-primary-hover text-text-primary font-label-md text-label-md font-bold transition-colors duration-150 shadow-xs" id="exportDropdownBtn">
+<span class="material-symbols-outlined text-[18px]">download</span>
+<span>Export Report</span>
+<span class="material-symbols-outlined text-[18px]">expand_more</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- ===================================================================== -->
+<!-- SECTION 2: EXECUTIVE PERFORMANCE SUMMARY (AI Synthesized)             -->
+<!-- ===================================================================== -->
+<div class="bg-surface-card rounded-xl border border-amber-200/80 shadow-xs overflow-hidden relative">
+<div class="bg-gradient-to-r from-amber-50/70 via-amber-50/20 to-white px-6 py-4 border-b border-amber-200/60 flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-2.5">
+<span class="p-1 rounded bg-amber-500/10 text-brand-primary-hover flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">auto_awesome</span>
+</span>
+<h2 class="font-headline-sm text-headline-sm text-text-primary font-bold">Executive Performance Summary</h2>
+<span class="px-2 py-0.5 rounded bg-ai-subtle border border-ai-border text-ai-accent font-label-code text-[10px] font-bold tracking-wider">
+              [AI-SYNTHESIZED OVERVIEW]
+            </span>
+</div>
+<span class="font-body-sm text-xs text-text-secondary">Synthesized Oct 31, 2024 at 10:30:14 IST from Meta Graph API telemetry</span>
+</div>
+<div class="p-6 space-y-5">
+<p class="font-body-lg text-body-lg text-text-primary leading-relaxed">
+            During October 2024, the SBI CSP recruitment campaigns delivered <strong class="text-text-primary font-semibold">842K total views</strong> and <strong class="text-text-primary font-semibold">186 verified leads</strong>, representing an <strong class="text-text-primary font-semibold">8.7% conversion rate</strong> at <strong class="text-text-primary font-semibold">₹42 CPL</strong>. Short-form Hindi Reels accounted for <strong class="text-text-primary font-semibold">68% of engagement</strong> and <strong class="text-text-primary font-semibold">54.2% of lead inquiries</strong>, outperforming carousel formats by <strong class="text-text-primary font-semibold">3.8x</strong>. Uttar Pradesh represented the largest geographic concentration (34% reach).
+          </p>
+<!-- Key Findings Highlights Grid (4-pillar Bento) -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-1">
+<!-- Pillar 1 -->
+<div class="p-4 rounded-lg bg-surface-canvas border border-border-strong flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-2">
+<span class="font-label-code text-[11px] text-text-secondary uppercase">Top Conversion Channel</span>
+<span class="material-symbols-outlined text-primary-container text-[18px]">smart_display</span>
+</div>
+<div class="font-headline-sm text-[15px] font-bold text-text-primary leading-snug">
+                  Short-Form Hindi Reels
+                </div>
+</div>
+<div class="mt-3 pt-2 border-t border-border-strong font-body-sm text-xs text-text-secondary">
+<span class="font-semibold text-text-primary">186 leads</span> • 42.6% video completion rate
+              </div>
+</div>
+<!-- Pillar 2 -->
+<div class="p-4 rounded-lg bg-surface-canvas border border-border-strong flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-2">
+<span class="font-label-code text-[11px] text-text-secondary uppercase">Geographic Concentration</span>
+<span class="material-symbols-outlined text-tertiary text-[18px]">map</span>
+</div>
+<div class="font-headline-sm text-[15px] font-bold text-text-primary leading-snug">
+                  Uttar Pradesh &amp; Bihar
+                </div>
+</div>
+<div class="mt-3 pt-2 border-t border-border-strong font-body-sm text-xs text-text-secondary">
+<span class="font-semibold text-text-primary">48% of total</span> qualified agent inquiries
+              </div>
+</div>
+<!-- Pillar 3 -->
+<div class="p-4 rounded-lg bg-surface-canvas border border-border-strong flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-2">
+<span class="font-label-code text-[11px] text-text-secondary uppercase">Response Velocity</span>
+<span class="material-symbols-outlined text-status-paused text-[18px]">speed</span>
+</div>
+<div class="font-headline-sm text-[15px] font-bold text-text-primary leading-snug">
+                  High-Intent Eligibility
+                </div>
+</div>
+<div class="mt-3 pt-2 border-t border-border-strong font-body-sm text-xs text-text-secondary">
+<span class="font-semibold text-text-primary">58% of comments</span> with 4.2h triage delay
+              </div>
+</div>
+<!-- Pillar 4 -->
+<div class="p-4 rounded-lg bg-surface-canvas border border-border-strong flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-2">
+<span class="font-label-code text-[11px] text-text-secondary uppercase">Cost Efficiency</span>
+<span class="material-symbols-outlined text-status-active text-[18px]">payments</span>
+</div>
+<div class="font-headline-sm text-[15px] font-bold text-text-primary leading-snug">
+                  ₹42 Cost Per Lead
+                </div>
+</div>
+<div class="mt-3 pt-2 border-t border-border-strong font-body-sm text-xs text-text-secondary">
+<span class="font-semibold text-status-active">-75% vs baseline</span> benchmark of ₹168
+              </div>
+</div>
+</div>
+</div>
+</div>
+<!-- ===================================================================== -->
+<!-- SECTION 3: PERFORMANCE OVERVIEW METRICS STRIP (8 Key Metrics)         -->
+<!-- ===================================================================== -->
+<div>
+<div class="flex items-center justify-between mb-3 px-1">
+<h3 class="font-headline-sm text-headline-sm text-text-primary font-bold">Campaign Telemetry &amp; KPIs</h3>
+<span class="font-label-sm text-xs text-text-secondary">Reconciled against Meta Graph API attribution window (7-day click / 1-day view)</span>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+<!-- Metric 1: Views -->
+<div class="bg-surface-card rounded-lg border border-border-strong p-3.5 flex flex-col justify-between hover:border-slate-300 transition-colors">
+<div class="flex items-center justify-between">
+<span class="font-label-code text-[10px] text-text-secondary uppercase font-semibold">Views</span>
+<span class="material-symbols-outlined text-text-tertiary text-[15px]">visibility</span>
+</div>
+<div class="my-1.5">
+<div class="font-metric-stat-lg text-[23px] font-bold text-text-primary tracking-tight tnum">842,190</div>
+</div>
+<div class="inline-flex items-center gap-1 font-label-code text-[10px] text-status-active font-bold">
+<span class="material-symbols-outlined text-[13px]">trending_up</span>
+              +19.4% MoM
+            </div>
+</div>
+<!-- Metric 2: Reach -->
+<div class="bg-surface-card rounded-lg border border-border-strong p-3.5 flex flex-col justify-between hover:border-slate-300 transition-colors">
+<div class="flex items-center justify-between">
+<span class="font-label-code text-[10px] text-text-secondary uppercase font-semibold">Reach</span>
+<span class="material-symbols-outlined text-text-tertiary text-[15px]">group</span>
+</div>
+<div class="my-1.5">
+<div class="font-metric-stat-lg text-[23px] font-bold text-text-primary tracking-tight tnum">421,080</div>
+</div>
+<div class="inline-flex items-center gap-1 font-label-code text-[10px] text-status-active font-bold">
+<span class="material-symbols-outlined text-[13px]">trending_up</span>
+              +16.8% (62% non-flwr)
+            </div>
+</div>
+<!-- Metric 3: Engagement Rate -->
+<div class="bg-surface-card rounded-lg border border-border-strong p-3.5 flex flex-col justify-between hover:border-slate-300 transition-colors">
+<div class="flex items-center justify-between">
+<span class="font-label-code text-[10px] text-text-secondary uppercase font-semibold">Eng Rate</span>
+<span class="material-symbols-outlined text-text-tertiary text-[15px]">touch_app</span>
+</div>
+<div class="my-1.5">
+<div class="font-metric-stat-lg text-[23px] font-bold text-text-primary tracking-tight tnum">5.42%</div>
+</div>
+<div class="inline-flex items-center gap-1 font-label-code text-[10px] text-status-active font-bold">
+<span class="material-symbols-outlined text-[13px]">arrow_upward</span>
+              +0.8% benchmark
+            </div>
+</div>
+<!-- Metric 4: Total Watch Time -->
+<div class="bg-surface-card rounded-lg border border-border-strong p-3.5 flex flex-col justify-between hover:border-slate-300 transition-colors">
+<div class="flex items-center justify-between">
+<span class="font-label-code text-[10px] text-text-secondary uppercase font-semibold">Watch Time</span>
+<span class="material-symbols-outlined text-text-tertiary text-[15px]">schedule</span>
+</div>
+<div class="my-1.5">
+<div class="font-metric-stat-lg text-[23px] font-bold text-text-primary tracking-tight tnum">18,420 <span class="text-xs font-normal text-text-secondary">hrs</span></div>
+</div>
+<div class="inline-flex items-center gap-1 font-label-code text-[10px] text-status-active font-bold">
+<span class="material-symbols-outlined text-[13px]">trending_up</span>
+              +22.1% Reels
+            </div>
+</div>
+<!-- Metric 5: Avg Watch Time -->
+<div class="bg-surface-card rounded-lg border border-border-strong p-3.5 flex flex-col justify-between hover:border-slate-300 transition-colors">
+<div class="flex items-center justify-between">
+<span class="font-label-code text-[10px] text-text-secondary uppercase font-semibold">Avg Watch</span>
+<span class="material-symbols-outlined text-text-tertiary text-[15px]">timelapse</span>
+</div>
+<div class="my-1.5">
+<div class="font-metric-stat-lg text-[23px] font-bold text-text-primary tracking-tight tnum">7.8s</div>
+</div>
+<div class="font-label-code text-[10px] text-text-secondary font-medium">
+              42.6% on 18s creative
+            </div>
+</div>
+<!-- Metric 6: Comments -->
+<div class="bg-surface-card rounded-lg border border-border-strong p-3.5 flex flex-col justify-between hover:border-slate-300 transition-colors">
+<div class="flex items-center justify-between">
+<span class="font-label-code text-[10px] text-text-secondary uppercase font-semibold">Comments</span>
+<span class="material-symbols-outlined text-text-tertiary text-[15px]">forum</span>
+</div>
+<div class="my-1.5">
+<div class="font-metric-stat-lg text-[23px] font-bold text-text-primary tracking-tight tnum">3,214</div>
+</div>
+<div class="font-label-code text-[10px] text-text-secondary font-medium">
+              186 high-intent
+            </div>
+</div>
+<!-- Metric 7: Leads Generated -->
+<div class="bg-surface-card rounded-lg border border-primary-container/60 bg-amber-50/20 p-3.5 flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-code text-[10px] text-on-primary-container uppercase font-bold">Leads</span>
+<span class="material-symbols-outlined text-brand-primary-hover text-[15px]">person_add</span>
+</div>
+<div class="my-1.5">
+<div class="font-metric-stat-lg text-[23px] font-bold text-text-primary tracking-tight tnum">186</div>
+</div>
+<div class="inline-flex items-center gap-1 font-label-code text-[10px] text-status-active font-bold">
+<span class="material-symbols-outlined text-[13px]">trending_up</span>
+              +34.2% MoM
+            </div>
+</div>
+<!-- Metric 8: Cost Per Lead (CPL) -->
+<div class="bg-surface-card rounded-lg border border-emerald-300 bg-emerald-50/20 p-3.5 flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-code text-[10px] text-status-active uppercase font-bold">Cost Per Lead</span>
+<span class="material-symbols-outlined text-status-active text-[15px]">savings</span>
+</div>
+<div class="my-1.5">
+<div class="font-metric-stat-lg text-[23px] font-bold text-text-primary tracking-tight tnum">₹42</div>
+</div>
+<div class="inline-flex items-center gap-1 font-label-code text-[10px] text-status-active font-bold">
+              -75% vs ₹168 bench
+            </div>
+</div>
+</div>
+</div>
+<!-- ===================================================================== -->
+<!-- SECTION 4: VISUAL ANALYSIS & COMPARATIVE CHARTS                       -->
+<!-- ===================================================================== -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- Multi-Metric Performance Timeline (8 columns) -->
+<div class="lg:col-span-8 bg-surface-card rounded-xl border border-border-strong p-6 space-y-4">
+<div class="flex flex-wrap items-center justify-between gap-3 border-b border-border-strong pb-3">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-text-primary font-bold">Timeline Trajectory: October vs September Baseline</h3>
+<p class="font-body-sm text-xs text-text-secondary">Cumulative daily view pacing &amp; verified lead milestone captures (Oct 01 – Oct 31)</p>
+</div>
+<div class="flex items-center gap-3 font-label-code text-[11px]">
+<span class="inline-flex items-center gap-1.5 text-text-primary">
+<span class="w-3 h-1 bg-primary-container rounded"></span>
+                October Cycle (Current)
+              </span>
+<span class="inline-flex items-center gap-1.5 text-text-tertiary">
+<span class="w-3 h-1 bg-slate-300 rounded"></span>
+                September Baseline
+              </span>
+</div>
+</div>
+<!-- Timeline SVG Chart Canvas -->
+<div class="w-full h-64 relative pt-2">
+<!-- Gridlines -->
+<div class="absolute inset-0 flex flex-col justify-between pointer-events-none text-text-tertiary font-label-code text-[10px]">
+<div class="border-b border-border-strong w-full flex justify-between pb-1">
+<span>900K Views</span><span class="pr-2">200 Leads</span>
+</div>
+<div class="border-b border-border-strong/60 w-full flex justify-between pb-1">
+<span>675K Views</span><span class="pr-2">150 Leads</span>
+</div>
+<div class="border-b border-border-strong/60 w-full flex justify-between pb-1">
+<span>450K Views</span><span class="pr-2">100 Leads</span>
+</div>
+<div class="border-b border-border-strong/60 w-full flex justify-between pb-1">
+<span>225K Views</span><span class="pr-2">50 Leads</span>
+</div>
+<div class="border-b border-border-strong w-full flex justify-between pb-1 text-slate-400">
+<span>0</span><span class="pr-2">0</span>
+</div>
+</div>
+<!-- Vector Graphic Area Chart -->
+<svg class="w-full h-full overflow-visible relative z-10" preserveaspectratio="none" viewbox="0 0 700 220">
+<defs>
+<lineargradient id="octoberGrad" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#f5a623" stop-opacity="0.25"></stop>
+<stop offset="100%" stop-color="#f5a623" stop-opacity="0.0"></stop>
+</lineargradient>
+<lineargradient id="sepGrad" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#94A3B8" stop-opacity="0.1"></stop>
+<stop offset="100%" stop-color="#94A3B8" stop-opacity="0.0"></stop>
+</lineargradient>
+</defs>
+<!-- September Line (Baseline) -->
+<path d="M 0 200 Q 150 180 280 150 T 450 120 T 700 80" fill="none" stroke="#CBD5E1" stroke-dasharray="4 4" stroke-width="2"></path>
+<!-- October Area Gradient -->
+<path d="M 0 205 Q 120 185 240 140 T 420 85 T 560 50 T 700 24 L 700 215 L 0 215 Z" fill="url(#octoberGrad)"></path>
+<!-- October Primary Trajectory Curve -->
+<path d="M 0 205 Q 120 185 240 140 T 420 85 T 560 50 T 700 24" fill="none" stroke="#f5a623" stroke-width="3"></path>
+<!-- Event Milestone Markers -->
+<!-- Oct 12: Reel Viral Spike -->
+<circle cx="280" cy="128" fill="#0F172A" r="4" stroke="#FFFFFF" stroke-width="2"></circle>
+<!-- Oct 24: Mitra Push -->
+<circle cx="530" cy="58" fill="#0F172A" r="4" stroke="#FFFFFF" stroke-width="2"></circle>
+<!-- Oct 31 Final -->
+<circle cx="700" cy="24" fill="#f5a623" r="5" stroke="#FFFFFF" stroke-width="2"></circle>
+</svg>
+</div>
+<!-- X-Axis Labels -->
+<div class="flex justify-between font-label-code text-[11px] text-text-secondary pt-1 border-t border-border-strong">
+<span>Oct 01</span>
+<span>Oct 07</span>
+<span>Oct 14 (Viral Hindi Reel Push)</span>
+<span>Oct 21</span>
+<span>Oct 28</span>
+<span>Oct 31</span>
+</div>
+<!-- Bottom Micro-Telemetry Notes -->
+<div class="p-3 bg-surface-canvas rounded-lg border border-border-strong flex flex-wrap items-center justify-between gap-2 font-body-sm text-xs text-text-secondary">
+<span class="inline-flex items-center gap-1.5">
+<span class="material-symbols-outlined text-status-active text-[16px]">insights</span>
+<span><strong>Key inflection:</strong> Oct 14 Reel syndication generated 42% of month's aggregate views in 72 hours.</span>
+</span>
+<span class="font-label-code text-[11px] text-text-tertiary">Pacing Delta: +148,000 views ahead of target</span>
+</div>
+</div>
+<!-- Creative Format Efficiency Breakdown (4 columns) -->
+<div class="lg:col-span-4 bg-surface-card rounded-xl border border-border-strong p-6 flex flex-col justify-between space-y-4">
+<div>
+<div class="flex items-center justify-between border-b border-border-strong pb-3">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-text-primary font-bold">Creative Format Efficiency</h3>
+<p class="font-body-sm text-xs text-text-secondary">Attribution by medium asset structure</p>
+</div>
+<span class="material-symbols-outlined text-text-tertiary text-[18px]">pie_chart</span>
+</div>
+<!-- Breakdown Bars -->
+<div class="mt-4 space-y-4">
+<!-- Hindi Short Reel -->
+<div class="space-y-1.5">
+<div class="flex justify-between items-center text-xs">
+<span class="font-semibold text-text-primary flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-primary-container">movie</span>
+                    Hindi Short Reels (15–24s)
+                  </span>
+<span class="font-label-code font-bold text-text-primary tnum">68.0%</span>
+</div>
+<div class="w-full bg-surface-canvas rounded-full h-2 overflow-hidden border border-border-strong">
+<div class="bg-primary-container h-full rounded-full" style="width: 68%;"></div>
+</div>
+<div class="flex justify-between text-[11px] text-text-secondary font-label-code">
+<span>186 Leads</span>
+<span>₹42 CPL • 42.6% VCR</span>
+</div>
+</div>
+<!-- Digital Banking Carousel -->
+<div class="space-y-1.5">
+<div class="flex justify-between items-center text-xs">
+<span class="font-semibold text-text-primary flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-tertiary">view_carousel</span>
+                    Digital Banking Carousels
+                  </span>
+<span class="font-label-code font-bold text-text-primary tnum">22.5%</span>
+</div>
+<div class="w-full bg-surface-canvas rounded-full h-2 overflow-hidden border border-border-strong">
+<div class="bg-tertiary h-full rounded-full" style="width: 22.5%;"></div>
+</div>
+<div class="flex justify-between text-[11px] text-text-secondary font-label-code">
+<span>24 Leads</span>
+<span>₹84 CPL • 3.12% Swipe</span>
+</div>
+</div>
+<!-- Static Feed Post -->
+<div class="space-y-1.5">
+<div class="flex justify-between items-center text-xs">
+<span class="font-semibold text-text-primary flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-text-tertiary">image</span>
+                    Static Posts &amp; Infographics
+                  </span>
+<span class="font-label-code font-bold text-text-primary tnum">9.5%</span>
+</div>
+<div class="w-full bg-surface-canvas rounded-full h-2 overflow-hidden border border-border-strong">
+<div class="bg-slate-400 h-full rounded-full" style="width: 9.5%;"></div>
+</div>
+<div class="flex justify-between text-[11px] text-text-secondary font-label-code">
+<span>4 Leads</span>
+<span>₹142 CPL • 1.10% CTR</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Comparative takeaway card -->
+<div class="p-3.5 rounded-lg bg-surface-canvas border border-border-strong space-y-1">
+<div class="flex items-center gap-1.5 font-label-code text-[11px] text-text-primary font-bold">
+<span class="material-symbols-outlined text-[16px] text-status-active">verified</span>
+              Efficiency Ratio: 3.8x
+            </div>
+<p class="font-body-sm text-xs text-text-secondary leading-snug">
+              Hindi voiceover Reel creatives achieved 3.8x greater conversion velocity than multi-card carousel infographics.
+            </p>
+</div>
+</div>
+</div>
+<!-- ===================================================================== -->
+<!-- SECTION 5: DETAILED EMPIRICAL DATA TABLES                             -->
+<!-- ===================================================================== -->
+<div class="space-y-6">
+<!-- Table 1: Included Campaign Performance Breakdown -->
+<div class="bg-surface-card rounded-xl border border-border-strong overflow-hidden shadow-xs">
+<div class="px-6 py-4 border-b border-border-strong flex flex-wrap items-center justify-between gap-3">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-text-primary font-bold">Included Campaign Performance Breakdown</h3>
+<p class="font-body-sm text-xs text-text-secondary">Deterministic attribution reconciliations across active recruitment sub-campaigns</p>
+</div>
+<span class="px-2 py-1 rounded bg-surface-card-subtle border border-border-strong font-label-code text-[11px] text-text-secondary font-semibold">
+              2 Campaigns Filtered
+            </span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-canvas text-text-secondary font-label-sm text-[11px] uppercase tracking-wider border-b border-border-strong">
+<th class="py-3 px-6 font-semibold">Campaign Name</th>
+<th class="py-3 px-4 font-semibold">Status</th>
+<th class="py-3 px-4 text-right font-semibold">Views</th>
+<th class="py-3 px-4 text-right font-semibold">Reach</th>
+<th class="py-3 px-4 text-right font-semibold">Eng Rate</th>
+<th class="py-3 px-4 text-right font-semibold">Leads</th>
+<th class="py-3 px-4 text-right font-semibold">CPL</th>
+<th class="py-3 px-6 text-center font-semibold">Health</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-strong font-body-md text-xs">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-canvas transition-colors">
+<td class="py-3.5 px-6 font-semibold text-text-primary">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-status-active"></span>
+<span>SBI CSP October Campaign</span>
+</div>
+<span class="font-label-code text-[10px] text-text-tertiary pl-4">CMP-2024-OCT-09A</span>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-status-active-subtle text-status-active font-label-sm text-[11px] font-bold border border-emerald-200">
+<span class="w-1.5 h-1.5 rounded-full bg-status-active"></span>
+                      Active
+                    </span>
+</td>
+<td class="py-3.5 px-4 text-right font-semibold text-text-primary tnum">842,190</td>
+<td class="py-3.5 px-4 text-right text-text-secondary tnum">421,080</td>
+<td class="py-3.5 px-4 text-right text-text-primary font-semibold tnum">5.42%</td>
+<td class="py-3.5 px-4 text-right font-bold text-primary-container tnum">186</td>
+<td class="py-3.5 px-4 text-right font-bold text-text-primary tnum">₹42</td>
+<td class="py-3.5 px-6 text-center">
+<span class="px-2.5 py-0.5 rounded-full bg-status-active-subtle text-status-active font-label-code text-[11px] font-bold border border-emerald-200">
+                      Excellent
+                    </span>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-canvas transition-colors">
+<td class="py-3.5 px-6 font-semibold text-text-primary">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-status-active"></span>
+<span>SBI CSP Mitra Recruitment</span>
+</div>
+<span class="font-label-code text-[10px] text-text-tertiary pl-4">CMP-2024-MIT-14B</span>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-status-active-subtle text-status-active font-label-sm text-[11px] font-bold border border-emerald-200">
+<span class="w-1.5 h-1.5 rounded-full bg-status-active"></span>
+                      Active
+                    </span>
+</td>
+<td class="py-3.5 px-4 text-right font-semibold text-text-primary tnum">624,300</td>
+<td class="py-3.5 px-4 text-right text-text-secondary tnum">318,400</td>
+<td class="py-3.5 px-4 text-right text-text-primary font-semibold tnum">4.91%</td>
+<td class="py-3.5 px-4 text-right font-bold text-primary-container tnum">142</td>
+<td class="py-3.5 px-4 text-right font-bold text-text-primary tnum">₹46</td>
+<td class="py-3.5 px-6 text-center">
+<span class="px-2.5 py-0.5 rounded-full bg-blue-50 text-tertiary font-label-code text-[11px] font-bold border border-blue-200">
+                      Good
+                    </span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Table 2: Top Attributed Creatives & Retention -->
+<div class="bg-surface-card rounded-xl border border-border-strong overflow-hidden shadow-xs">
+<div class="px-6 py-4 border-b border-border-strong flex flex-wrap items-center justify-between gap-3">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-text-primary font-bold">Top Attributed Creatives &amp; Retention Telemetry</h3>
+<p class="font-body-sm text-xs text-text-secondary">Granular asset-level performance, watch duration and verified lead provenance</p>
+</div>
+<span class="font-label-code text-[11px] text-text-tertiary">Sorted by Qualified Lead Yield (Desc)</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-canvas text-text-secondary font-label-sm text-[11px] uppercase tracking-wider border-b border-border-strong">
+<th class="py-3 px-6 font-semibold">Creative Asset Title</th>
+<th class="py-3 px-4 font-semibold">Format &amp; Length</th>
+<th class="py-3 px-4 text-right font-semibold">Views</th>
+<th class="py-3 px-4 text-right font-semibold">Reach</th>
+<th class="py-3 px-4 text-right font-semibold">Avg Watch</th>
+<th class="py-3 px-4 text-right font-semibold">Eng Rate</th>
+<th class="py-3 px-6 text-right font-semibold">Attributed Leads</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-strong font-body-md text-xs">
+<!-- Creative Row 1 -->
+<tr class="hover:bg-surface-canvas transition-colors">
+<td class="py-3.5 px-6 font-semibold text-text-primary">
+<div class="flex items-center gap-3">
+<div class="w-9 h-11 rounded bg-slate-100 border border-border-strong flex items-center justify-center shrink-0 overflow-hidden relative">
+<img class="w-full h-full object-cover" data-alt="High-contrast video still of a confident Indian customer service point kiosk representative in a modern rural banking office setup with state bank identity documents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwOJ7WQjzVgRHb9tztZv4B256fXG0wUPcO0B1yhaJYpORUXcGT9oMfFnOaKCZKypvGHCL-g0xnM29G0nUckheSJWwgBDNed0Kqe7IlWO5Jn6C_kAy30JEy2XLNXJ_ishTnPsniC9LwXhuZSElmkqeruTQhKywhxhvLGUeOzDNs1h8xkElrFrMy6GeWIHlOqBh2Sk7iMg5W9qfPMzCzTpwGoHriS4fgCvzbY-opJ4L5TLMJCzbZfzU"/>
+<span class="absolute bottom-0.5 right-0.5 bg-black/70 text-white text-[8px] font-bold px-0.5 rounded">18s</span>
+</div>
+<div>
+<div class="font-semibold text-text-primary text-[13px] hover:underline cursor-pointer">SBI CSP Mitra Recruitment Reel</div>
+<div class="font-label-code text-[10px] text-text-tertiary">ID: #CR-8821 • Audio: Hindi Narrative</div>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4 text-text-secondary">
+<span class="inline-flex items-center gap-1 font-semibold text-text-primary">
+<span class="material-symbols-outlined text-primary-container text-[14px]">movie</span>
+                      Reel
+                    </span>
+<span class="text-text-tertiary"> (18s)</span>
+</td>
+<td class="py-3.5 px-4 text-right font-semibold text-text-primary tnum">842,000</td>
+<td class="py-3.5 px-4 text-right text-text-secondary tnum">421,000</td>
+<td class="py-3.5 px-4 text-right text-text-primary font-semibold tnum">7.8s (43.3%)</td>
+<td class="py-3.5 px-4 text-right text-text-primary font-semibold tnum">5.42%</td>
+<td class="py-3.5 px-6 text-right">
+<span class="px-2 py-0.5 rounded bg-amber-100 text-amber-900 font-bold tnum text-[12px]">
+                      186 leads
+                    </span>
+</td>
+</tr>
+<!-- Creative Row 2 -->
+<tr class="hover:bg-surface-canvas transition-colors">
+<td class="py-3.5 px-6 font-semibold text-text-primary">
+<div class="flex items-center gap-3">
+<div class="w-9 h-11 rounded bg-slate-100 border border-border-strong flex items-center justify-center shrink-0 overflow-hidden relative">
+<img class="w-full h-full object-cover" data-alt="Warm modern portrait still of a young entrepreneur in semi-formal Indian attire sitting in a clean high-tech CSP micro-branch desk with laptop and biometric scanner." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_is5E0b26hGJ2KcGZ2QqRaRg1HXu1NfRM1R2azlk-dTneZ0rUJzrwjXd60dhBg-H-tFKoIjuB4HZhpfSsH-D6m9rNt-h__rhemuPVcUID3VxPO_1ZVVHRHUc7kwWhj-a3-noRA_qs8fwprK8Q4oS0uhnR3Y7bj5QDyu4Bo9HyFh2k2GOlWvd5Gw4G4rxGqEdzeoZbv0ou0Kf6qFBZMRt5JaRVQ7kOCH_Yl2n68-9yjand42c_Otk"/>
+<span class="absolute bottom-0.5 right-0.5 bg-black/70 text-white text-[8px] font-bold px-0.5 rounded">24s</span>
+</div>
+<div>
+<div class="font-semibold text-text-primary text-[13px] hover:underline cursor-pointer">Become an SBI CSP Today</div>
+<div class="font-label-code text-[10px] text-text-tertiary">ID: #CR-8819 • Audio: Hindi Narrative</div>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4 text-text-secondary">
+<span class="inline-flex items-center gap-1 font-semibold text-text-primary">
+<span class="material-symbols-outlined text-primary-container text-[14px]">movie</span>
+                      Reel
+                    </span>
+<span class="text-text-tertiary"> (24s)</span>
+</td>
+<td class="py-3.5 px-4 text-right font-semibold text-text-primary tnum">245,000</td>
+<td class="py-3.5 px-4 text-right text-text-secondary tnum">118,000</td>
+<td class="py-3.5 px-4 text-right text-text-primary font-semibold tnum">6.2s (25.8%)</td>
+<td class="py-3.5 px-4 text-right text-text-primary font-semibold tnum">5.10%</td>
+<td class="py-3.5 px-6 text-right">
+<span class="px-2 py-0.5 rounded bg-surface-card-subtle text-text-primary font-bold tnum text-[12px]">
+                      52 leads
+                    </span>
+</td>
+</tr>
+<!-- Creative Row 3 -->
+<tr class="hover:bg-surface-canvas transition-colors">
+<td class="py-3.5 px-6 font-semibold text-text-primary">
+<div class="flex items-center gap-3">
+<div class="w-9 h-11 rounded bg-slate-100 border border-border-strong flex items-center justify-center shrink-0 overflow-hidden relative">
+<img class="w-full h-full object-cover" data-alt="Multi-panel clean graphic design showing steps to opening a banking business correspondent center with legible Hindi typography and state bank color accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCR7DMSHelMMAM09lNmsB-b0-vzgiIGJ6K5g1aeyfNGKqjDrcY8OVBmlzl_3pByJg9Q7PcRUyl637ebcIILSzBLdJan_-I49MHvHu2bVYqSvNcWhEoCmkc-plCiNjRd6llJ0ckjho-QA5yzOBNNRm2nuPjv1S4lIwDNmsjAPZ126tVy31365QJbXBY8uAJfGsIe7rCuknlHW6sVT5jD0zPHnVBgFkcYn33kUoQ3Yfman8vLATcWfY8"/>
+<span class="absolute bottom-0.5 right-0.5 bg-black/70 text-white text-[8px] font-bold px-0.5 rounded">6p</span>
+</div>
+<div>
+<div class="font-semibold text-text-primary text-[13px] hover:underline cursor-pointer">Digital Banking Awareness</div>
+<div class="font-label-code text-[10px] text-text-tertiary">ID: #CR-8794 • Carousel Infographic</div>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4 text-text-secondary">
+<span class="inline-flex items-center gap-1 font-semibold text-text-primary">
+<span class="material-symbols-outlined text-tertiary text-[14px]">view_carousel</span>
+                      Carousel
+                    </span>
+<span class="text-text-tertiary"> (6 slides)</span>
+</td>
+<td class="py-3.5 px-4 text-right font-semibold text-text-primary tnum">115,000</td>
+<td class="py-3.5 px-4 text-right text-text-secondary tnum">62,000</td>
+<td class="py-3.5 px-4 text-right text-text-primary font-semibold tnum">-- (3.1 swipes)</td>
+<td class="py-3.5 px-4 text-right text-text-primary font-semibold tnum">4.40%</td>
+<td class="py-3.5 px-6 text-right">
+<span class="px-2 py-0.5 rounded bg-surface-card-subtle text-text-primary font-bold tnum text-[12px]">
+                      24 leads
+                    </span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- ===================================================================== -->
+<!-- SECTION 6: AI FINDINGS & STRATEGIC RECOMMENDATIONS                    -->
+<!-- ===================================================================== -->
+<div class="bg-surface-card rounded-xl border border-indigo-200 shadow-xs p-6 space-y-4">
+<div class="flex flex-wrap items-center justify-between gap-3 border-b border-border-strong pb-3">
+<div class="flex items-center gap-2">
+<span class="w-6 h-6 rounded bg-ai-subtle border border-ai-border text-ai-accent flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px]">psychology</span>
+</span>
+<h3 class="font-headline-sm text-headline-sm text-text-primary font-bold">
+              AI Strategic Insights &amp; Algorithmic Attribution Audit
+            </h3>
+</div>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded bg-indigo-50 border border-indigo-200 text-indigo-700 font-label-code text-[11px] font-bold">
+              CONFIDENCE: 94.8%
+            </span>
+<span class="font-label-code text-[11px] text-text-tertiary">SYNTHESIS MODEL v4.2</span>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+<!-- Box A: Observed Telemetry -->
+<div class="p-4 rounded-lg bg-surface-canvas border border-border-strong space-y-2">
+<div class="flex items-center justify-between">
+<span class="font-label-code text-[11px] font-bold uppercase tracking-wider text-text-secondary">
+                [OBSERVED METRIC TELEMETRY]
+              </span>
+<span class="material-symbols-outlined text-text-tertiary text-[16px]">sensors</span>
+</div>
+<p class="font-body-md text-sm text-text-primary leading-relaxed">
+              Reel creative <strong class="font-semibold">#01 in Hindi</strong> drove <strong class="font-semibold">62% non-follower discovery</strong> and achieved a cost-efficiency of <strong class="font-semibold">₹42 CPL</strong>. Comments triage recorded 58% of inbound comments posing specific credential eligibility questions (e.g. 10th pass qualification, shop location, IIBF certificate).
+            </p>
+<div class="pt-2 border-t border-border-strong flex items-center gap-2 font-label-code text-[10px] text-text-secondary">
+<span class="text-status-active font-bold">Validated</span>
+<span>• Attribution window verified via Graph API Webhook</span>
+</div>
+</div>
+<!-- Box B: Strategic Recommendation -->
+<div class="p-4 rounded-lg bg-ai-subtle/50 border border-ai-border space-y-2">
+<div class="flex items-center justify-between">
+<span class="font-label-code text-[11px] font-bold uppercase tracking-wider text-ai-accent">
+                [AI-GENERATED RECOMMENDATION]
+              </span>
+<span class="material-symbols-outlined text-ai-accent text-[16px]">bolt</span>
+</div>
+<p class="font-body-md text-sm text-text-primary leading-relaxed">
+              Allocate <strong class="font-semibold text-text-primary">60% of November creative bandwidth</strong> to 15–20s Hindi narrative explainers. Crucially, embed eligibility prerequisites directly in the first <strong class="font-semibold text-text-primary">3-second hook</strong> to qualify inbound viewers early and deploy auto-responder DM workflows to compress response delay under 15 minutes.
+            </p>
+<div class="pt-2 border-t border-indigo-200/60 flex items-center justify-between font-label-code text-[10px]">
+<span class="text-ai-accent font-bold">Projected Impact: +28% CPL Reduction</span>
+<button class="text-text-primary underline font-bold hover:text-ai-accent">Apply to Next Campaign →</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- ========================================================================= -->
+<!-- EXPORT MODAL / DIALOG PREVIEW OVERLAY                                     -->
+<!-- ========================================================================= -->
+<div class="fixed inset-0 z-50 bg-[#0F172A]/40 backdrop-blur-xs flex items-center justify-center p-4 transition-opacity duration-200" id="exportModalBackdrop">
+<div class="bg-surface-card rounded-xl border border-border-strong shadow-2xl w-full max-w-lg overflow-hidden transform transition-all duration-200">
+<!-- Modal Header -->
+<div class="px-6 py-4 border-b border-border-strong flex items-center justify-between bg-surface-canvas">
+<div class="flex items-center gap-2">
+<span class="p-1.5 rounded bg-primary-container/20 text-on-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">file_download</span>
+</span>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-text-primary font-bold">Export Performance Report</h3>
+<p class="font-body-sm text-[11px] text-text-secondary">#REP-2024-884 • SBI CSP Recruitment Campaign</p>
+</div>
+</div>
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-slate-200/60 transition-colors" id="closeExportModalBtn">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Modal Body -->
+<div class="p-6 space-y-5">
+<!-- Format Selection Section -->
+<div class="space-y-2">
+<label class="font-label-sm text-label-sm text-text-secondary uppercase tracking-wider font-semibold">Select Output Format</label>
+<div class="grid grid-cols-3 gap-2.5">
+<!-- Format 1: PDF (Selected default) -->
+<label class="relative flex flex-col p-3 rounded-lg border-2 border-primary-container bg-amber-50/30 cursor-pointer transition-all">
+<input checked="" class="sr-only" name="exportFormat" type="radio" value="pdf"/>
+<div class="flex items-center justify-between mb-1.5">
+<span class="material-symbols-outlined text-brand-primary-hover text-[20px]">picture_as_pdf</span>
+<span class="w-2 h-2 rounded-full bg-primary-container"></span>
+</div>
+<span class="font-headline-sm text-xs font-bold text-text-primary">PDF Report</span>
+<span class="font-body-sm text-[10px] text-text-secondary leading-tight mt-0.5">Executive Presentation</span>
+</label>
+<!-- Format 2: CSV -->
+<label class="relative flex flex-col p-3 rounded-lg border border-border-strong hover:border-slate-300 bg-white cursor-pointer transition-all">
+<input class="sr-only" name="exportFormat" type="radio" value="csv"/>
+<div class="flex items-center justify-between mb-1.5">
+<span class="material-symbols-outlined text-text-tertiary text-[20px]">csv</span>
+</div>
+<span class="font-headline-sm text-xs font-bold text-text-primary">CSV Data</span>
+<span class="font-body-sm text-[10px] text-text-secondary leading-tight mt-0.5">Raw Tabular Telemetry</span>
+</label>
+<!-- Format 3: Excel XLSX -->
+<label class="relative flex flex-col p-3 rounded-lg border border-border-strong hover:border-slate-300 bg-white cursor-pointer transition-all">
+<input class="sr-only" name="exportFormat" type="radio" value="xlsx"/>
+<div class="flex items-center justify-between mb-1.5">
+<span class="material-symbols-outlined text-text-tertiary text-[20px]">table_view</span>
+</div>
+<span class="font-headline-sm text-xs font-bold text-text-primary">Excel XLSX</span>
+<span class="font-body-sm text-[10px] text-text-secondary leading-tight mt-0.5">Formatted Workbook</span>
+</label>
+</div>
+</div>
+<!-- Section Inclusions Checklist -->
+<div class="space-y-2.5">
+<label class="font-label-sm text-label-sm text-text-secondary uppercase tracking-wider font-semibold">Report Components &amp; Appendices</label>
+<div class="space-y-2 bg-surface-canvas p-3 rounded-lg border border-border-strong">
+<label class="flex items-center gap-2.5 text-xs text-text-primary cursor-pointer select-none">
+<input checked="" class="rounded border-slate-300 text-text-primary focus:ring-0 w-4 h-4" type="checkbox"/>
+<span class="font-medium">Include Executive Performance Summary &amp; Key Findings</span>
+</label>
+<label class="flex items-center gap-2.5 text-xs text-text-primary cursor-pointer select-none">
+<input checked="" class="rounded border-slate-300 text-text-primary focus:ring-0 w-4 h-4" type="checkbox"/>
+<span class="font-medium">Include Video Retention &amp; Pacing Telemetry Charts</span>
+</label>
+<label class="flex items-center gap-2.5 text-xs text-text-primary cursor-pointer select-none">
+<input checked="" class="rounded border-slate-300 text-text-primary focus:ring-0 w-4 h-4" type="checkbox"/>
+<span class="font-medium">Include Comment &amp; Lead Audit Log (186 Qualified Leads)</span>
+</label>
+</div>
+</div>
+<!-- File Metadata Preview -->
+<div class="flex items-center justify-between p-3 rounded-lg bg-surface-card-subtle border border-border-strong font-label-code text-[11px]">
+<span class="text-text-secondary">Expected file size: <strong class="text-text-primary">2.4 MB</strong></span>
+<span class="inline-flex items-center gap-1 text-status-active font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-status-active"></span>
+            Ready for download
+          </span>
+</div>
+</div>
+<!-- Modal Footer -->
+<div class="px-6 py-4 bg-surface-canvas border-t border-border-strong flex items-center justify-between">
+<button class="px-4 py-2 rounded-lg border border-border-strong bg-white hover:bg-slate-100 text-text-primary font-label-md text-label-md font-semibold transition-colors" id="cancelModalBtn">
+          Cancel
+        </button>
+<button class="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-primary-container hover:bg-brand-primary-hover text-text-primary font-label-md text-label-md font-bold transition-colors shadow-xs" id="downloadConfirmBtn">
+<span class="material-symbols-outlined text-[18px]">download</span>
+<span>Download PDF (2.4 MB)</span>
+</button>
+</div>
+</div>
+</div>
+<!-- ========================================================================= -->
+<!-- INLINE MICRO-INTERACTION LOGIC                                            -->
+<!-- ========================================================================= -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const modal = document.getElementById('exportModalBackdrop');
+      const closeBtn = document.getElementById('closeExportModalBtn');
+      const cancelBtn = document.getElementById('cancelModalBtn');
+      const triggerBtn = document.getElementById('triggerExportHeaderBtn');
+      const exportDropdownBtn = document.getElementById('exportDropdownBtn');
+      
+      const stateNormalBtn = document.getElementById('stateNormalBtn');
+      const stateExportModalBtn = document.getElementById('stateExportModalBtn');
+      const stateGeneratingBtn = document.getElementById('stateGeneratingBtn');
+      const regenerateBtn = document.getElementById('regenerateActionBtn');
+      const downloadBtn = document.getElementById('downloadConfirmBtn');
+
+      function openModal() {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        setActiveStateBtn(stateExportModalBtn);
+      }
+
+      function closeModal() {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        setActiveStateBtn(stateNormalBtn);
+      }
+
+      function setActiveStateBtn(activeEl) {
+        [stateNormalBtn, stateExportModalBtn, stateGeneratingBtn].forEach(btn => {
+          btn.classList.remove('bg-white', 'text-text-primary', 'shadow-xs', 'font-bold');
+          btn.classList.add('text-text-secondary');
+        });
+        activeEl.classList.remove('text-text-secondary');
+        activeEl.classList.add('bg-white', 'text-text-primary', 'shadow-xs', 'font-bold');
+      }
+
+      // Event Listeners for Modal
+      triggerBtn.addEventListener('click', openModal);
+      exportDropdownBtn.addEventListener('click', openModal);
+      closeBtn.addEventListener('click', closeModal);
+      cancelBtn.addEventListener('click', closeModal);
+
+      // Dismiss on backdrop click
+      modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+          closeModal();
+        }
+      });
+
+      // State Pill Controllers
+      stateNormalBtn.addEventListener('click', function () {
+        closeModal();
+      });
+
+      stateExportModalBtn.addEventListener('click', function () {
+        openModal();
+      });
+
+      stateGeneratingBtn.addEventListener('click', function () {
+        closeModal();
+        setActiveStateBtn(stateGeneratingBtn);
+        simulateGenerating();
+      });
+
+      regenerateBtn.addEventListener('click', function () {
+        setActiveStateBtn(stateGeneratingBtn);
+        simulateGenerating();
+      });
+
+      function simulateGenerating() {
+        const originalText = regenerateBtn.innerHTML;
+        regenerateBtn.innerHTML = `
+          <span class="material-symbols-outlined text-[17px] animate-spin">sync</span>
+          <span>Regenerating...</span>
+        `;
+        regenerateBtn.classList.add('opacity-75', 'cursor-not-allowed');
+
+        setTimeout(() => {
+          regenerateBtn.innerHTML = originalText;
+          regenerateBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+          setActiveStateBtn(stateNormalBtn);
+        }, 1200);
+      }
+
+      downloadBtn.addEventListener('click', function () {
+        downloadBtn.innerHTML = `
+          <span class="material-symbols-outlined text-[18px] animate-spin">hourglass_empty</span>
+          <span>Preparing File...</span>
+        `;
+        setTimeout(() => {
+          downloadBtn.innerHTML = `
+            <span class="material-symbols-outlined text-[18px]">check_circle</span>
+            <span>Downloaded!</span>
+          `;
+          setTimeout(() => {
+            closeModal();
+            downloadBtn.innerHTML = `
+              <span class="material-symbols-outlined text-[18px]">download</span>
+              <span>Download PDF (2.4 MB)</span>
+            `;
+          }, 800);
+        }, 1000);
+      });
+    });
+  </script>
+</body></html>

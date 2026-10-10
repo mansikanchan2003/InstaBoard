@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+
+<html class="h-full bg-surface-canvas" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Eko InstaBoard - Notifications Inbox</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts: Inter & Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS v3 via CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-container": "#e5eeff",
+            "status-active": "#10B981",
+            "on-surface": "#0b1c30",
+            "tertiary-container": "#6abdff",
+            "ai-accent": "#6366F1",
+            "on-tertiary": "#ffffff",
+            "surface-canvas": "#F8FAFC",
+            "status-paused": "#F59E0B",
+            "on-primary-fixed": "#291800",
+            "status-draft-subtle": "#F1F5F9",
+            "on-primary-fixed-variant": "#633f00",
+            "status-active-subtle": "#ECFDF5",
+            "secondary-container": "#dae2fd",
+            "secondary-fixed": "#dae2fd",
+            "on-primary-container": "#644000",
+            "inverse-primary": "#ffb955",
+            "surface-container-high": "#dce9ff",
+            "primary-fixed": "#ffddb4",
+            "tertiary-fixed-dim": "#93ccff",
+            "on-surface-variant": "#524534",
+            "brand-primary-hover": "#D97706",
+            "surface": "#f8f9ff",
+            "on-tertiary-fixed-variant": "#004b73",
+            "on-secondary": "#ffffff",
+            "primary": "#835500",
+            "status-completed": "#0284C7",
+            "outline-variant": "#d7c3ae",
+            "surface-bright": "#f8f9ff",
+            "text-secondary": "#475569",
+            "surface-dim": "#cbdbf5",
+            "border-strong": "#E2E8F0",
+            "on-tertiary-container": "#004b74",
+            "border-focused": "#0F172A",
+            "on-secondary-fixed": "#131b2e",
+            "background": "#f8f9ff",
+            "surface-card-subtle": "#F1F5F9",
+            "text-primary": "#0F172A",
+            "status-paused-subtle": "#FFFBEB",
+            "secondary": "#565e74",
+            "border-subtle": "#F1F5F9",
+            "surface-card": "#FFFFFF",
+            "tertiary-fixed": "#cce5ff",
+            "error": "#ba1a1a",
+            "surface-container-highest": "#d3e4fe",
+            "on-error": "#ffffff",
+            "surface-container-lowest": "#ffffff",
+            "primary-fixed-dim": "#ffb955",
+            "on-tertiary-fixed": "#001d31",
+            "ai-subtle": "#EEF2FF",
+            "inverse-on-surface": "#eaf1ff",
+            "primary-container": "#f5a623",
+            "outline": "#857462",
+            "text-tertiary": "#94A3B8",
+            "ai-border": "#C7D2FE",
+            "on-background": "#0b1c30",
+            "secondary-fixed-dim": "#bec6e0",
+            "error-container": "#ffdad6",
+            "status-draft": "#64748B",
+            "on-error-container": "#93000a",
+            "surface-container-low": "#eff4ff",
+            "surface-variant": "#d3e4fe",
+            "status-completed-subtle": "#F0F9FF",
+            "on-primary": "#ffffff",
+            "on-secondary-container": "#5c647a",
+            "surface-tint": "#835500",
+            "on-secondary-fixed-variant": "#3f465c",
+            "tertiary": "#006398",
+            "inverse-surface": "#213145"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "fontFamily": {
+            "body-lg": ["Inter"],
+            "headline-md": ["Plus Jakarta Sans"],
+            "display-hero": ["Plus Jakarta Sans"],
+            "label-sm": ["Inter"],
+            "label-md": ["Inter"],
+            "metric-stat-lg": ["Inter"],
+            "body-md": ["Inter"],
+            "display-hero-mobile": ["Plus Jakarta Sans"],
+            "label-code": ["Inter"],
+            "metric-stat-sm": ["Inter"],
+            "headline-lg": ["Plus Jakarta Sans"],
+            "body-sm": ["Inter"],
+            "headline-sm": ["Plus Jakarta Sans"]
+          },
+          "fontSize": {
+            "body-lg": ["15px", { "lineHeight": "22px", "fontWeight": "400" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.015em", "fontWeight": "700" }],
+            "display-hero": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.03em", "fontWeight": "800" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "600" }],
+            "label-md": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
+            "metric-stat-lg": ["32px", { "lineHeight": "38px", "letterSpacing": "-0.025em", "fontWeight": "700" }],
+            "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "display-hero-mobile": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+            "label-code": ["10px", { "lineHeight": "12px", "letterSpacing": "0.06em", "fontWeight": "700" }],
+            "metric-stat-sm": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }]
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="h-full font-body-md text-text-primary antialiased bg-surface-canvas flex overflow-hidden">
+<!-- ==================== SIDEBAR ==================== -->
+<aside class="fixed top-0 left-0 h-screen w-60 z-30 bg-surface-card border-r border-border-strong flex flex-col justify-between p-4 select-none">
+<div class="flex flex-col gap-4">
+<!-- Brand Header -->
+<div class="flex items-center gap-3 px-1 py-1">
+<div class="w-9 h-9 rounded-lg bg-surface-canvas border border-border-strong flex items-center justify-center p-1.5 shadow-sm">
+<img alt="Eko India Financial Services official brand avatar" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZW1VEw6RZrCsFyrKuupFQPAR8aqOWxmVn1vfTTJcG3xWf-_FwYpSZ2yiQM1UwmtrWv7DFUUJCLH25ExG6mnAEl1VsUUIYVErBFv1KyRFWJ8FWpBdWIsakeYYIBAtAxP2_aiEev2leXGHNXMsJdSNYj2LGmNYWStIkwPXfF6_x7XmGXiDxf5sOVU80nfUIaMnfoHHraEmsEfTuXIa7Wpzh7zm-nI2WkD3ZMd_frZWpPRvq4FHhsolwW99X5utSW62A"/>
+</div>
+<div class="flex flex-col">
+<span class="text-headline-sm font-headline-sm text-text-primary font-bold tracking-tight leading-none">InstaBoard</span>
+<span class="text-label-sm font-label-sm text-text-secondary mt-1">Enterprise Analytics</span>
+</div>
+</div>
+<!-- Action Button -->
+<button class="w-full h-9 bg-primary-container hover:bg-brand-primary-hover text-text-primary font-label-md text-label-md font-bold rounded-lg flex items-center justify-center gap-2 transition-colors duration-150 shadow-sm">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+<span>New Campaign</span>
+</button>
+<!-- Navigation Hierarchy -->
+<nav class="flex flex-col gap-5 overflow-y-auto pr-1 max-h-[calc(100vh-270px)] scrollbar-thin">
+<!-- Section: WORKSPACE -->
+<div class="flex flex-col gap-1">
+<span class="px-3 text-label-code font-label-code text-text-tertiary tracking-wider">WORKSPACE</span>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary font-label-md text-label-md font-medium hover:bg-surface-canvas hover:text-text-primary transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-[19px]">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary font-label-md text-label-md font-medium hover:bg-surface-canvas hover:text-text-primary transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-[19px]">campaign</span>
+<span>Campaigns</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary font-label-md text-label-md font-medium hover:bg-surface-canvas hover:text-text-primary transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-[19px]">movie</span>
+<span>Content</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary font-label-md text-label-md font-medium hover:bg-surface-canvas hover:text-text-primary transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-[19px]">group</span>
+<span>Audience</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary font-label-md text-label-md font-medium hover:bg-surface-canvas hover:text-text-primary transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-[19px]">chat_bubble</span>
+<span>Comments</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary font-label-md text-label-md font-medium hover:bg-surface-canvas hover:text-text-primary transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-[19px]">contact_page</span>
+<span>Leads</span>
+</a>
+</div>
+<!-- Section: INTELLIGENCE & REPORTS -->
+<div class="flex flex-col gap-1">
+<span class="px-3 text-label-code font-label-code text-text-tertiary tracking-wider">INTELLIGENCE &amp; REPORTS</span>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary font-label-md text-label-md font-medium hover:bg-surface-canvas hover:text-text-primary transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-[19px]">auto_awesome</span>
+<span>AI Insights</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary font-label-md text-label-md font-medium hover:bg-surface-canvas hover:text-text-primary transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-[19px]">assessment</span>
+<span>Reports</span>
+</a>
+</div>
+<!-- Section: CONNECT & SYSTEM -->
+<div class="flex flex-col gap-1">
+<span class="px-3 text-label-code font-label-code text-text-tertiary tracking-wider">CONNECT &amp; SYSTEM</span>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary font-label-md text-label-md font-medium hover:bg-surface-canvas hover:text-text-primary transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-[19px]">switch_account</span>
+<span>Instagram Accounts</span>
+</a>
+<!-- Active Tab: Notifications with unread badge 3 -->
+<a class="flex items-center justify-between px-3 py-2 rounded-lg bg-surface-container-low text-text-primary font-semibold border-l-2 border-primary-container transition-colors duration-150" href="#">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[19px] text-primary-container">notifications</span>
+<span class="font-label-md text-label-md font-semibold text-text-primary">Notifications</span>
+</div>
+<span class="h-5 px-1.5 min-w-[20px] rounded-full bg-primary-container text-text-primary font-label-code text-[11px] font-bold flex items-center justify-center leading-none">3</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary font-label-md text-label-md font-medium hover:bg-surface-canvas hover:text-text-primary transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-[19px]">settings</span>
+<span>Settings</span>
+</a>
+</div>
+</nav>
+</div>
+<!-- Sidebar Footer / Organization Profile -->
+<div class="border-t border-border-strong pt-3 px-2 flex items-center justify-between">
+<div class="flex items-center gap-2 overflow-hidden">
+<div class="w-7 h-7 rounded-full bg-surface-card-subtle border border-border-strong flex items-center justify-center text-text-secondary font-label-code text-[10px]">
+          EK
+        </div>
+<div class="flex flex-col truncate">
+<span class="text-label-sm font-label-sm font-semibold text-text-primary truncate">Eko Media Ops</span>
+<span class="text-[10px] text-text-tertiary truncate">Meta Partner Prod</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-text-tertiary text-[18px]">verified_user</span>
+</div>
+</aside>
+<!-- ==================== MAIN SHELL (Header + Content) ==================== -->
+<div class="ml-60 flex-1 flex flex-col h-screen overflow-hidden">
+<!-- TopNavBar -->
+<header class="h-14 bg-surface-card border-b border-border-strong px-6 flex items-center justify-between z-20 flex-shrink-0">
+<!-- Left: Active Instagram Account & Status -->
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-2 px-2.5 py-1 bg-surface-canvas rounded-lg border border-border-strong">
+<div class="w-5 h-5 rounded-full bg-surface-card border border-border-strong flex items-center justify-center overflow-hidden">
+<img alt="Account manager avatar" class="w-4 h-4 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZW1VEw6RZrCsFyrKuupFQPAR8aqOWxmVn1vfTTJcG3xWf-_FwYpSZ2yiQM1UwmtrWv7DFUUJCLH25ExG6mnAEl1VsUUIYVErBFv1KyRFWJ8FWpBdWIsakeYYIBAtAxP2_aiEev2leXGHNXMsJdSNYj2LGmNYWStIkwPXfF6_x7XmGXiDxf5sOVU80nfUIaMnfoHHraEmsEfTuXIa7Wpzh7zm-nI2WkD3ZMd_frZWpPRvq4FHhsolwW99X5utSW62A"/>
+</div>
+<span class="text-label-md font-label-md font-semibold text-text-primary">Eko India Financial Services <span class="text-text-secondary font-normal">@ekoindia</span></span>
+<span class="material-symbols-outlined text-[16px] text-[#0284C7]" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+<div class="h-4 w-px bg-border-strong"></div>
+<div class="flex items-center gap-1.5 text-label-sm font-label-sm text-text-secondary">
+<span class="w-2 h-2 rounded-full bg-status-active"></span>
+<span>Synced 12m ago</span>
+</div>
+<div class="flex items-center gap-1 text-label-sm font-label-sm text-text-secondary px-2 py-0.5 bg-surface-canvas rounded border border-border-strong">
+<span class="material-symbols-outlined text-[14px]">calendar_today</span>
+<span>Oct 01 - Oct 31, 2024</span>
+</div>
+</div>
+<!-- Center / Simulation States Controller Bar (Required in prompt) -->
+<div class="hidden xl:flex items-center bg-surface-card-subtle p-0.5 rounded-lg border border-border-strong gap-0.5 text-label-code font-label-code">
+<button class="px-2.5 py-1 rounded bg-surface-card text-text-primary font-bold shadow-xs" id="simNormalBtn" onclick="setSimState('normal')">Normal Loaded</button>
+<button class="px-2.5 py-1 rounded text-text-secondary hover:text-text-primary font-medium" id="simPrefBtn" onclick="togglePreferencesDrawer(true)">Preferences Drawer</button>
+<button class="px-2.5 py-1 rounded text-text-secondary hover:text-text-primary font-medium" id="simModalBtn" onclick="openDetailModal('notif-1')">Detail Modal</button>
+<button class="px-2.5 py-1 rounded text-text-secondary hover:text-text-primary font-medium" id="simEmptyBtn" onclick="setSimState('empty')">Empty State</button>
+</div>
+<!-- Right: Action Buttons -->
+<div class="flex items-center gap-2.5">
+<button class="h-8 px-3 rounded-lg border border-border-strong bg-surface-card hover:bg-surface-canvas text-text-primary text-label-md font-label-md font-medium flex items-center gap-1.5 transition-colors duration-150">
+<span class="material-symbols-outlined text-[16px]">file_download</span>
+<span>Export</span>
+</button>
+<button class="h-8 px-3.5 rounded-lg bg-primary-container hover:bg-brand-primary-hover text-text-primary text-label-md font-label-md font-bold flex items-center gap-1.5 transition-colors duration-150 shadow-xs">
+<span class="material-symbols-outlined text-[16px]">sync</span>
+<span>Sync Data</span>
+</button>
+<div class="h-4 w-px bg-border-strong"></div>
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-surface-canvas transition-colors" onclick="togglePreferencesDrawer(true)" title="Preferences">
+<span class="material-symbols-outlined text-[19px]">tune</span>
+</button>
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-surface-canvas transition-colors" title="Help">
+<span class="material-symbols-outlined text-[19px]">help_outline</span>
+</button>
+</div>
+</header>
+<!-- Subheader / Notifications Banner Bar -->
+<main class="flex-1 overflow-y-auto px-8 py-6 relative">
+<div class="max-w-6xl mx-auto flex flex-col gap-5">
+<!-- Breadcrumb & Header Row -->
+<div class="flex flex-col gap-2">
+<div class="flex items-center gap-2 text-label-sm font-label-sm text-text-secondary">
+<span>System</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-text-primary font-semibold">Notifications</span>
+</div>
+<div class="flex items-center justify-between mt-1">
+<div class="flex items-center gap-3">
+<h1 class="text-headline-lg font-headline-lg font-bold text-text-primary tracking-tight">Notifications</h1>
+<span class="h-5 px-2.5 rounded-full bg-status-active-subtle border border-[#A7F3D0] text-[#065F46] text-label-sm font-label-sm font-semibold flex items-center gap-1.5" id="unreadPillBadge">
+<span class="w-1.5 h-1.5 rounded-full bg-status-active"></span>
+<span>3 Unread</span>
+</span>
+</div>
+<!-- Header Quick Actions -->
+<div class="flex items-center gap-2.5">
+<button class="h-8 px-3 rounded-lg border border-border-strong bg-surface-card hover:bg-surface-canvas text-text-primary text-label-md font-label-md font-medium flex items-center gap-1.5 transition-colors" onclick="markAllAsRead()">
+<span class="material-symbols-outlined text-[16px]">done_all</span>
+<span>Mark All as Read</span>
+</button>
+<button class="h-8 px-3 rounded-lg border border-border-strong bg-surface-card hover:bg-surface-canvas text-text-primary text-label-md font-label-md font-medium flex items-center gap-1.5 transition-colors" onclick="togglePreferencesDrawer(true)">
+<span class="material-symbols-outlined text-[16px]">settings</span>
+<span>Notification Preferences</span>
+</button>
+</div>
+</div>
+<p class="text-body-md font-body-md text-text-secondary -mt-1">Stay informed about campaign performance, new leads, and account health.</p>
+</div>
+<!-- Filter & Search Control Bar -->
+<div class="bg-surface-card border border-border-strong rounded-xl p-2.5 flex flex-wrap items-center justify-between gap-3 shadow-xs">
+<!-- Filter Tabs -->
+<div class="flex items-center gap-1 overflow-x-auto pb-0.5 text-label-md font-label-md">
+<button class="filter-tab px-3 py-1.5 rounded-lg bg-text-primary text-white font-semibold transition-colors duration-150" onclick="filterTab('all', this)">All (7)</button>
+<button class="filter-tab px-3 py-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-canvas font-medium transition-colors duration-150" onclick="filterTab('unread', this)">Unread (3)</button>
+<button class="filter-tab px-3 py-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-canvas font-medium transition-colors duration-150" onclick="filterTab('campaigns', this)">Campaigns (1)</button>
+<button class="filter-tab px-3 py-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-canvas font-medium transition-colors duration-150" onclick="filterTab('leads', this)">Leads (2)</button>
+<button class="filter-tab px-3 py-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-canvas font-medium transition-colors duration-150" onclick="filterTab('content', this)">Content Performance (1)</button>
+<button class="filter-tab px-3 py-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-canvas font-medium transition-colors duration-150" onclick="filterTab('account', this)">Account &amp; Sync (1)</button>
+<button class="filter-tab px-3 py-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-canvas font-medium transition-colors duration-150" onclick="filterTab('ai', this)">AI Insights (2)</button>
+</div>
+<!-- Quick Filters & Search Input -->
+<div class="flex items-center gap-2">
+<!-- Priority Dropdown -->
+<div class="relative">
+<select class="h-8 pl-2.5 pr-8 bg-surface-canvas text-label-md font-label-md text-text-primary rounded-lg border border-border-strong focus:outline-none focus:border-border-focused text-xs cursor-pointer appearance-none" id="priorityFilter" onchange="applyPriorityFilter(this.value)">
+<option value="all">Priority: All</option>
+<option value="urgent">Urgent Attention</option>
+<option value="high">High Priority</option>
+</select>
+<span class="material-symbols-outlined text-[14px] text-text-secondary pointer-events-none absolute right-2 top-2">expand_more</span>
+</div>
+<!-- Search input -->
+<div class="relative w-56">
+<input class="w-full h-8 pl-8 pr-3 text-label-md font-label-md bg-surface-canvas rounded-lg border border-border-strong text-text-primary placeholder-text-tertiary focus:outline-none focus:border-border-focused text-xs" id="searchInput" oninput="searchNotifications(this.value)" placeholder="Search notifications..." type="text"/>
+<span class="material-symbols-outlined text-[16px] text-text-tertiary absolute left-2.5 top-2">search</span>
+</div>
+</div>
+</div>
+<!-- ==================== NOTIFICATIONS FEED CONTAINER ==================== -->
+<div class="flex flex-col gap-6" id="notificationsContainer">
+<!-- SECTION: Today (Oct 31, 2024) -->
+<div class="notification-group flex flex-col gap-2.5">
+<div class="flex items-center justify-between px-1">
+<span class="text-label-sm font-label-sm font-bold text-text-secondary uppercase tracking-wider">Today • Oct 31, 2024</span>
+<span class="text-label-code font-label-code text-text-tertiary">3 updates</span>
+</div>
+<!-- Card 1: Token Refresh (Unread & Urgent) -->
+<article class="notif-item relative bg-surface-card border border-border-strong rounded-xl p-4 transition-all duration-150 hover:border-text-secondary hover:shadow-xs group" data-category="account" data-priority="urgent" data-read="false" id="notif-1">
+<div class="flex items-start gap-3.5">
+<!-- Icon + Unread marker -->
+<div class="relative flex-shrink-0">
+<div class="w-10 h-10 rounded-xl bg-status-paused-subtle border border-[#FDE68A] flex items-center justify-center text-[#B45309]">
+<span class="material-symbols-outlined text-[20px]">key</span>
+</div>
+<span class="unread-dot absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-primary-container ring-2 ring-white"></span>
+</div>
+<!-- Content Area -->
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between gap-2 flex-wrap mb-1">
+<div class="flex items-center gap-2 flex-wrap">
+<span class="text-label-sm font-label-sm font-semibold text-text-secondary">Account &amp; Sync</span>
+<span class="text-text-tertiary text-xs">•</span>
+<span class="text-label-sm font-label-sm text-text-tertiary">14m ago</span>
+<span class="h-[22px] px-2 rounded-full bg-status-paused-subtle border border-[#FDE68A] text-[#92400E] text-[11px] font-semibold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-[#D97706]"></span>
+<span>Urgent Attention</span>
+</span>
+</div>
+<div class="flex items-center gap-1 text-text-tertiary opacity-80 group-hover:opacity-100">
+<button class="p-1 hover:text-text-primary rounded hover:bg-surface-canvas" onclick="openDetailModal('notif-1')" title="Inspect Detail">
+<span class="material-symbols-outlined text-[17px]">open_in_new</span>
+</button>
+<button class="read-toggle-btn p-1 hover:text-text-primary rounded hover:bg-surface-canvas" onclick="toggleReadState('notif-1')" title="Mark as read">
+<span class="material-symbols-outlined text-[17px]">drafts</span>
+</button>
+</div>
+</div>
+<h3 class="text-headline-sm font-headline-sm text-text-primary font-bold cursor-pointer hover:text-primary transition-colors" onclick="openDetailModal('notif-1')">
+                    Action Required: Token Refresh for @ekomitracare
+                  </h3>
+<p class="text-body-md font-body-md text-text-secondary mt-1">
+                    Graph API long-lived user token for creator account <span class="font-semibold text-text-primary">@ekomitracare</span> expires in 4 days. Telemetry refresh scheduled in 5h 42m may fail.
+                  </p>
+<!-- Tags -->
+<div class="flex items-center gap-2 mt-2.5 flex-wrap">
+<span class="px-2 py-0.5 rounded bg-surface-canvas border border-border-strong text-label-code font-label-code text-text-secondary">
+                      Account: @ekomitracare
+                    </span>
+<span class="px-2 py-0.5 rounded bg-surface-canvas border border-border-strong text-label-code font-label-code text-text-secondary">
+                      Meta Graph API v19.0
+                    </span>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-3 mt-3.5 pt-2.5 border-t border-border-subtle">
+<a class="text-label-md font-label-md font-bold text-text-primary hover:text-brand-primary-hover flex items-center gap-1" href="#">
+<span>Review Permissions &amp; Renew</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+<span class="text-border-strong">•</span>
+<button class="text-label-md font-label-md text-text-secondary hover:text-text-primary" onclick="dismissNotification('notif-1')">
+                      Dismiss
+                    </button>
+</div>
+</div>
+</div>
+</article>
+<!-- Card 2: High-Intent Lead (Unread) -->
+<article class="notif-item relative bg-surface-card border border-border-strong rounded-xl p-4 transition-all duration-150 hover:border-text-secondary hover:shadow-xs group" data-category="leads" data-priority="high" data-read="false" id="notif-2">
+<div class="flex items-start gap-3.5">
+<div class="relative flex-shrink-0">
+<div class="w-10 h-10 rounded-xl bg-status-active-subtle border border-[#A7F3D0] flex items-center justify-center text-[#065F46]">
+<span class="material-symbols-outlined text-[20px]">contact_phone</span>
+</div>
+<span class="unread-dot absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-primary-container ring-2 ring-white"></span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between gap-2 flex-wrap mb-1">
+<div class="flex items-center gap-2 flex-wrap">
+<span class="text-label-sm font-label-sm font-semibold text-text-secondary">Leads</span>
+<span class="text-text-tertiary text-xs">•</span>
+<span class="text-label-sm font-label-sm text-text-tertiary">1h ago</span>
+<span class="h-[22px] px-2 rounded-full bg-ai-subtle border border-ai-border text-[#4338CA] text-[11px] font-semibold flex items-center gap-1 tracking-wide">
+<span class="material-symbols-outlined text-[12px]">auto_awesome</span>
+<span>AI-IDENTIFIED</span>
+</span>
+</div>
+<div class="flex items-center gap-1 text-text-tertiary opacity-80 group-hover:opacity-100">
+<button class="p-1 hover:text-text-primary rounded hover:bg-surface-canvas" onclick="openDetailModal('notif-2')" title="Inspect Detail">
+<span class="material-symbols-outlined text-[17px]">open_in_new</span>
+</button>
+<button class="read-toggle-btn p-1 hover:text-text-primary rounded hover:bg-surface-canvas" onclick="toggleReadState('notif-2')" title="Mark as read">
+<span class="material-symbols-outlined text-[17px]">drafts</span>
+</button>
+</div>
+</div>
+<h3 class="text-headline-sm font-headline-sm text-text-primary font-bold cursor-pointer hover:text-primary transition-colors" onclick="openDetailModal('notif-2')">
+                    High-Intent Lead Identified from Comments
+                  </h3>
+<p class="text-body-md font-body-md text-text-secondary mt-1">
+<span class="font-semibold text-text-primary">Rajesh Maurya</span> commented on "SBI CSP Mitra Recruitment Reel": <span class="italic text-text-primary">"How can I apply for this CSP in Gorakhpur?"</span> AI sentiment classified as Application / Purchase Intent with 96% confidence.
+                  </p>
+<div class="flex items-center gap-2 mt-2.5 flex-wrap">
+<span class="px-2 py-0.5 rounded bg-surface-canvas border border-border-strong text-label-code font-label-code text-text-secondary">
+                      Content: SBI CSP Mitra Reel
+                    </span>
+<span class="px-2 py-0.5 rounded bg-ai-subtle border border-ai-border text-label-code font-label-code text-[#4338CA]">
+                      Lead Score: High (AI-Inferred)
+                    </span>
+</div>
+<div class="flex items-center gap-3 mt-3.5 pt-2.5 border-t border-border-subtle">
+<a class="text-label-md font-label-md font-bold text-text-primary hover:text-brand-primary-hover flex items-center gap-1" href="#">
+<span>View in Comments Intelligence</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+<span class="text-border-strong">•</span>
+<button class="text-label-md font-label-md font-medium text-text-primary hover:text-primary">
+                      Create Lead Record
+                    </button>
+</div>
+</div>
+</div>
+</article>
+<!-- Card 3: AI Strategic Insight (Unread) -->
+<article class="notif-item relative bg-surface-card border border-border-strong rounded-xl p-4 transition-all duration-150 hover:border-text-secondary hover:shadow-xs group" data-category="ai" data-priority="standard" data-read="false" id="notif-3">
+<div class="flex items-start gap-3.5">
+<div class="relative flex-shrink-0">
+<div class="w-10 h-10 rounded-xl bg-ai-subtle border border-ai-border flex items-center justify-center text-ai-accent">
+<span class="material-symbols-outlined text-[20px]">psychology</span>
+</div>
+<span class="unread-dot absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-primary-container ring-2 ring-white"></span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between gap-2 flex-wrap mb-1">
+<div class="flex items-center gap-2 flex-wrap">
+<span class="text-label-sm font-label-sm font-semibold text-text-secondary">AI Insights</span>
+<span class="text-text-tertiary text-xs">•</span>
+<span class="text-label-sm font-label-sm text-text-tertiary">2h ago</span>
+<span class="h-[22px] px-2 rounded-full bg-ai-subtle border border-ai-border text-[#4338CA] text-[11px] font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">auto_awesome</span>
+<span>SYNTHESIS V4.2</span>
+</span>
+</div>
+<div class="flex items-center gap-1 text-text-tertiary opacity-80 group-hover:opacity-100">
+<button class="p-1 hover:text-text-primary rounded hover:bg-surface-canvas" onclick="openDetailModal('notif-3')" title="Inspect Detail">
+<span class="material-symbols-outlined text-[17px]">open_in_new</span>
+</button>
+<button class="read-toggle-btn p-1 hover:text-text-primary rounded hover:bg-surface-canvas" onclick="toggleReadState('notif-3')" title="Mark as read">
+<span class="material-symbols-outlined text-[17px]">drafts</span>
+</button>
+</div>
+</div>
+<h3 class="text-headline-sm font-headline-sm text-text-primary font-bold cursor-pointer hover:text-primary transition-colors" onclick="openDetailModal('notif-3')">
+                    New AI Strategic Insight Available
+                  </h3>
+<p class="text-body-md font-body-md text-text-secondary mt-1">
+                    Synthesis Engine v4.2 generated: <span class="text-text-primary font-medium">"Short-Form Hindi Reels Outperform Carousels by 3.8x in Lead Conversion"</span> with 94.6% model confidence.
+                  </p>
+<div class="flex items-center gap-2 mt-2.5 flex-wrap">
+<span class="px-2 py-0.5 rounded bg-surface-canvas border border-border-strong text-label-code font-label-code text-text-secondary">
+                      Campaign: SBI CSP October
+                    </span>
+<span class="px-2 py-0.5 rounded bg-surface-canvas border border-border-strong text-label-code font-label-code text-text-secondary">
+                      Category: Content Intelligence
+                    </span>
+</div>
+<div class="flex items-center gap-3 mt-3.5 pt-2.5 border-t border-border-subtle">
+<a class="text-label-md font-label-md font-bold text-text-primary hover:text-brand-primary-hover flex items-center gap-1" href="#">
+<span>Read AI Insight</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+<span class="text-border-strong">•</span>
+<button class="text-label-md font-label-md text-text-secondary hover:text-text-primary" onclick="dismissNotification('notif-3')">
+                      Dismiss
+                    </button>
+</div>
+</div>
+</div>
+</article>
+</div>
+<!-- SECTION: Earlier Today -->
+<div class="notification-group flex flex-col gap-2.5">
+<div class="flex items-center justify-between px-1">
+<span class="text-label-sm font-label-sm font-bold text-text-secondary uppercase tracking-wider">Earlier Today</span>
+<span class="text-label-code font-label-code text-text-tertiary">2 updates</span>
+</div>
+<!-- Card 4: Report Generated (Read) -->
+<article class="notif-item relative bg-surface-card border border-border-strong rounded-xl p-4 transition-all duration-150 hover:border-text-secondary hover:shadow-xs group" data-category="reports" data-priority="standard" data-read="true" id="notif-4">
+<div class="flex items-start gap-3.5">
+<div class="w-10 h-10 rounded-xl bg-status-completed-subtle border border-[#BAE6FD] flex items-center justify-center text-[#0369A1] flex-shrink-0">
+<span class="material-symbols-outlined text-[20px]">assessment</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between gap-2 flex-wrap mb-1">
+<div class="flex items-center gap-2 flex-wrap">
+<span class="text-label-sm font-label-sm font-semibold text-text-secondary">Reports</span>
+<span class="text-text-tertiary text-xs">•</span>
+<span class="text-label-sm font-label-sm text-text-tertiary">4h ago</span>
+<span class="h-[22px] px-2 rounded-full bg-status-completed-subtle border border-[#BAE6FD] text-[#0369A1] text-[11px] font-semibold">Completed</span>
+</div>
+<div class="flex items-center gap-1 text-text-tertiary opacity-80 group-hover:opacity-100">
+<button class="p-1 hover:text-text-primary rounded hover:bg-surface-canvas" onclick="openDetailModal('notif-4')" title="Inspect Detail">
+<span class="material-symbols-outlined text-[17px]">open_in_new</span>
+</button>
+<button class="read-toggle-btn p-1 hover:text-text-primary rounded hover:bg-surface-canvas" onclick="toggleReadState('notif-4')" title="Mark as unread">
+<span class="material-symbols-outlined text-[17px]">mark_email_read</span>
+</button>
+</div>
+</div>
+<h3 class="text-headline-sm font-headline-sm text-text-primary font-bold cursor-pointer hover:text-primary transition-colors" onclick="openDetailModal('notif-4')">
+                    Report Generated Successfully: SBI CSP Recruitment Campaign
+                  </h3>
+<p class="text-body-md font-body-md text-text-secondary mt-1">
+                    Report <span class="font-semibold text-text-primary">#REP-2024-884</span> (Campaign Performance) generated for period Oct 01 - Oct 31, 2024. Total 842K views and 186 verified leads reconciled.
+                  </p>
+<div class="flex items-center gap-2 mt-2.5 flex-wrap">
+<span class="px-2 py-0.5 rounded bg-surface-canvas border border-border-strong text-label-code font-label-code text-text-secondary">
+                      Report: #REP-2024-884
+                    </span>
+<span class="px-2 py-0.5 rounded bg-surface-canvas border border-border-strong text-label-code font-label-code text-text-secondary">
+                      Format: PDF / CSV Ready
+                    </span>
+</div>
+<div class="flex items-center gap-3 mt-3.5 pt-2.5 border-t border-border-subtle">
+<a class="text-label-md font-label-md font-bold text-text-primary hover:text-brand-primary-hover flex items-center gap-1" href="#">
+<span>Download Report</span>
+<span class="material-symbols-outlined text-[16px]">arrow_downward</span>
+</a>
+<span class="text-border-strong">•</span>
+<button class="text-label-md font-label-md text-text-secondary hover:text-text-primary" onclick="openDetailModal('notif-4')">
+                      View Details
+                    </button>
+</div>
+</div>
+</div>
+</article>
+<!-- Card 5: Reel Pacing Surge (Read) -->
+<article class="notif-item relative bg-surface-card border border-border-strong rounded-xl p-4 transition-all duration-150 hover:border-text-secondary hover:shadow-xs group" data-category="content" data-priority="standard" data-read="true" id="notif-5">
+<div class="flex items-start gap-3.5">
+<div class="w-10 h-10 rounded-xl bg-status-active-subtle border border-[#A7F3D0] flex items-center justify-center text-status-active flex-shrink-0">
+<span class="material-symbols-outlined text-[20px]">trending_up</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between gap-2 flex-wrap mb-1">
+<div class="flex items-center gap-2 flex-wrap">
+<span class="text-label-sm font-label-sm font-semibold text-text-secondary">Content Performance</span>
+<span class="text-text-tertiary text-xs">•</span>
+<span class="text-label-sm font-label-sm text-text-tertiary">6h ago</span>
+<span class="h-[22px] px-2 rounded-full bg-status-active-subtle border border-[#A7F3D0] text-[#065F46] text-[11px] font-semibold">Discovery Boost</span>
+</div>
+<div class="flex items-center gap-1 text-text-tertiary opacity-80 group-hover:opacity-100">
+<button class="p-1 hover:text-text-primary rounded hover:bg-surface-canvas" onclick="openDetailModal('notif-5')" title="Inspect Detail">
+<span class="material-symbols-outlined text-[17px]">open_in_new</span>
+</button>
+<button class="read-toggle-btn p-1 hover:text-text-primary rounded hover:bg-surface-canvas" onclick="toggleReadState('notif-5')" title="Mark as unread">
+<span class="material-symbols-outlined text-[17px]">mark_email_read</span>
+</button>
+</div>
+</div>
+<h3 class="text-headline-sm font-headline-sm text-text-primary font-bold cursor-pointer hover:text-primary transition-colors" onclick="openDetailModal('notif-5')">
+                    Reel Pacing Surge: SBI CSP Mitra Recruitment
+                  </h3>
+<p class="text-body-md font-body-md text-text-secondary mt-1">
+                    SBI CSP Mitra Recruitment Reel achieved <span class="font-semibold text-text-primary">42.6% completion rate</span> (industry benchmark: 18%) and crossed 842,000 views driven by 62% non-follower Explore discovery.
+                  </p>
+<div class="flex items-center gap-2 mt-2.5 flex-wrap">
+<span class="px-2 py-0.5 rounded bg-surface-canvas border border-border-strong text-label-code font-label-code text-text-secondary">
+                      Views: 842K
+                    </span>
+<span class="px-2 py-0.5 rounded bg-surface-canvas border border-border-strong text-label-code font-label-code text-text-secondary">
+                      Engagement: 8.2%
+                    </span>
+</div>
+<div class="flex items-center gap-3 mt-3.5 pt-2.5 border-t border-border-subtle">
+<a class="text-label-md font-label-md font-bold text-text-primary hover:text-brand-primary-hover flex items-center gap-1" href="#">
+<span>View Reel Analytics</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+</div>
+</div>
+</div>
+</article>
+</div>
+<!-- SECTION: Yesterday (Oct 30, 2024) -->
+<div class="notification-group flex flex-col gap-2.5">
+<div class="flex items-center justify-between px-1">
+<span class="text-label-sm font-label-sm font-bold text-text-secondary uppercase tracking-wider">Yesterday • Oct 30, 2024</span>
+<span class="text-label-code font-label-code text-text-tertiary">2 updates</span>
+</div>
+<!-- Card 6: Lead Milestone (Read) -->
+<article class="notif-item relative bg-surface-card border border-border-strong rounded-xl p-4 transition-all duration-150 hover:border-text-secondary hover:shadow-xs group" data-category="leads" data-priority="standard" data-read="true" id="notif-6">
+<div class="flex items-start gap-3.5">
+<div class="w-10 h-10 rounded-xl bg-status-active-subtle border border-[#A7F3D0] flex items-center justify-center text-[#065F46] flex-shrink-0">
+<span class="material-symbols-outlined text-[20px]">emoji_events</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between gap-2 flex-wrap mb-1">
+<div class="flex items-center gap-2 flex-wrap">
+<span class="text-label-sm font-label-sm font-semibold text-text-secondary">Leads</span>
+<span class="text-text-tertiary text-xs">•</span>
+<span class="text-label-sm font-label-sm text-text-tertiary">Oct 30, 4:15 PM</span>
+<span class="h-[22px] px-2 rounded-full bg-status-active-subtle border border-[#A7F3D0] text-[#065F46] text-[11px] font-semibold">Target Exceeded</span>
+</div>
+<div class="flex items-center gap-1 text-text-tertiary opacity-80 group-hover:opacity-100">
+<button class="p-1 hover:text-text-primary rounded hover:bg-surface-canvas" onclick="openDetailModal('notif-6')" title="Inspect Detail">
+<span class="material-symbols-outlined text-[17px]">open_in_new</span>
+</button>
+<button class="read-toggle-btn p-1 hover:text-text-primary rounded hover:bg-surface-canvas" onclick="toggleReadState('notif-6')" title="Mark as unread">
+<span class="material-symbols-outlined text-[17px]">mark_email_read</span>
+</button>
+</div>
+</div>
+<h3 class="text-headline-sm font-headline-sm text-text-primary font-bold cursor-pointer hover:text-primary transition-colors" onclick="openDetailModal('notif-6')">
+                    Lead Milestone: Target Exceeded (+31.2% Pacing)
+                  </h3>
+<p class="text-body-md font-body-md text-text-secondary mt-1">
+                    October campaign cohort generated <span class="font-semibold text-text-primary">482 total qualified leads</span> against the monthly target of 400 (₹48.2 avg CPL).
+                  </p>
+<div class="flex items-center gap-2 mt-2.5 flex-wrap">
+<span class="px-2 py-0.5 rounded bg-surface-canvas border border-border-strong text-label-code font-label-code text-text-secondary">
+                      Metric: 482 / 400 Leads
+                    </span>
+<span class="px-2 py-0.5 rounded bg-status-active-subtle border border-[#A7F3D0] text-label-code font-label-code text-[#065F46]">
+                      Status: Target Exceeded
+                    </span>
+</div>
+<div class="flex items-center gap-3 mt-3.5 pt-2.5 border-t border-border-subtle">
+<a class="text-label-md font-label-md font-bold text-text-primary hover:text-brand-primary-hover flex items-center gap-1" href="#">
+<span>View Lead Funnel</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+</div>
+</div>
+</div>
+</article>
+<!-- Card 7: Engagement Drift (Read) -->
+<article class="notif-item relative bg-surface-card border border-border-strong rounded-xl p-4 transition-all duration-150 hover:border-text-secondary hover:shadow-xs group" data-category="campaigns" data-priority="standard" data-read="true" id="notif-7">
+<div class="flex items-start gap-3.5">
+<div class="w-10 h-10 rounded-xl bg-status-draft-subtle border border-border-strong flex items-center justify-center text-text-secondary flex-shrink-0">
+<span class="material-symbols-outlined text-[20px]">troubleshoot</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between gap-2 flex-wrap mb-1">
+<div class="flex items-center gap-2 flex-wrap">
+<span class="text-label-sm font-label-sm font-semibold text-text-secondary">Campaigns</span>
+<span class="text-text-tertiary text-xs">•</span>
+<span class="text-label-sm font-label-sm text-text-tertiary">Oct 30, 11:30 AM</span>
+<span class="h-[22px] px-2 rounded-full bg-status-draft-subtle border border-border-strong text-text-secondary text-[11px] font-semibold">Telemetry Drift</span>
+</div>
+<div class="flex items-center gap-1 text-text-tertiary opacity-80 group-hover:opacity-100">
+<button class="p-1 hover:text-text-primary rounded hover:bg-surface-canvas" onclick="openDetailModal('notif-7')" title="Inspect Detail">
+<span class="material-symbols-outlined text-[17px]">open_in_new</span>
+</button>
+<button class="read-toggle-btn p-1 hover:text-text-primary rounded hover:bg-surface-canvas" onclick="toggleReadState('notif-7')" title="Mark as unread">
+<span class="material-symbols-outlined text-[17px]">mark_email_read</span>
+</button>
+</div>
+</div>
+<h3 class="text-headline-sm font-headline-sm text-text-primary font-bold cursor-pointer hover:text-primary transition-colors" onclick="openDetailModal('notif-7')">
+                    Engagement Drift Detected: Rural Banking Access
+                  </h3>
+<p class="text-body-md font-body-md text-text-secondary mt-1">
+                    Engagement rate dipped to 3.76% with 18% neutral-to-negative comments regarding kiosk eligibility ambiguity.
+                  </p>
+<div class="flex items-center gap-2 mt-2.5 flex-wrap">
+<span class="px-2 py-0.5 rounded bg-surface-canvas border border-border-strong text-label-code font-label-code text-text-secondary">
+                      Campaign: Rural Banking Access
+                    </span>
+<span class="px-2 py-0.5 rounded bg-status-paused-subtle border border-[#FDE68A] text-label-code font-label-code text-[#92400E]">
+                      Eng Rate: 3.76% (-22%)
+                    </span>
+</div>
+<div class="flex items-center gap-3 mt-3.5 pt-2.5 border-t border-border-subtle">
+<a class="text-label-md font-label-md font-bold text-text-primary hover:text-brand-primary-hover flex items-center gap-1" href="#">
+<span>Review Campaign</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+</div>
+</div>
+</div>
+</article>
+</div>
+</div>
+<!-- Simulation State: Empty State View (hidden by default) -->
+<div class="hidden flex-col items-center justify-center p-12 bg-surface-card border border-border-strong rounded-xl text-center" id="emptyStateView">
+<div class="w-16 h-16 rounded-full bg-surface-canvas border border-border-strong flex items-center justify-center text-text-tertiary mb-4">
+<span class="material-symbols-outlined text-[32px]">notifications_off</span>
+</div>
+<h2 class="text-headline-md font-headline-md font-bold text-text-primary">All Caught Up!</h2>
+<p class="text-body-md font-body-md text-text-secondary max-w-md mt-1 mb-6">
+            There are no unread notifications or active telemetry alerts matching your current filter set.
+          </p>
+<div class="flex items-center gap-3">
+<button class="h-9 px-4 rounded-lg bg-primary-container text-text-primary font-label-md text-label-md font-bold hover:bg-brand-primary-hover transition-colors" onclick="setSimState('normal')">
+              Reset Filters
+            </button>
+<button class="h-9 px-4 rounded-lg border border-border-strong bg-surface-card text-text-primary font-label-md text-label-md font-medium hover:bg-surface-canvas transition-colors" onclick="togglePreferencesDrawer(true)">
+              Review Alert Rules
+            </button>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- ==================== NOTIFICATION PREFERENCES DRAWER ==================== -->
+<div class="fixed inset-0 bg-[#0F172A]/40 z-40 transition-opacity duration-200 hidden opacity-0" id="preferencesDrawerBackdrop" onclick="togglePreferencesDrawer(false)"></div>
+<aside class="fixed top-0 right-0 h-full w-[440px] bg-surface-card border-l border-border-strong shadow-2xl z-50 flex flex-col justify-between transform translate-x-full transition-transform duration-300 ease-in-out" id="preferencesDrawer">
+<!-- Drawer Header -->
+<div class="p-6 border-b border-border-strong flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-lg bg-surface-canvas border border-border-strong flex items-center justify-center text-text-primary">
+<span class="material-symbols-outlined text-[20px]">tune</span>
+</div>
+<div>
+<h2 class="text-headline-sm font-headline-sm font-bold text-text-primary">Notification Preferences</h2>
+<p class="text-label-sm font-label-sm text-text-secondary">Configure alerts, channels &amp; frequency</p>
+</div>
+</div>
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-text-tertiary hover:text-text-primary hover:bg-surface-canvas transition-colors" onclick="togglePreferencesDrawer(false)">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Drawer Body -->
+<div class="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
+<!-- Delivery Channels -->
+<section class="flex flex-col gap-3">
+<span class="text-label-code font-label-code text-text-tertiary uppercase tracking-wider">DELIVERY CHANNELS</span>
+<div class="flex items-center justify-between p-3 rounded-lg border border-border-strong bg-surface-canvas">
+<div class="flex flex-col">
+<span class="text-label-md font-label-md font-semibold text-text-primary">In-App Live Stream</span>
+<span class="text-body-sm font-body-sm text-text-secondary">Instant notification badges and toasts</span>
+</div>
+<input checked="" class="w-4 h-4 rounded text-text-primary focus:ring-0 border-border-strong cursor-pointer" type="checkbox"/>
+</div>
+<div class="p-3 rounded-lg border border-border-strong bg-surface-canvas flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="text-label-md font-label-md font-semibold text-text-primary">Email Digest Summary</span>
+<span class="text-body-sm font-body-sm text-text-secondary">Delivered daily at 09:00 AM IST</span>
+</div>
+<input checked="" class="w-4 h-4 rounded text-text-primary focus:ring-0 border-border-strong cursor-pointer" type="checkbox"/>
+</div>
+<div class="flex items-center gap-1.5 text-[11px] text-[#0284C7] bg-status-completed-subtle px-2 py-1 rounded border border-[#BAE6FD]">
+<span class="material-symbols-outlined text-[13px]">info</span>
+<span>Enterprise SMTP Relay active via SendGrid (Mocked)</span>
+</div>
+</div>
+</section>
+<!-- Alert Thresholds -->
+<section class="flex flex-col gap-3">
+<span class="text-label-code font-label-code text-text-tertiary uppercase tracking-wider">CRITICAL ALERT THRESHOLDS</span>
+<div class="flex items-center justify-between p-3 rounded-lg border border-border-strong bg-surface-card">
+<div class="flex flex-col">
+<span class="text-label-md font-label-md font-medium text-text-primary">Token Expiry Window</span>
+<span class="text-body-sm font-body-sm text-text-secondary">Warn before Instagram Meta Graph API expires</span>
+</div>
+<span class="text-label-sm font-label-sm font-bold text-text-primary px-2 py-1 bg-surface-canvas rounded border border-border-strong">&lt; 5 Days</span>
+</div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-border-strong bg-surface-card">
+<div class="flex flex-col">
+<span class="text-label-md font-label-md font-medium text-text-primary">Lead Potential Filter</span>
+<span class="text-body-sm font-body-sm text-text-secondary">Only alert on comments scored by AI</span>
+</div>
+<span class="text-label-sm font-label-sm font-bold text-[#065F46] px-2 py-1 bg-status-active-subtle rounded border border-[#A7F3D0]">Score = High</span>
+</div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-border-strong bg-surface-card">
+<div class="flex flex-col">
+<span class="text-label-md font-label-md font-medium text-text-primary">Sentiment Anomaly Surge</span>
+<span class="text-body-sm font-body-sm text-text-secondary">Trigger alert if negative feedback drifts</span>
+</div>
+<span class="text-label-sm font-label-sm font-bold text-[#92400E] px-2 py-1 bg-status-paused-subtle rounded border border-[#FDE68A]">&gt; 15% Spike</span>
+</div>
+</section>
+<!-- Category Subscriptions -->
+<section class="flex flex-col gap-2.5">
+<span class="text-label-code font-label-code text-text-tertiary uppercase tracking-wider">CATEGORIES MONITORED</span>
+<label class="flex items-center justify-between text-body-md font-body-md py-1 cursor-pointer">
+<span class="text-text-primary">Account &amp; Graph Sync</span>
+<input checked="" class="w-4 h-4 rounded text-text-primary focus:ring-0 border-border-strong" type="checkbox"/>
+</label>
+<label class="flex items-center justify-between text-body-md font-body-md py-1 cursor-pointer">
+<span class="text-text-primary">Leads &amp; High-Intent Comments</span>
+<input checked="" class="w-4 h-4 rounded text-text-primary focus:ring-0 border-border-strong" type="checkbox"/>
+</label>
+<label class="flex items-center justify-between text-body-md font-body-md py-1 cursor-pointer">
+<span class="text-text-primary">Content Performance Anomalies</span>
+<input checked="" class="w-4 h-4 rounded text-text-primary focus:ring-0 border-border-strong" type="checkbox"/>
+</label>
+<label class="flex items-center justify-between text-body-md font-body-md py-1 cursor-pointer">
+<span class="text-text-primary">AI Strategic Insight Generation</span>
+<input checked="" class="w-4 h-4 rounded text-text-primary focus:ring-0 border-border-strong" type="checkbox"/>
+</label>
+<label class="flex items-center justify-between text-body-md font-body-md py-1 cursor-pointer">
+<span class="text-text-primary">Scheduled Report Compilations</span>
+<input checked="" class="w-4 h-4 rounded text-text-primary focus:ring-0 border-border-strong" type="checkbox"/>
+</label>
+</section>
+</div>
+<!-- Drawer Footer -->
+<div class="p-4 border-t border-border-strong bg-surface-canvas flex items-center justify-end gap-2.5">
+<button class="h-9 px-4 rounded-lg border border-border-strong bg-surface-card hover:bg-surface-canvas text-text-primary font-label-md text-label-md font-medium" onclick="togglePreferencesDrawer(false)">
+        Cancel
+      </button>
+<button class="h-9 px-4 rounded-lg bg-primary-container hover:bg-brand-primary-hover text-text-primary font-label-md text-label-md font-bold" onclick="savePreferences()">
+        Save Preferences
+      </button>
+</div>
+</aside>
+<!-- ==================== NOTIFICATION DETAIL MODAL ==================== -->
+<div class="fixed inset-0 bg-[#0F172A]/40 z-40 transition-opacity duration-200 hidden opacity-0" id="detailModalBackdrop" onclick="closeDetailModal()"></div>
+<div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[540px] bg-surface-card border border-border-strong rounded-xl shadow-2xl z-50 hidden flex-col overflow-hidden" id="detailModal">
+<!-- Modal Header -->
+<div class="px-6 py-4 border-b border-border-strong flex items-center justify-between bg-surface-canvas">
+<div class="flex items-center gap-2">
+<span class="w-7 h-7 rounded-lg bg-status-paused-subtle border border-[#FDE68A] flex items-center justify-center text-[#B45309]" id="modalIconContainer">
+<span class="material-symbols-outlined text-[17px]" id="modalIcon">key</span>
+</span>
+<span class="text-label-sm font-label-sm font-semibold text-text-secondary uppercase" id="modalCategory">Account &amp; Sync</span>
+</div>
+<button class="w-7 h-7 rounded-lg flex items-center justify-center text-text-tertiary hover:text-text-primary hover:bg-surface-card transition-colors" onclick="closeDetailModal()">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<!-- Modal Content -->
+<div class="p-6 flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<span class="text-label-sm font-label-sm text-text-tertiary" id="modalTimestamp">Oct 31, 2024 • 14 minutes ago</span>
+<span class="h-5 px-2 rounded-full bg-status-paused-subtle border border-[#FDE68A] text-[#92400E] text-[11px] font-semibold flex items-center" id="modalPriorityPill">
+          Urgent Attention
+        </span>
+</div>
+<h2 class="text-headline-md font-headline-md font-bold text-text-primary" id="modalTitle">
+        Action Required: Token Refresh for @ekomitracare
+      </h2>
+<p class="text-body-md font-body-md text-text-secondary leading-relaxed" id="modalDescription">
+        Graph API long-lived user token for creator account @ekomitracare expires in 4 days. Telemetry refresh scheduled in 5h 42m may fail.
+      </p>
+<!-- Metadata Box -->
+<div class="bg-surface-canvas border border-border-strong rounded-lg p-3 flex flex-col gap-2 text-label-code font-label-code">
+<div class="flex justify-between py-1 border-b border-border-subtle">
+<span class="text-text-tertiary">ASSOCIATED ACCOUNT</span>
+<span class="text-text-primary font-bold" id="modalMetaAccount">@ekomitracare</span>
+</div>
+<div class="flex justify-between py-1 border-b border-border-subtle">
+<span class="text-text-tertiary">TELEMETRY ENDPOINT</span>
+<span class="text-text-primary">graph.facebook.com/v19.0/oauth/access_token</span>
+</div>
+<div class="flex justify-between py-1">
+<span class="text-text-tertiary">NEXT RUNTIME IMPACT</span>
+<span class="text-[#92400E] font-bold">5 hours 42 minutes</span>
+</div>
+</div>
+</div>
+<!-- Modal Footer -->
+<div class="px-6 py-3.5 border-t border-border-strong bg-surface-canvas flex items-center justify-between">
+<button class="text-label-md font-label-md text-text-secondary hover:text-text-primary font-medium" onclick="closeDetailModal()">
+        Close
+      </button>
+<div class="flex items-center gap-2">
+<button class="h-8 px-3.5 rounded-lg bg-primary-container hover:bg-brand-primary-hover text-text-primary font-label-md text-label-md font-bold transition-colors" id="modalActionBtn">
+          Renew Token Now
+        </button>
+</div>
+</div>
+</div>
+<!-- Toast Notification simulation -->
+<div class="fixed bottom-6 right-6 bg-text-primary text-white px-4 py-2.5 rounded-lg shadow-xl text-label-md font-label-md flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-200 z-50 pointer-events-none" id="toastNotification">
+<span class="material-symbols-outlined text-[18px] text-primary-container">check_circle</span>
+<span id="toastMessage">All notifications marked as read.</span>
+</div>
+<!-- ==================== LOGIC & INTERACTIONS SCRIPT ==================== -->
+<script>
+    // State management
+    let notificationsData = {
+      'notif-1': {
+        title: 'Action Required: Token Refresh for @ekomitracare',
+        category: 'Account & Sync',
+        time: '14m ago',
+        priority: 'Urgent Attention',
+        desc: 'Graph API long-lived user token for creator account @ekomitracare expires in 4 days. Telemetry refresh scheduled in 5h 42m may fail.',
+        account: '@ekomitracare',
+        icon: 'key',
+        read: false
+      },
+      'notif-2': {
+        title: 'High-Intent Lead Identified from Comments',
+        category: 'Leads',
+        time: '1h ago',
+        priority: 'High Priority (AI)',
+        desc: 'Rajesh Maurya commented on "SBI CSP Mitra Recruitment Reel": "How can I apply for this CSP in Gorakhpur?" AI sentiment classified as Application / Purchase Intent with 96% confidence.',
+        account: '@ekoindia',
+        icon: 'contact_phone',
+        read: false
+      },
+      'notif-3': {
+        title: 'New AI Strategic Insight Available',
+        category: 'AI Insights',
+        time: '2h ago',
+        priority: 'Synthesis v4.2',
+        desc: 'Synthesis Engine v4.2 generated: "Short-Form Hindi Reels Outperform Carousels by 3.8x in Lead Conversion" with 94.6% model confidence.',
+        account: '@ekoindia',
+        icon: 'psychology',
+        read: false
+      },
+      'notif-4': {
+        title: 'Report Generated Successfully: SBI CSP Recruitment Campaign',
+        category: 'Reports',
+        time: '4h ago',
+        priority: 'Standard',
+        desc: 'Report #REP-2024-884 (Campaign Performance) generated for period Oct 01 - Oct 31, 2024. Total 842K views and 186 verified leads reconciled.',
+        account: '@ekoindia',
+        icon: 'assessment',
+        read: true
+      },
+      'notif-5': {
+        title: 'Reel Pacing Surge: SBI CSP Mitra Recruitment',
+        category: 'Content Performance',
+        time: '6h ago',
+        priority: 'Performance Boost',
+        desc: 'SBI CSP Mitra Recruitment Reel achieved 42.6% completion rate (industry benchmark: 18%) and crossed 842,000 views driven by 62% non-follower Explore discovery.',
+        account: '@ekoindia',
+        icon: 'trending_up',
+        read: true
+      },
+      'notif-6': {
+        title: 'Lead Milestone: Target Exceeded (+31.2% Pacing)',
+        category: 'Leads',
+        time: 'Oct 30, 4:15 PM',
+        priority: 'Milestone',
+        desc: 'October campaign cohort generated 482 total qualified leads against the monthly target of 400 (₹48.2 avg CPL).',
+        account: '@ekoindia',
+        icon: 'emoji_events',
+        read: true
+      },
+      'notif-7': {
+        title: 'Engagement Drift Detected: Rural Banking Access',
+        category: 'Campaigns',
+        time: 'Oct 30, 11:30 AM',
+        priority: 'Drift Warning',
+        desc: 'Engagement rate dipped to 3.76% with 18% neutral-to-negative comments regarding kiosk eligibility ambiguity.',
+        account: '@ekoindia',
+        icon: 'troubleshoot',
+        read: true
+      }
+    };
+
+    // Filter logic
+    let currentTabFilter = 'all';
+    let currentPriorityFilter = 'all';
+    let currentSearchTerm = '';
+
+    function filterTab(category, btnElement) {
+      currentTabFilter = category;
+      
+      // Update Tab styling
+      document.querySelectorAll('.filter-tab').forEach(btn => {
+        btn.classList.remove('bg-text-primary', 'text-white', 'font-semibold');
+        btn.classList.add('text-text-secondary', 'font-medium');
+      });
+      btnElement.classList.remove('text-text-secondary', 'font-medium');
+      btnElement.classList.add('bg-text-primary', 'text-white', 'font-semibold');
+
+      applyAllFilters();
+    }
+
+    function applyPriorityFilter(priority) {
+      currentPriorityFilter = priority;
+      applyAllFilters();
+    }
+
+    function searchNotifications(val) {
+      currentSearchTerm = val.toLowerCase().trim();
+      applyAllFilters();
+    }
+
+    function applyAllFilters() {
+      const items = document.querySelectorAll('.notif-item');
+      let visibleCount = 0;
+
+      items.forEach(item => {
+        const itemCategory = item.getAttribute('data-category');
+        const itemPriority = item.getAttribute('data-priority');
+        const isRead = item.getAttribute('data-read') === 'true';
+        const textContent = item.innerText.toLowerCase();
+
+        // Check Tab Filter
+        let tabMatch = false;
+        if (currentTabFilter === 'all') tabMatch = true;
+        else if (currentTabFilter === 'unread' && !isRead) tabMatch = true;
+        else if (currentTabFilter === itemCategory) tabMatch = true;
+
+        // Check Priority Filter
+        let priorityMatch = false;
+        if (currentPriorityFilter === 'all') priorityMatch = true;
+        else if (currentPriorityFilter === itemPriority) priorityMatch = true;
+
+        // Check Search Term
+        let searchMatch = !currentSearchTerm || textContent.includes(currentSearchTerm);
+
+        if (tabMatch && priorityMatch && searchMatch) {
+          item.style.display = 'block';
+          visibleCount++;
+        } else {
+          item.style.display = 'none';
+        }
+      });
+
+      // Handle visibility of groups
+      document.querySelectorAll('.notification-group').forEach(group => {
+        const hasVisibleChildren = Array.from(group.querySelectorAll('.notif-item')).some(i => i.style.display !== 'none');
+        group.style.display = hasVisibleChildren ? 'flex' : 'none';
+      });
+
+      // Show empty state if nothing matches
+      const container = document.getElementById('notificationsContainer');
+      const emptyState = document.getElementById('emptyStateView');
+      if (visibleCount === 0) {
+        container.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        emptyState.classList.add('flex');
+      } else {
+        container.classList.remove('hidden');
+        emptyState.classList.add('hidden');
+        emptyState.classList.remove('flex');
+      }
+    }
+
+    // Toggle Read State for Single Item
+    function toggleReadState(id) {
+      const card = document.getElementById(id);
+      if (!card) return;
+      const isCurrentlyRead = card.getAttribute('data-read') === 'true';
+      const newReadState = !isCurrentlyRead;
+      
+      card.setAttribute('data-read', newReadState ? 'true' : 'false');
+      notificationsData[id].read = newReadState;
+
+      const unreadDot = card.querySelector('.unread-dot');
+      const toggleBtnIcon = card.querySelector('.read-toggle-btn span');
+
+      if (newReadState) {
+        if (unreadDot) unreadDot.classList.add('hidden');
+        if (toggleBtnIcon) toggleBtnIcon.innerText = 'mark_email_read';
+        showToast('Notification marked as read');
+      } else {
+        if (unreadDot) unreadDot.classList.remove('hidden');
+        if (toggleBtnIcon) toggleBtnIcon.innerText = 'drafts';
+        showToast('Notification marked as unread');
+      }
+      updateUnreadCounters();
+    }
+
+    // Mark all notifications as read
+    function markAllAsRead() {
+      document.querySelectorAll('.notif-item').forEach(card => {
+        card.setAttribute('data-read', 'true');
+        const unreadDot = card.querySelector('.unread-dot');
+        if (unreadDot) unreadDot.classList.add('hidden');
+        const toggleBtnIcon = card.querySelector('.read-toggle-btn span');
+        if (toggleBtnIcon) toggleBtnIcon.innerText = 'mark_email_read';
+      });
+      for (let k in notificationsData) {
+        notificationsData[k].read = true;
+      }
+      updateUnreadCounters();
+      showToast('All notifications marked as read');
+    }
+
+    function dismissNotification(id) {
+      const card = document.getElementById(id);
+      if (card) {
+        card.remove();
+        delete notificationsData[id];
+        updateUnreadCounters();
+        showToast('Notification dismissed');
+        applyAllFilters();
+      }
+    }
+
+    function updateUnreadCounters() {
+      const unreadCount = Object.values(notificationsData).filter(item => !item.read).length;
+      const badge = document.getElementById('unreadPillBadge');
+      if (badge) {
+        badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-status-active"></span><span>${unreadCount} Unread</span>`;
+      }
+    }
+
+    // Preferences Drawer Handlers
+    function togglePreferencesDrawer(show) {
+      const drawer = document.getElementById('preferencesDrawer');
+      const backdrop = document.getElementById('preferencesDrawerBackdrop');
+      if (show) {
+        backdrop.classList.remove('hidden');
+        setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
+        drawer.classList.remove('translate-x-full');
+      } else {
+        backdrop.classList.add('opacity-0');
+        drawer.classList.add('translate-x-full');
+        setTimeout(() => backdrop.classList.add('hidden'), 200);
+      }
+    }
+
+    function savePreferences() {
+      togglePreferencesDrawer(false);
+      showToast('Alert preferences saved successfully');
+    }
+
+    // Detail Modal Handlers
+    function openDetailModal(notifId) {
+      const data = notificationsData[notifId] || notificationsData['notif-1'];
+      document.getElementById('modalTitle').innerText = data.title;
+      document.getElementById('modalCategory').innerText = data.category;
+      document.getElementById('modalDescription').innerText = data.desc;
+      document.getElementById('modalIcon').innerText = data.icon;
+      document.getElementById('modalMetaAccount').innerText = data.account;
+      document.getElementById('modalPriorityPill').innerText = data.priority;
+
+      const modal = document.getElementById('detailModal');
+      const backdrop = document.getElementById('detailModalBackdrop');
+      backdrop.classList.remove('hidden');
+      setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeDetailModal() {
+      const modal = document.getElementById('detailModal');
+      const backdrop = document.getElementById('detailModalBackdrop');
+      backdrop.classList.add('opacity-0');
+      setTimeout(() => {
+        backdrop.classList.add('hidden');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }, 150);
+    }
+
+    // Simulation controller states
+    function setSimState(mode) {
+      const simNormalBtn = document.getElementById('simNormalBtn');
+      const simEmptyBtn = document.getElementById('simEmptyBtn');
+      const container = document.getElementById('notificationsContainer');
+      const emptyState = document.getElementById('emptyStateView');
+
+      if (mode === 'empty') {
+        container.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        emptyState.classList.add('flex');
+        simEmptyBtn.classList.add('bg-surface-card', 'text-text-primary', 'font-bold');
+        simEmptyBtn.classList.remove('text-text-secondary');
+        simNormalBtn.classList.remove('bg-surface-card', 'text-text-primary', 'font-bold');
+        simNormalBtn.classList.add('text-text-secondary');
+      } else {
+        container.classList.remove('hidden');
+        emptyState.classList.add('hidden');
+        emptyState.classList.remove('flex');
+        simNormalBtn.classList.add('bg-surface-card', 'text-text-primary', 'font-bold');
+        simNormalBtn.classList.remove('text-text-secondary');
+        simEmptyBtn.classList.remove('bg-surface-card', 'text-text-primary', 'font-bold');
+        simEmptyBtn.classList.add('text-text-secondary');
+        
+        // Reset tab
+        const firstTab = document.querySelector('.filter-tab');
+        if (firstTab) filterTab('all', firstTab);
+        document.getElementById('priorityFilter').value = 'all';
+        document.getElementById('searchInput').value = '';
+        currentPriorityFilter = 'all';
+        currentSearchTerm = '';
+        applyAllFilters();
+      }
+    }
+
+    // Toast notification
+    function showToast(msg) {
+      const toast = document.getElementById('toastNotification');
+      const toastMsg = document.getElementById('toastMessage');
+      toastMsg.innerText = msg;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 2500);
+    }
+  </script>
+</body></html>

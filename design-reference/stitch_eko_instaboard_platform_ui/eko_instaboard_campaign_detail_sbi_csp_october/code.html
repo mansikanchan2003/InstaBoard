@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+
+<html class="h-full bg-surface-canvas" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Eko InstaBoard - SBI CSP October Campaign</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "border-strong": "#E2E8F0",
+            "status-active": "#10B981",
+            "primary-fixed": "#ffddb4",
+            "on-primary": "#ffffff",
+            "on-surface-variant": "#524534",
+            "on-error": "#ffffff",
+            "secondary": "#565e74",
+            "text-primary": "#0F172A",
+            "inverse-primary": "#ffb955",
+            "text-secondary": "#475569",
+            "on-error-container": "#93000a",
+            "primary": "#835500",
+            "tertiary-fixed-dim": "#93ccff",
+            "on-secondary": "#ffffff",
+            "outline": "#857462",
+            "ai-subtle": "#EEF2FF",
+            "ai-border": "#C7D2FE",
+            "on-background": "#0b1c30",
+            "on-tertiary-fixed": "#001d31",
+            "surface-bright": "#f8f9ff",
+            "on-secondary-container": "#5c647a",
+            "status-completed-subtle": "#F0F9FF",
+            "status-draft-subtle": "#F1F5F9",
+            "surface-card-subtle": "#F1F5F9",
+            "surface-tint": "#835500",
+            "status-active-subtle": "#ECFDF5",
+            "surface-container-lowest": "#ffffff",
+            "status-paused": "#F59E0B",
+            "secondary-container": "#dae2fd",
+            "on-primary-fixed-variant": "#633f00",
+            "tertiary-container": "#6abdff",
+            "status-completed": "#0284C7",
+            "surface-container-highest": "#d3e4fe",
+            "secondary-fixed-dim": "#bec6e0",
+            "surface-container": "#e5eeff",
+            "on-tertiary-fixed-variant": "#004b73",
+            "on-tertiary": "#ffffff",
+            "surface": "#f8f9ff",
+            "surface-variant": "#d3e4fe",
+            "surface-canvas": "#F8FAFC",
+            "on-tertiary-container": "#004b74",
+            "text-tertiary": "#94A3B8",
+            "status-draft": "#64748B",
+            "brand-primary-hover": "#D97706",
+            "surface-container-low": "#eff4ff",
+            "on-secondary-fixed": "#131b2e",
+            "primary-fixed-dim": "#ffb955",
+            "secondary-fixed": "#dae2fd",
+            "outline-variant": "#d7c3ae",
+            "on-secondary-fixed-variant": "#3f465c",
+            "background": "#f8f9ff",
+            "surface-card": "#FFFFFF",
+            "inverse-surface": "#213145",
+            "error-container": "#ffdad6",
+            "tertiary-fixed": "#cce5ff",
+            "error": "#ba1a1a",
+            "border-subtle": "#F1F5F9",
+            "ai-accent": "#6366F1",
+            "on-surface": "#0b1c30",
+            "status-paused-subtle": "#FFFBEB",
+            "surface-dim": "#cbdbf5",
+            "inverse-on-surface": "#eaf1ff",
+            "tertiary": "#006398",
+            "on-primary-fixed": "#291800",
+            "on-primary-container": "#644000",
+            "border-focused": "#0F172A",
+            "surface-container-high": "#dce9ff",
+            "primary-container": "#f5a623"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "margin-desktop": "2rem",
+            "space-xs": "0.25rem",
+            "gutter": "1rem",
+            "space-lg": "1.25rem",
+            "space-md": "0.75rem",
+            "margin": "1rem",
+            "space-sm": "0.5rem",
+            "space-xl": "2rem",
+            "gutter-desktop": "1.5rem"
+          },
+          "fontFamily": {
+            "label-sm": ["Inter"],
+            "display-hero": ["Plus Jakarta Sans"],
+            "headline-md": ["Plus Jakarta Sans"],
+            "body-md": ["Inter"],
+            "metric-stat-sm": ["Inter"],
+            "label-code": ["Inter"],
+            "headline-sm": ["Plus Jakarta Sans"],
+            "display-hero-mobile": ["Plus Jakarta Sans"],
+            "metric-stat-lg": ["Inter"],
+            "body-lg": ["Inter"],
+            "body-sm": ["Inter"],
+            "label-md": ["Inter"],
+            "headline-lg": ["Plus Jakarta Sans"]
+          },
+          "fontSize": {
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "600" }],
+            "display-hero": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.03em", "fontWeight": "800" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.015em", "fontWeight": "700" }],
+            "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "metric-stat-sm": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "label-code": ["10px", { "lineHeight": "12px", "letterSpacing": "0.06em", "fontWeight": "700" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "display-hero-mobile": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+            "metric-stat-lg": ["32px", { "lineHeight": "38px", "letterSpacing": "-0.025em", "fontWeight": "700" }],
+            "body-lg": ["15px", { "lineHeight": "22px", "fontWeight": "400" }],
+            "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+            "label-md": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+      font-size: 18px;
+      line-height: 1;
+    }
+    .tnum {
+      font-feature-settings: "tnum";
+    }
+    /* Subtle custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #F8FAFC;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body class="min-h-screen text-text-primary bg-surface-canvas flex flex-col font-body-md antialiased selection:bg-primary-container selection:text-text-primary">
+<!-- ==================== SIDE NAV BAR (FIXED LEFT 240px) ==================== -->
+<aside class="fixed top-0 left-0 h-screen w-60 z-30 bg-surface-card border-r border-border-strong flex flex-col justify-between p-4 select-none">
+<div class="flex flex-col gap-6">
+<!-- Brand Logo / Header -->
+<div class="flex items-center gap-3 px-1 pt-1">
+<div class="h-9 w-9 flex items-center justify-center shrink-0">
+<img alt="Eko India Financial Services official brand avatar" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAyv4E5joLEsFuwOm3JymQ1FB9q_GXYP5GzrK_KqznN4kdRVxBWI5GgpMxRSYxxCbUT7pQbwFn37ncpTtcEi5mqFHpwAjnNMbQTHpmKCINBy55wZGBLH2SZJw6PRCNWvwAHIsweRNePVUr9oH9_R955hDIX7EiUYW5-7-YGDGUJ3Q1tNBcSrOOBZ5z4xa7MSnn6GaTXvwWZLVtEGdWi7uDuV96q4DQMHRtS9xxZtOPFnmjx2RrdSdA"/>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-headline-sm text-text-primary font-bold tracking-tight truncate">InstaBoard</span>
+<span class="font-label-sm text-label-sm text-text-secondary">Enterprise Analytics</span>
+</div>
+</div>
+<!-- Quick Action / CTA -->
+<button class="w-full bg-primary-container hover:bg-brand-primary-hover text-text-primary font-label-md text-label-md font-bold px-3 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors duration-150 shadow-sm">
+<span class="material-symbols-outlined text-[16px]">add_circle</span>
+<span>New Campaign</span>
+</button>
+<!-- Primary Nav items (8 tabs) -->
+<!-- 'Campaigns' is the single active tab as mapped by context -->
+<nav class="flex flex-col gap-1">
+<!-- 1. Dashboard -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-canvas hover:text-text-primary font-label-md text-label-md font-medium transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-text-secondary">dashboard</span>
+<span>Dashboard</span>
+</a>
+<!-- 2. Campaigns (ACTIVE) -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-surface-container-low text-text-primary font-label-md text-label-md font-semibold border-l-2 border-primary-container transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">campaign</span>
+<span>Campaigns</span>
+</a>
+<!-- 3. Content -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-canvas hover:text-text-primary font-label-md text-label-md font-medium transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-text-secondary">movie</span>
+<span>Content</span>
+</a>
+<!-- 4. Audience -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-canvas hover:text-text-primary font-label-md text-label-md font-medium transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-text-secondary">group</span>
+<span>Audience</span>
+</a>
+<!-- 5. Comments -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-canvas hover:text-text-primary font-label-md text-label-md font-medium transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-text-secondary">chat_bubble</span>
+<span>Comments</span>
+</a>
+<!-- 6. Leads -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-canvas hover:text-text-primary font-label-md text-label-md font-medium transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-text-secondary">contact_page</span>
+<span>Leads</span>
+</a>
+<!-- 7. AI Insights -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-canvas hover:text-text-primary font-label-md text-label-md font-medium transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-ai-accent">auto_awesome</span>
+<span>AI Insights</span>
+</a>
+<!-- 8. Reports -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-canvas hover:text-text-primary font-label-md text-label-md font-medium transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-text-secondary">assessment</span>
+<span>Reports</span>
+</a>
+</nav>
+</div>
+<!-- Footer System items -->
+<div class="flex flex-col gap-1 pt-4 border-t border-border-strong">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-canvas hover:text-text-primary font-label-md text-label-md font-medium transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">switch_account</span>
+<span>Instagram Accounts</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-canvas hover:text-text-primary font-label-md text-label-md font-medium transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">notifications</span>
+<span>Notifications</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-canvas hover:text-text-primary font-label-md text-label-md font-medium transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+</div>
+</aside>
+<!-- ==================== TOP NAV BAR ==================== -->
+<header class="fixed top-0 left-60 right-0 h-14 z-20 bg-surface-card border-b border-border-strong flex items-center justify-between px-6">
+<div class="flex items-center gap-6">
+<!-- Brand identifier in header -->
+<span class="font-headline-sm text-headline-sm text-text-primary font-bold">Eko InstaBoard</span>
+<!-- Account Indicator / Nav Link -->
+<div class="flex items-center gap-2 px-3 py-1 bg-surface-canvas rounded border border-border-strong">
+<span class="h-2 w-2 rounded-full bg-status-active"></span>
+<span class="font-label-md text-label-md text-text-primary font-semibold">Eko India Financial Services @ekoindia</span>
+</div>
+</div>
+<!-- Right Controls -->
+<div class="flex items-center gap-3">
+<!-- Icon actions -->
+<div class="flex items-center gap-1 text-text-secondary">
+<button class="p-2 hover:bg-surface-canvas rounded transition-colors text-text-secondary hover:text-text-primary" title="Calendar">
+<span class="material-symbols-outlined">calendar_today</span>
+</button>
+<button class="p-2 hover:bg-surface-canvas rounded transition-colors text-text-secondary hover:text-text-primary" title="Filters &amp; Tune">
+<span class="material-symbols-outlined">tune</span>
+</button>
+<button class="p-2 hover:bg-surface-canvas rounded transition-colors text-text-secondary hover:text-text-primary" title="Help &amp; Support">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+</div>
+<div class="h-5 w-px bg-border-strong mx-1"></div>
+<!-- Secondary Action: Export -->
+<button class="px-3 py-1.5 bg-surface-card hover:bg-surface-canvas border border-border-strong text-text-primary font-label-md text-label-md font-semibold rounded flex items-center gap-1.5 transition-colors">
+<span class="material-symbols-outlined text-[16px]">file_download</span>
+        Export
+      </button>
+<!-- Primary Action: Sync Data -->
+<button class="px-3.5 py-1.5 bg-primary-container hover:bg-brand-primary-hover text-text-primary font-label-md text-label-md font-bold rounded flex items-center gap-1.5 transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[16px]">sync</span>
+        Sync Data
+      </button>
+<!-- User avatar -->
+<div class="ml-2 flex items-center">
+<img class="w-8 h-8 rounded-full border border-border-strong object-cover" data-alt="A clean, modern professional corporate portrait of an Indian male account manager in business attire against a neutral soft gray studio backdrop, sharp studio lighting, enterprise dashboard user profile." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDawNec6N0JkvMl3AjfB9O9oMTS-SZppbKMy4VvJ1hEKzv3pVSxB647DeFCqib9XsniUcMkjKKKheP4ZrryfkYx0nfd7dzTV-uFalJUN2IO_PT_G3ZoG8oguomjeG62tyf4l7jsyiXeLf07HWP88QFJ7L6l1AAmHCRWHoB1sPm758ACvL9vTZxpyxV66bnmcgtJWbCDOxrgugTCEG2PPysbBz3k-wUjoombJ6S-bw"/>
+</div>
+</div>
+</header>
+<!-- ==================== MAIN CONTENT CANVAS ==================== -->
+<main class="ml-60 pt-14 pb-16 px-8 min-h-screen">
+<!-- Header Context & Breadcrumbs -->
+<div class="pt-6 pb-4">
+<nav class="flex items-center gap-2 font-label-sm text-label-sm text-text-secondary mb-2">
+<a class="hover:text-text-primary transition-colors" href="#">Campaigns</a>
+<span>/</span>
+<span class="text-text-primary font-semibold">SBI CSP October Campaign</span>
+</nav>
+<!-- Campaign Header Bar -->
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+<div class="flex flex-wrap items-center gap-3">
+<h1 class="font-headline-lg text-headline-lg text-text-primary font-bold tracking-tight">SBI CSP October Campaign</h1>
+<!-- Active Badge -->
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-label-sm text-label-sm bg-status-active-subtle border border-emerald-200 text-emerald-800 font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-status-active"></span>
+            Active
+          </span>
+<span class="text-border-strong text-sm">|</span>
+<span class="font-label-md text-label-md text-text-secondary">Objective: <strong class="text-text-primary font-semibold">Lead Generation</strong></span>
+<span class="text-border-strong text-sm">|</span>
+<span class="font-label-md text-label-md text-text-secondary">Dates: <strong class="text-text-primary font-semibold">Oct 01 – Oct 31, 2024</strong></span>
+</div>
+<!-- Action Buttons -->
+<div class="flex items-center flex-wrap gap-2">
+<button class="px-3 py-1.5 bg-surface-card hover:bg-surface-canvas border border-border-strong text-text-primary font-label-md text-label-md font-semibold rounded flex items-center gap-1.5 transition-colors">
+<span class="material-symbols-outlined text-[16px]">edit</span>
+            Edit Campaign
+          </button>
+<button class="px-3 py-1.5 bg-surface-card hover:bg-surface-canvas border border-border-strong text-text-primary font-label-md text-label-md font-semibold rounded flex items-center gap-1.5 transition-colors">
+<span class="material-symbols-outlined text-[16px]">pause</span>
+            Pause Campaign
+          </button>
+<button class="px-3 py-1.5 bg-surface-card hover:bg-surface-canvas border border-border-strong text-text-primary font-label-md text-label-md font-semibold rounded flex items-center gap-1.5 transition-colors">
+<span class="material-symbols-outlined text-[16px]">ios_share</span>
+            Export Report
+          </button>
+<button class="px-3.5 py-1.5 bg-primary-container hover:bg-brand-primary-hover text-text-primary font-label-md text-label-md font-bold rounded flex items-center gap-1.5 transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[16px]">add</span>
+            + New Ad / Content
+          </button>
+</div>
+</div>
+<!-- Navigation Tabs Cluster -->
+<div class="mt-6 flex border-b border-border-strong gap-8">
+<button class="pb-3 px-1 border-b-2 border-primary-container text-text-primary font-label-md text-label-md font-bold flex items-center gap-1.5">
+<span>Overview</span>
+</button>
+<button class="pb-3 px-1 border-b-2 border-transparent text-text-secondary hover:text-text-primary font-label-md text-label-md font-medium transition-colors flex items-center gap-1.5">
+<span>Content</span>
+<span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-surface-card-subtle text-text-secondary">4</span>
+</button>
+<button class="pb-3 px-1 border-b-2 border-transparent text-text-secondary hover:text-text-primary font-label-md text-label-md font-medium transition-colors">
+<span>Audience</span>
+</button>
+<button class="pb-3 px-1 border-b-2 border-transparent text-text-secondary hover:text-text-primary font-label-md text-label-md font-medium transition-colors">
+<span>Comments</span>
+</button>
+<button class="pb-3 px-1 border-b-2 border-transparent text-text-secondary hover:text-text-primary font-label-md text-label-md font-medium transition-colors">
+<span>Leads</span>
+</button>
+<button class="pb-3 px-1 border-b-2 border-transparent text-text-secondary hover:text-text-primary font-label-md text-label-md font-medium flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-ai-accent text-[15px]">auto_awesome</span>
+<span>AI Insights</span>
+</button>
+</div>
+</div>
+<!-- ==================== 8-METRIC KPI SUMMARY GRID ==================== -->
+<section class="mt-4 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+<!-- 1. Views -->
+<div class="bg-surface-card border border-border-strong rounded p-3 flex flex-col justify-between hover:border-slate-400 transition-colors">
+<div class="flex items-center justify-between text-text-secondary">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-text-secondary font-semibold">Views</span>
+<span class="font-label-sm text-label-sm text-status-active font-semibold flex items-center tnum">+19.4%</span>
+</div>
+<div class="my-1">
+<span class="font-metric-stat-lg text-metric-stat-lg font-bold text-text-primary tnum">842K</span>
+</div>
+<div class="font-label-sm text-label-sm text-text-tertiary truncate">vs Sep baseline (705K)</div>
+</div>
+<!-- 2. Reach -->
+<div class="bg-surface-card border border-border-strong rounded p-3 flex flex-col justify-between hover:border-slate-400 transition-colors">
+<div class="flex items-center justify-between text-text-secondary">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-text-secondary font-semibold">Reach</span>
+<span class="font-label-sm text-label-sm text-status-active font-semibold flex items-center tnum">+16.8%</span>
+</div>
+<div class="my-1">
+<span class="font-metric-stat-lg text-metric-stat-lg font-bold text-text-primary tnum">421K</span>
+</div>
+<div class="font-label-sm text-label-sm text-text-tertiary truncate">vs Sep baseline (360K)</div>
+</div>
+<!-- 3. Engagement Rate -->
+<div class="bg-surface-card border border-border-strong rounded p-3 flex flex-col justify-between hover:border-slate-400 transition-colors">
+<div class="flex items-center justify-between text-text-secondary">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-text-secondary font-semibold">Eng. Rate</span>
+<span class="font-label-sm text-label-sm text-status-active font-semibold flex items-center tnum">+0.8%</span>
+</div>
+<div class="my-1">
+<span class="font-metric-stat-lg text-metric-stat-lg font-bold text-text-primary tnum">5.42%</span>
+</div>
+<div class="font-label-sm text-label-sm text-text-tertiary truncate">vs Sep baseline (4.62%)</div>
+</div>
+<!-- 4. Likes -->
+<div class="bg-surface-card border border-border-strong rounded p-3 flex flex-col justify-between hover:border-slate-400 transition-colors">
+<div class="flex items-center justify-between text-text-secondary">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-text-secondary font-semibold">Likes</span>
+<span class="font-label-sm text-label-sm text-status-active font-semibold flex items-center tnum">+12.1%</span>
+</div>
+<div class="my-1">
+<span class="font-metric-stat-lg text-metric-stat-lg font-bold text-text-primary tnum">42.8K</span>
+</div>
+<div class="font-label-sm text-label-sm text-text-tertiary truncate">vs Sep baseline (38.1K)</div>
+</div>
+<!-- 5. Comments -->
+<div class="bg-surface-card border border-border-strong rounded p-3 flex flex-col justify-between hover:border-slate-400 transition-colors">
+<div class="flex items-center justify-between text-text-secondary">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-text-secondary font-semibold">Comments</span>
+<span class="font-label-sm text-label-sm text-status-active font-semibold flex items-center tnum">+24.5%</span>
+</div>
+<div class="my-1">
+<span class="font-metric-stat-lg text-metric-stat-lg font-bold text-text-primary tnum">3,214</span>
+</div>
+<div class="font-label-sm text-label-sm text-text-tertiary truncate">vs Sep baseline (2,581)</div>
+</div>
+<!-- 6. Shares -->
+<div class="bg-surface-card border border-border-strong rounded p-3 flex flex-col justify-between hover:border-slate-400 transition-colors">
+<div class="flex items-center justify-between text-text-secondary">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-text-secondary font-semibold">Shares</span>
+<span class="font-label-sm text-label-sm text-status-active font-semibold flex items-center tnum">+18.2%</span>
+</div>
+<div class="my-1">
+<span class="font-metric-stat-lg text-metric-stat-lg font-bold text-text-primary tnum">8,642</span>
+</div>
+<div class="font-label-sm text-label-sm text-text-tertiary truncate">vs Sep baseline (7,311)</div>
+</div>
+<!-- 7. Saves -->
+<div class="bg-surface-card border border-border-strong rounded p-3 flex flex-col justify-between hover:border-slate-400 transition-colors">
+<div class="flex items-center justify-between text-text-secondary">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-text-secondary font-semibold">Saves</span>
+<span class="font-label-sm text-label-sm text-status-active font-semibold flex items-center tnum">+31.0%</span>
+</div>
+<div class="my-1">
+<span class="font-metric-stat-lg text-metric-stat-lg font-bold text-text-primary tnum">11.3K</span>
+</div>
+<div class="font-label-sm text-label-sm text-text-tertiary truncate">vs Sep baseline (8.6K)</div>
+</div>
+<!-- 8. Leads Generated -->
+<div class="bg-surface-card border-2 border-primary-container rounded p-3 flex flex-col justify-between bg-amber-50/20">
+<div class="flex items-center justify-between text-text-secondary">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-primary font-bold">Leads</span>
+<span class="font-label-sm text-label-sm text-status-active font-semibold flex items-center tnum">+34.2%</span>
+</div>
+<div class="my-1">
+<span class="font-metric-stat-lg text-metric-stat-lg font-bold text-text-primary tnum">186</span>
+</div>
+<div class="font-label-sm text-label-sm text-primary font-medium truncate">vs Sep baseline (138)</div>
+</div>
+</section>
+<!-- ==================== PERFORMANCE ANALYTICS DUAL-LINE CHART ==================== -->
+<section class="mt-6 bg-surface-card border border-border-strong rounded p-5">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border-strong">
+<div>
+<h2 class="font-headline-md text-headline-md text-text-primary font-bold">Performance Analytics</h2>
+<p class="font-body-sm text-body-sm text-text-secondary">Cumulative progression comparing October current ad cycle to September baseline</p>
+</div>
+<div class="flex items-center gap-4">
+<!-- Metric Selectors -->
+<div class="flex items-center bg-surface-card-subtle p-0.5 rounded border border-border-strong">
+<button class="px-3 py-1 font-label-md text-label-md font-bold rounded bg-surface-card text-text-primary shadow-sm border border-border-strong">Views</button>
+<button class="px-3 py-1 font-label-md text-label-md font-medium text-text-secondary hover:text-text-primary transition-colors">Reach</button>
+<button class="px-3 py-1 font-label-md text-label-md font-medium text-text-secondary hover:text-text-primary transition-colors">Engagement</button>
+<button class="px-3 py-1 font-label-md text-label-md font-medium text-text-secondary hover:text-text-primary transition-colors">Leads</button>
+</div>
+<!-- Legend -->
+<div class="hidden md:flex items-center gap-4 pl-2 font-label-sm text-label-sm">
+<div class="flex items-center gap-2">
+<span class="w-3.5 h-1 bg-[#F5A623] rounded-full"></span>
+<span class="text-text-primary font-semibold">Current (Oct 1 - Oct 31)</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-3.5 h-0.5 bg-slate-400 border-t border-dashed border-slate-500"></span>
+<span class="text-text-secondary">Previous (Sep 1 - Sep 30)</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Vector SVG Dual-Line Graph Area -->
+<div class="pt-6 relative">
+<div class="h-64 w-full">
+<svg class="w-full h-full overflow-visible" preserveaspectratio="none" viewbox="0 0 1000 240">
+<defs>
+<lineargradient id="amberGlow" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#F5A623" stop-opacity="0.22"></stop>
+<stop offset="100%" stop-color="#F5A623" stop-opacity="0.0"></stop>
+</lineargradient>
+</defs>
+<!-- Horizontal Grid lines -->
+<line stroke="#F1F5F9" stroke-width="1" x1="40" x2="980" y1="20" y2="20"></line>
+<line stroke="#F1F5F9" stroke-width="1" x1="40" x2="980" y1="75" y2="75"></line>
+<line stroke="#F1F5F9" stroke-width="1" x1="40" x2="980" y1="130" y2="130"></line>
+<line stroke="#F1F5F9" stroke-width="1" x1="40" x2="980" y1="185" y2="185"></line>
+<line stroke="#E2E8F0" stroke-width="1" x1="40" x2="980" y1="220" y2="220"></line>
+<!-- Y Axis Labels -->
+<text fill="#94A3B8" font-family="Inter" font-size="11" text-anchor="end" x="30" y="24">900K</text>
+<text fill="#94A3B8" font-family="Inter" font-size="11" text-anchor="end" x="30" y="79">650K</text>
+<text fill="#94A3B8" font-family="Inter" font-size="11" text-anchor="end" x="30" y="134">400K</text>
+<text fill="#94A3B8" font-family="Inter" font-size="11" text-anchor="end" x="30" y="189">150K</text>
+<text fill="#94A3B8" font-family="Inter" font-size="11" text-anchor="end" x="30" y="224">0</text>
+<!-- September Baseline Area/Dashed Curve -->
+<path d="M 60 205 C 150 198, 230 180, 320 162 C 420 142, 520 135, 620 108 C 720 85, 840 68, 960 55" fill="none" stroke="#94A3B8" stroke-dasharray="6,5" stroke-width="2"></path>
+<!-- October Current Area Gradient -->
+<path d="M 60 200 C 150 190, 230 165, 320 135 C 420 110, 520 95, 620 62 C 720 40, 840 28, 960 18 L 960 220 L 60 220 Z" fill="url(#amberGlow)"></path>
+<!-- October Current Solid Amber Curve -->
+<path d="M 60 200 C 150 190, 230 165, 320 135 C 420 110, 520 95, 620 62 C 720 40, 840 28, 960 18" fill="none" stroke="#F5A623" stroke-width="3"></path>
+<!-- September Baseline Key Points -->
+<circle cx="320" cy="162" fill="#94A3B8" r="3.5"></circle>
+<circle cx="620" cy="108" fill="#94A3B8" r="3.5"></circle>
+<circle cx="960" cy="55" fill="#64748B" r="4"></circle>
+<!-- October Current Key Points -->
+<circle cx="60" cy="200" fill="#0F172A" r="4" stroke="#F5A623" stroke-width="2"></circle>
+<circle cx="320" cy="135" fill="#FFFFFF" r="4.5" stroke="#F5A623" stroke-width="2.5"></circle>
+<circle cx="620" cy="62" fill="#FFFFFF" r="4.5" stroke="#F5A623" stroke-width="2.5"></circle>
+<circle cx="960" cy="18" fill="#F5A623" r="6" stroke="#0F172A" stroke-width="2"></circle>
+</svg>
+</div>
+<!-- X Axis Ticks -->
+<div class="flex justify-between pl-10 pr-2 pt-2 border-t border-border-strong font-label-sm text-label-sm text-text-tertiary">
+<span>Oct 01</span>
+<span>Oct 06</span>
+<span>Oct 11</span>
+<span>Oct 16</span>
+<span>Oct 21</span>
+<span>Oct 26</span>
+<span>Oct 31</span>
+</div>
+</div>
+</section>
+<!-- ==================== BENTO / TWO-COLUMN GRID CONTENT ==================== -->
+<div class="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+<!-- LEFT COLUMN: Content Performance + Comments & Intent (7 Cols) -->
+<div class="lg:col-span-7 flex flex-col gap-6">
+<!-- 1. CAMPAIGN CONTENT & TOP PERFORMING CONTENT -->
+<div class="bg-surface-card border border-border-strong rounded p-5">
+<div class="flex items-center justify-between pb-4 border-b border-border-strong">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-text-primary">movie</span>
+<h2 class="font-headline-md text-headline-md text-text-primary font-bold">Campaign Content</h2>
+<span class="px-2 py-0.5 rounded-full font-label-sm text-label-sm bg-surface-card-subtle text-text-secondary border border-border-strong">4 creatives</span>
+</div>
+<a class="font-label-md text-label-md text-primary font-semibold hover:underline flex items-center gap-1" href="#">
+              View All Content
+              <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</a>
+</div>
+<!-- Content Media List -->
+<div class="divide-y divide-border-strong">
+<!-- Item 1: Top Performer Reel -->
+<div class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+<div class="flex items-start gap-3">
+<div class="relative w-16 h-20 rounded bg-slate-100 overflow-hidden shrink-0 border border-border-strong">
+<img class="w-full h-full object-cover" data-alt="A vertical cinematic video still of an Indian business agent in a branded micro-branch village setting speaking cheerfully into camera, high production value, warm natural light, professional financial services branding." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD78Ttf0qtzG5ySf_GCUndhvZB8uIwLb8t8zttUpyhTvva_PbIip0BoCKWTlz_dpU2njYkc3T0PaWTrn_WK6osomzarIvq35Ht1WPBWjvh7Acd0VrW1JIfgiA82qilMiZCVJ9Ay86Yjf31ehLg0oJyccMJ-d-3TiJT70Pwi4VrpDTSI_RLtT6XKcBZO1Y2JuZp0hc7Cm-1OMwbJTU5ap4DUP2s2sohQ0qAYjeVc1A"/>
+<span class="absolute bottom-1 right-1 bg-black/75 text-white font-label-code text-label-code px-1 py-0.5 rounded flex items-center">
+<span class="material-symbols-outlined text-[10px] mr-0.5" style="font-variation-settings: 'FILL' 1;">play_arrow</span>0:42
+                  </span>
+</div>
+<div>
+<div class="flex items-center gap-2 flex-wrap">
+<h3 class="font-headline-sm text-headline-sm text-text-primary font-bold hover:text-primary cursor-pointer transition-colors">SBI CSP Mitra Reel</h3>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-label-sm text-label-sm bg-primary-container/20 text-[#644000] border border-amber-300 font-bold">
+<span class="material-symbols-outlined text-[12px]" style="font-variation-settings: 'FILL' 1;">star</span>
+                      Top Performer
+                    </span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary mt-0.5">Published Oct 03, 2024 · Reel Format</p>
+<div class="mt-2 flex items-center gap-3 text-text-tertiary font-label-sm text-label-sm">
+<span class="text-text-primary font-semibold tnum">412K <span class="text-text-secondary font-normal">Views</span></span>
+<span>•</span>
+<span class="text-text-primary font-semibold tnum">210K <span class="text-text-secondary font-normal">Reach</span></span>
+<span>•</span>
+<span class="text-text-primary font-semibold tnum">6.2% <span class="text-text-secondary font-normal">Eng.</span></span>
+</div>
+</div>
+</div>
+<div class="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 border-t sm:border-t-0 pt-2 sm:pt-0 border-border-subtle">
+<div class="text-right">
+<span class="font-metric-stat-sm text-metric-stat-sm text-text-primary font-bold tnum">98</span>
+<span class="block font-label-sm text-label-sm text-primary font-semibold">Leads Gen.</span>
+</div>
+<a class="font-label-md text-label-md text-text-primary hover:text-primary font-semibold flex items-center gap-1" href="#">
+                  Reel Detail <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+</a>
+</div>
+</div>
+<!-- Item 2: Become an SBI CSP Reel -->
+<div class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+<div class="flex items-start gap-3">
+<div class="relative w-16 h-20 rounded bg-slate-100 overflow-hidden shrink-0 border border-border-strong">
+<img class="w-full h-full object-cover" data-alt="An informative financial kiosk tutorial still showing biometric banking thumb scanner and laptop screen in rural storefront, sharp commercial framing, daylight interior." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfMVQqfrgcyv9UUJ6HpOgJUlpvdQrS4n5bu5w2HwKwpCMUy9OfKDFd8sOO8jUOESF7GvvFbRenB-Rae-0cliUxqtGobtC48BwLrG9JMpF4EieN1T5pnagkVJ-gepU9LGbolcCOk_JD5w90nIy6fMoxQnvM5icGlE9-Kll0czwCTqJizBURMRaO_cK8L2pfFRxXYM1pX-QlNtU1v3B55bIaE5t9VjXt-QIxWtzbAA"/>
+<span class="absolute bottom-1 right-1 bg-black/75 text-white font-label-code text-label-code px-1 py-0.5 rounded flex items-center">
+<span class="material-symbols-outlined text-[10px] mr-0.5" style="font-variation-settings: 'FILL' 1;">play_arrow</span>0:58
+                  </span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-text-primary font-bold hover:text-primary cursor-pointer transition-colors">Become an SBI CSP</h3>
+<p class="font-body-sm text-body-sm text-text-secondary mt-0.5">Published Oct 07, 2024 · Reel Format</p>
+<div class="mt-2 flex items-center gap-3 text-text-tertiary font-label-sm text-label-sm">
+<span class="text-text-primary font-semibold tnum">245K <span class="text-text-secondary font-normal">Views</span></span>
+<span>•</span>
+<span class="text-text-primary font-semibold tnum">118K <span class="text-text-secondary font-normal">Reach</span></span>
+<span>•</span>
+<span class="text-text-primary font-semibold tnum">5.1% <span class="text-text-secondary font-normal">Eng.</span></span>
+</div>
+</div>
+</div>
+<div class="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 border-t sm:border-t-0 pt-2 sm:pt-0 border-border-subtle">
+<div class="text-right">
+<span class="font-metric-stat-sm text-metric-stat-sm text-text-primary font-bold tnum">52</span>
+<span class="block font-label-sm text-label-sm text-text-secondary font-medium">Leads Gen.</span>
+</div>
+<a class="font-label-md text-label-md text-text-primary hover:text-primary font-semibold flex items-center gap-1" href="#">
+                  Reel Detail <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+</a>
+</div>
+</div>
+<!-- Item 3: Carousel -->
+<div class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+<div class="flex items-start gap-3">
+<div class="relative w-16 h-20 rounded bg-slate-100 overflow-hidden shrink-0 border border-border-strong">
+<img class="w-full h-full object-cover" data-alt="High resolution clean infographic style Instagram carousel slide explaining customer service point banking incentives, crisp amber and navy typography, modern flat style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDAjoKZsIFOkShjSgbLO9taUralq-N8QbVFBVWiZiJjKQc_WTgqoP2ZP9L4pPSIFeyCsvwNFcqI6j_NU5lJ8TtvqN02yBO32UQGOP10Z3HRRgNpUgsQoa-U7VVIxdSH_yQ6wZoSwQF7S97EqMwO6PThIVLM_IggH4drgpMbpE5Yhy0yoRHH8rNN1h01cGd0YlDAM9fPvl-2lJeIeyNMYTbdAhJsjvsDcKKB7ZKlAw"/>
+<span class="absolute bottom-1 right-1 bg-black/75 text-white font-label-code text-label-code px-1 py-0.5 rounded flex items-center">
+<span class="material-symbols-outlined text-[10px] mr-0.5">view_carousel</span>4
+                  </span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-text-primary font-bold hover:text-primary cursor-pointer transition-colors">Digital Banking for Rural India</h3>
+<p class="font-body-sm text-body-sm text-text-secondary mt-0.5">Published Oct 12, 2024 · Carousel Post</p>
+<div class="mt-2 flex items-center gap-3 text-text-tertiary font-label-sm text-label-sm">
+<span class="text-text-primary font-semibold tnum">115K <span class="text-text-secondary font-normal">Views</span></span>
+<span>•</span>
+<span class="text-text-primary font-semibold tnum">62K <span class="text-text-secondary font-normal">Reach</span></span>
+<span>•</span>
+<span class="text-text-primary font-semibold tnum">4.4% <span class="text-text-secondary font-normal">Eng.</span></span>
+</div>
+</div>
+</div>
+<div class="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 border-t sm:border-t-0 pt-2 sm:pt-0 border-border-subtle">
+<div class="text-right">
+<span class="font-metric-stat-sm text-metric-stat-sm text-text-primary font-bold tnum">24</span>
+<span class="block font-label-sm text-label-sm text-text-secondary font-medium">Leads Gen.</span>
+</div>
+<a class="font-label-md text-label-md text-text-primary hover:text-primary font-semibold flex items-center gap-1" href="#">
+                  Post Detail <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+</a>
+</div>
+</div>
+<!-- Item 4: Single Image Post -->
+<div class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+<div class="flex items-start gap-3">
+<div class="relative w-16 h-20 rounded bg-slate-100 overflow-hidden shrink-0 border border-border-strong">
+<img class="w-full h-full object-cover" data-alt="Official promotional announcement banner card for Eko India Financial Services kiosk partnership, vibrant graphic background with gold emblem, enterprise clean layout." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTvWkUcdopFyT744YcI_bee9t_gXpufdwvjCwlMYm58-xNgmll2L6R_LsBIR0uNStOiSNhlyEXJq-JGE2aKijEGB6l_3WzrObVuIdjgyl37rr8rspPtI_9b8xjBxrkNWntPhiFJSOWPHyHcRm6-WZkl2Pe4sligAvKHDwPaacClQHkriUCaMQgxa1LT2js6lYopvQSj6QfaSxvj1muco_XDyWpVcNK1--CLDAhRQ"/>
+<span class="absolute bottom-1 right-1 bg-black/75 text-white font-label-code text-label-code px-1 py-0.5 rounded flex items-center">
+<span class="material-symbols-outlined text-[10px] mr-0.5">image</span>1
+                  </span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-text-primary font-bold hover:text-primary cursor-pointer transition-colors">Open Your CSP Today</h3>
+<p class="font-body-sm text-body-sm text-text-secondary mt-0.5">Published Oct 18, 2024 · Image Post</p>
+<div class="mt-2 flex items-center gap-3 text-text-tertiary font-label-sm text-label-sm">
+<span class="text-text-primary font-semibold tnum">70K <span class="text-text-secondary font-normal">Views</span></span>
+<span>•</span>
+<span class="text-text-primary font-semibold tnum">31K <span class="text-text-secondary font-normal">Reach</span></span>
+<span>•</span>
+<span class="text-text-primary font-semibold tnum">3.9% <span class="text-text-secondary font-normal">Eng.</span></span>
+</div>
+</div>
+</div>
+<div class="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 border-t sm:border-t-0 pt-2 sm:pt-0 border-border-subtle">
+<div class="text-right">
+<span class="font-metric-stat-sm text-metric-stat-sm text-text-primary font-bold tnum">12</span>
+<span class="block font-label-sm text-label-sm text-text-secondary font-medium">Leads Gen.</span>
+</div>
+<a class="font-label-md text-label-md text-text-primary hover:text-primary font-semibold flex items-center gap-1" href="#">
+                  Post Detail <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+<!-- 3. COMMENTS SNAPSHOT & INTENT AI -->
+<div class="bg-surface-card border border-border-strong rounded p-5">
+<div class="flex items-center justify-between pb-4 border-b border-border-strong">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-text-primary">chat_bubble</span>
+<h2 class="font-headline-md text-headline-md text-text-primary font-bold">Comments Snapshot &amp; Intent AI</h2>
+</div>
+<a class="font-label-md text-label-md text-primary font-semibold hover:underline flex items-center gap-1" href="#">
+              View All Comments →
+            </a>
+</div>
+<!-- Sentiment Breakdown Strip -->
+<div class="py-4 border-b border-border-strong flex flex-wrap items-center justify-between gap-4">
+<div class="flex items-center gap-4 text-sm">
+<span class="font-headline-sm text-headline-sm font-bold text-text-primary">3,214 <span class="text-text-secondary font-normal font-body-sm text-body-sm">Total Comments</span></span>
+</div>
+<!-- Sentiment Pills -->
+<div class="flex items-center gap-2 flex-wrap">
+<span class="px-2.5 py-1 rounded bg-status-active-subtle border border-emerald-200 text-emerald-800 font-label-sm text-label-sm font-bold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-status-active"></span>
+                Positive: 72%
+              </span>
+<span class="px-2.5 py-1 rounded bg-surface-card-subtle border border-border-strong text-text-secondary font-label-sm text-label-sm font-semibold">
+                Neutral: 21%
+              </span>
+<span class="px-2.5 py-1 rounded bg-red-50 border border-red-200 text-red-700 font-label-sm text-label-sm font-semibold">
+                Negative: 7%
+              </span>
+<span class="px-2.5 py-1 rounded bg-amber-50 border border-amber-200 text-amber-900 font-label-sm text-label-sm font-bold">
+                Potential Leads: 186
+              </span>
+</div>
+</div>
+<!-- 3 Representative Comment Items -->
+<div class="pt-4 flex flex-col gap-3">
+<!-- Comment 1 -->
+<div class="p-3 bg-surface-canvas rounded border border-border-strong flex flex-col gap-2">
+<div class="flex items-center justify-between flex-wrap gap-2">
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md font-bold text-text-primary">@ramesh_csp</span>
+<span class="font-label-sm text-label-sm text-text-tertiary">2h ago · Reel #1</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="px-2 py-0.5 rounded-full bg-ai-subtle border border-ai-border text-ai-accent font-label-code text-label-code uppercase tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-[11px]">auto_awesome</span>
+                    AI-INFERRED
+                  </span>
+<span class="px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 font-label-code text-label-code font-bold">
+                    High Application Intent
+                  </span>
+</div>
+</div>
+<p class="font-body-md text-body-md text-text-primary">"How can I apply for this SBI CSP in Gorakhpur?"</p>
+<div class="flex items-center justify-between pt-1 border-t border-border-subtle text-xs text-text-secondary">
+<span class="text-primary font-semibold">Lead Potential: High</span>
+<button class="font-label-sm text-label-sm text-text-primary hover:text-primary font-semibold">Reply &amp; Convert →</button>
+</div>
+</div>
+<!-- Comment 2 -->
+<div class="p-3 bg-surface-canvas rounded border border-border-strong flex flex-col gap-2">
+<div class="flex items-center justify-between flex-wrap gap-2">
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md font-bold text-text-primary">@anita_finance</span>
+<span class="font-label-sm text-label-sm text-text-tertiary">5h ago · Reel #2</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="px-2 py-0.5 rounded-full bg-ai-subtle border border-ai-border text-ai-accent font-label-code text-label-code uppercase tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-[11px]">auto_awesome</span>
+                    AI-INFERRED
+                  </span>
+<span class="px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-900 font-label-code text-label-code font-bold">
+                    High Lead Potential
+                  </span>
+</div>
+</div>
+<p class="font-body-md text-body-md text-text-primary">"What is the minimum qualification and kiosk space needed?"</p>
+<div class="flex items-center justify-between pt-1 border-t border-border-subtle text-xs text-text-secondary">
+<span class="text-text-secondary font-medium">Sentiment: Neutral / Inquisitive</span>
+<button class="font-label-sm text-label-sm text-text-primary hover:text-primary font-semibold">Reply &amp; Convert →</button>
+</div>
+</div>
+<!-- Comment 3 -->
+<div class="p-3 bg-surface-canvas rounded border border-border-strong flex flex-col gap-2">
+<div class="flex items-center justify-between flex-wrap gap-2">
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md font-bold text-text-primary">@deepak_v</span>
+<span class="font-label-sm text-label-sm text-text-tertiary">1d ago · Carousel #1</span>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 font-label-code text-label-code font-semibold">
+                  Positive Sentiment
+                </span>
+</div>
+<p class="font-body-md text-body-md text-text-primary">"Great initiative for rural banking coverage!"</p>
+<div class="flex items-center justify-between pt-1 border-t border-border-subtle text-xs text-text-secondary">
+<span class="text-text-tertiary">General Engagement</span>
+<button class="font-label-sm text-label-sm text-text-secondary hover:text-text-primary font-semibold">Like &amp; Archive</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- RIGHT COLUMN: AI Brief + Audience + Leads (5 Cols) -->
+<div class="lg:col-span-5 flex flex-col gap-6">
+<!-- 5. AI CAMPAIGN ANALYSIS (Executive Brief) -->
+<div class="bg-surface-card border-2 border-indigo-200 rounded p-5 relative overflow-hidden shadow-sm">
+<div class="absolute top-0 right-0 bg-gradient-to-l from-indigo-50 to-transparent w-40 h-24 -z-0"></div>
+<div class="flex items-center justify-between pb-3 border-b border-border-strong relative z-10">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-ai-accent" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<h2 class="font-headline-sm text-headline-sm text-text-primary font-bold">AI Campaign Analysis</h2>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-ai-subtle border border-ai-border text-ai-accent font-label-code text-label-code uppercase tracking-wider font-bold">
+              AI-GENERATED INSIGHT
+            </span>
+</div>
+<div class="mt-4 flex flex-col gap-3 relative z-10">
+<!-- What Is Working -->
+<div class="p-3 bg-emerald-50/50 rounded border border-emerald-100">
+<div class="flex items-center gap-1.5 text-emerald-800 font-label-sm text-label-sm font-bold">
+<span class="material-symbols-outlined text-[15px]">check_circle</span>
+                WHAT IS WORKING
+              </div>
+<p class="mt-1 font-body-sm text-body-sm text-text-primary">
+                The campaign's strongest performance is coming from short-form Reels targeting 25–34 year-old viewers in Uttar Pradesh.
+              </p>
+</div>
+<!-- What Needs Attention -->
+<div class="p-3 bg-amber-50/50 rounded border border-amber-200">
+<div class="flex items-center gap-1.5 text-amber-800 font-label-sm text-label-sm font-bold">
+<span class="material-symbols-outlined text-[15px]">warning</span>
+                WHAT NEEDS ATTENTION
+              </div>
+<p class="mt-1 font-body-sm text-body-sm text-text-primary">
+                Reach is growing faster than engagement, indicating that recent content is generating visibility but weaker interaction.
+              </p>
+</div>
+<!-- Lead Opportunity -->
+<div class="p-3 bg-indigo-50/50 rounded border border-indigo-100">
+<div class="flex items-center gap-1.5 text-indigo-900 font-label-sm text-label-sm font-bold">
+<span class="material-symbols-outlined text-[15px]">lightbulb</span>
+                LEAD OPPORTUNITY
+              </div>
+<p class="mt-1 font-body-sm text-body-sm text-text-primary">
+                Questions about CSP eligibility are showing strong lead intent and should receive faster follow-up.
+              </p>
+</div>
+<!-- Recommendation -->
+<div class="p-3 bg-surface-canvas rounded border border-border-strong">
+<div class="flex items-center gap-1.5 text-text-primary font-label-sm text-label-sm font-bold">
+<span class="material-symbols-outlined text-[15px] text-primary">psychology</span>
+                RECOMMENDATION
+              </div>
+<p class="mt-1 font-body-sm text-body-sm text-text-secondary">
+                Produce more eligibility-focused Reels using the same opening structure as the highest-retention video.
+              </p>
+</div>
+</div>
+</div>
+<!-- 2. AUDIENCE SNAPSHOT -->
+<div class="bg-surface-card border border-border-strong rounded p-5">
+<div class="flex items-center justify-between pb-3 border-b border-border-strong">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-text-primary">group</span>
+<h2 class="font-headline-sm text-headline-sm text-text-primary font-bold">Audience Snapshot</h2>
+</div>
+<a class="font-label-md text-label-md text-primary font-semibold hover:underline flex items-center gap-1" href="#">
+              View Audience Insights →
+            </a>
+</div>
+<div class="mt-4 flex flex-col gap-4">
+<!-- Gender Distribution -->
+<div>
+<div class="flex justify-between font-label-sm text-label-sm mb-1.5">
+<span class="text-text-secondary">Gender Breakdown</span>
+<span class="text-text-primary font-bold">Female 48% · Male 50% · Other 2%</span>
+</div>
+<div class="w-full h-2 rounded bg-slate-100 overflow-hidden flex">
+<div class="h-full bg-amber-400" style="width: 48%;" title="Female 48%"></div>
+<div class="h-full bg-slate-700" style="width: 50%;" title="Male 50%"></div>
+<div class="h-full bg-slate-300" style="width: 2%;" title="Other 2%"></div>
+</div>
+</div>
+<!-- Age Groups -->
+<div>
+<span class="font-label-sm text-label-sm text-text-secondary mb-2 block">Age Distribution</span>
+<div class="space-y-1.5">
+<!-- 18-24 -->
+<div class="flex items-center gap-2 text-xs">
+<span class="w-12 text-text-secondary font-medium">18–24</span>
+<div class="flex-1 h-3 rounded bg-slate-100 overflow-hidden">
+<div class="h-full bg-primary-container" style="width: 22%"></div>
+</div>
+<span class="w-8 text-right font-bold text-text-primary tnum">22%</span>
+</div>
+<!-- 25-34 -->
+<div class="flex items-center gap-2 text-xs">
+<span class="w-12 text-text-primary font-bold">25–34</span>
+<div class="flex-1 h-3 rounded bg-slate-100 overflow-hidden">
+<div class="h-full bg-[#D97706]" style="width: 38%"></div>
+</div>
+<span class="w-8 text-right font-bold text-text-primary tnum">38%</span>
+</div>
+<!-- 35-44 -->
+<div class="flex items-center gap-2 text-xs">
+<span class="w-12 text-text-secondary font-medium">35–44</span>
+<div class="flex-1 h-3 rounded bg-slate-100 overflow-hidden">
+<div class="h-full bg-primary-container" style="width: 24%"></div>
+</div>
+<span class="w-8 text-right font-bold text-text-primary tnum">24%</span>
+</div>
+<!-- 45-54 -->
+<div class="flex items-center gap-2 text-xs">
+<span class="w-12 text-text-secondary font-medium">45–54</span>
+<div class="flex-1 h-3 rounded bg-slate-100 overflow-hidden">
+<div class="h-full bg-slate-300" style="width: 11%"></div>
+</div>
+<span class="w-8 text-right font-bold text-text-primary tnum">11%</span>
+</div>
+<!-- 55+ -->
+<div class="flex items-center gap-2 text-xs">
+<span class="w-12 text-text-secondary font-medium">55+</span>
+<div class="flex-1 h-3 rounded bg-slate-100 overflow-hidden">
+<div class="h-full bg-slate-300" style="width: 5%"></div>
+</div>
+<span class="w-8 text-right font-bold text-text-primary tnum">5%</span>
+</div>
+</div>
+</div>
+<!-- Top Locations -->
+<div class="pt-2 border-t border-border-strong">
+<span class="font-label-sm text-label-sm text-text-secondary mb-2 block">Top Geographies</span>
+<div class="flex flex-wrap gap-1.5">
+<span class="px-2.5 py-1 rounded bg-surface-canvas border border-border-strong text-text-primary font-label-md text-label-md font-semibold">
+                  1. Uttar Pradesh <strong class="text-primary font-bold">(34%)</strong>
+</span>
+<span class="px-2 py-1 rounded bg-surface-canvas border border-border-strong text-text-secondary font-label-md text-label-md">
+                  2. Haryana (19%)
+                </span>
+<span class="px-2 py-1 rounded bg-surface-canvas border border-border-strong text-text-secondary font-label-md text-label-md">
+                  3. Delhi (16%)
+                </span>
+<span class="px-2 py-1 rounded bg-surface-canvas border border-border-strong text-text-secondary font-label-md text-label-md">
+                  4. Bihar (14%)
+                </span>
+<span class="px-2 py-1 rounded bg-surface-canvas border border-border-strong text-text-secondary font-label-md text-label-md">
+                  5. Rajasthan (9%)
+                </span>
+</div>
+</div>
+</div>
+</div>
+<!-- 4. LEADS SNAPSHOT -->
+<div class="bg-surface-card border border-border-strong rounded p-5">
+<div class="flex items-center justify-between pb-3 border-b border-border-strong">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-text-primary">contact_page</span>
+<h2 class="font-headline-sm text-headline-sm text-text-primary font-bold">Leads Snapshot</h2>
+</div>
+<a class="font-label-md text-label-md text-primary font-semibold hover:underline flex items-center gap-1" href="#">
+              View Leads →
+            </a>
+</div>
+<div class="mt-4 flex flex-col gap-4">
+<!-- Aggregate Metric -->
+<div class="flex items-center justify-between bg-surface-canvas p-3 rounded border border-border-strong">
+<div>
+<span class="font-label-sm text-label-sm text-text-secondary uppercase tracking-wider block">Generated Leads</span>
+<span class="font-metric-stat-lg text-metric-stat-lg text-text-primary font-bold tnum">186</span>
+</div>
+<div class="text-right">
+<span class="font-label-sm text-label-sm text-text-secondary uppercase tracking-wider block">Conversion Rate</span>
+<span class="font-metric-stat-sm text-metric-stat-sm text-status-active font-bold tnum">8.7%</span>
+</div>
+</div>
+<!-- Pipeline Funnel Visual -->
+<div>
+<span class="font-label-sm text-label-sm text-text-secondary mb-2 block">Acquisition Pipeline</span>
+<div class="grid grid-cols-4 gap-1 text-center font-label-sm text-label-sm">
+<!-- Step 1 -->
+<div class="p-2 bg-slate-100 rounded border border-border-strong">
+<span class="block text-text-secondary text-[10px]">NEW</span>
+<span class="font-bold text-text-primary text-sm tnum">84</span>
+</div>
+<!-- Step 2 -->
+<div class="p-2 bg-blue-50 rounded border border-blue-200">
+<span class="block text-blue-700 text-[10px]">CONTACTED</span>
+<span class="font-bold text-blue-900 text-sm tnum">52</span>
+</div>
+<!-- Step 3 -->
+<div class="p-2 bg-amber-50 rounded border border-amber-200">
+<span class="block text-amber-800 text-[10px]">QUALIFIED</span>
+<span class="font-bold text-amber-900 text-sm tnum">38</span>
+</div>
+<!-- Step 4 -->
+<div class="p-2 bg-emerald-50 rounded border border-emerald-200">
+<span class="block text-emerald-800 text-[10px]">CONVERTED</span>
+<span class="font-bold text-emerald-900 text-sm tnum">12</span>
+</div>
+</div>
+</div>
+<!-- Acquisition Source Breakdown -->
+<div>
+<span class="font-label-sm text-label-sm text-text-secondary mb-2 block">Attribution by Channel</span>
+<div class="space-y-2">
+<div>
+<div class="flex justify-between text-xs mb-1">
+<span class="font-medium text-text-primary">Comments Automation</span>
+<span class="font-bold text-text-primary tnum">58% (108 leads)</span>
+</div>
+<div class="h-1.5 w-full bg-slate-100 rounded overflow-hidden">
+<div class="h-full bg-primary-container" style="width: 58%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-xs mb-1">
+<span class="font-medium text-text-primary">Instagram DMs</span>
+<span class="font-bold text-text-primary tnum">24% (45 leads)</span>
+</div>
+<div class="h-1.5 w-full bg-slate-100 rounded overflow-hidden">
+<div class="h-full bg-slate-600" style="width: 24%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-xs mb-1">
+<span class="font-medium text-text-primary">Content Bio &amp; CTA Link</span>
+<span class="font-bold text-text-primary tnum">14% (26 leads)</span>
+</div>
+<div class="h-1.5 w-full bg-slate-100 rounded overflow-hidden">
+<div class="h-full bg-slate-400" style="width: 14%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-xs mb-1">
+<span class="font-medium text-text-primary">Profile Visits</span>
+<span class="font-bold text-text-primary tnum">4% (7 leads)</span>
+</div>
+<div class="h-1.5 w-full bg-slate-100 rounded overflow-hidden">
+<div class="h-full bg-slate-300" style="width: 4%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

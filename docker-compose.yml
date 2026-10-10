@@ -1,0 +1,30 @@
+# Local PostgreSQL for InstaBoard development (optional — see backend/README.md for the Docker-free helper).
+#
+#   docker compose --env-file backend/.env up -d db
+#
+# Reads LOCAL_PG_USER / LOCAL_PG_PASSWORD / LOCAL_PG_PORT from backend/.env (copy backend/.env.example);
+# pass it with --env-file so Compose can interpolate them.
+# The init script creates the `instaboard` and `instaboard_test` databases on first start.
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: instaboard-db
+    environment:
+      POSTGRES_USER: ${LOCAL_PG_USER:-instaboard}
+      POSTGRES_PASSWORD: ${LOCAL_PG_PASSWORD:?Set LOCAL_PG_PASSWORD in backend/.env}
+      POSTGRES_DB: instaboard
+      TZ: UTC
+    ports:
+      - "127.0.0.1:${LOCAL_PG_PORT:-5544}:5432"   # bound to localhost only
+    volumes:
+      - instaboard-pgdata:/var/lib/postgresql/data
+      - ./backend/scripts/docker-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d instaboard"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  instaboard-pgdata:

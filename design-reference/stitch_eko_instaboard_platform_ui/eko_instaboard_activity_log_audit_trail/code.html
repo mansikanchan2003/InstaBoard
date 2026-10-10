@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+
+<html class="h-full bg-surface-canvas" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Eko InstaBoard - Activity Log &amp; Audit Trail</title>
+<!-- Google Fonts: Inter & Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Exact Tailwind Theme Configuration -->
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-container": "#e5eeff",
+            "status-active": "#10B981",
+            "on-surface": "#0b1c30",
+            "tertiary-container": "#6abdff",
+            "ai-accent": "#6366F1",
+            "on-tertiary": "#ffffff",
+            "surface-canvas": "#F8FAFC",
+            "status-paused": "#F59E0B",
+            "on-primary-fixed": "#291800",
+            "status-draft-subtle": "#F1F5F9",
+            "on-primary-fixed-variant": "#633f00",
+            "status-active-subtle": "#ECFDF5",
+            "secondary-container": "#dae2fd",
+            "secondary-fixed": "#dae2fd",
+            "on-primary-container": "#644000",
+            "inverse-primary": "#ffb955",
+            "surface-container-high": "#dce9ff",
+            "primary-fixed": "#ffddb4",
+            "tertiary-fixed-dim": "#93ccff",
+            "on-surface-variant": "#524534",
+            "brand-primary-hover": "#D97706",
+            "surface": "#f8f9ff",
+            "on-tertiary-fixed-variant": "#004b73",
+            "on-secondary": "#ffffff",
+            "primary": "#835500",
+            "status-completed": "#0284C7",
+            "outline-variant": "#d7c3ae",
+            "surface-bright": "#f8f9ff",
+            "text-secondary": "#475569",
+            "surface-dim": "#cbdbf5",
+            "border-strong": "#E2E8F0",
+            "on-tertiary-container": "#004b74",
+            "border-focused": "#0F172A",
+            "on-secondary-fixed": "#131b2e",
+            "background": "#f8f9ff",
+            "surface-card-subtle": "#F1F5F9",
+            "text-primary": "#0F172A",
+            "status-paused-subtle": "#FFFBEB",
+            "secondary": "#565e74",
+            "border-subtle": "#F1F5F9",
+            "surface-card": "#FFFFFF",
+            "tertiary-fixed": "#cce5ff",
+            "error": "#ba1a1a",
+            "surface-container-highest": "#d3e4fe",
+            "on-error": "#ffffff",
+            "surface-container-lowest": "#ffffff",
+            "primary-fixed-dim": "#ffb955",
+            "on-tertiary-fixed": "#001d31",
+            "ai-subtle": "#EEF2FF",
+            "inverse-on-surface": "#eaf1ff",
+            "primary-container": "#f5a623",
+            "outline": "#857462",
+            "text-tertiary": "#94A3B8",
+            "ai-border": "#C7D2FE",
+            "on-background": "#0b1c30",
+            "secondary-fixed-dim": "#bec6e0",
+            "error-container": "#ffdad6",
+            "status-draft": "#64748B",
+            "on-error-container": "#93000a",
+            "surface-container-low": "#eff4ff",
+            "surface-variant": "#d3e4fe",
+            "status-completed-subtle": "#F0F9FF",
+            "on-primary": "#ffffff",
+            "on-secondary-container": "#5c647a",
+            "surface-tint": "#835500",
+            "on-secondary-fixed-variant": "#3f465c",
+            "tertiary": "#006398",
+            "inverse-surface": "#213145"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "space-xs": "0.25rem",
+            "space-xl": "2rem",
+            "gutter-desktop": "1.5rem",
+            "margin": "1rem",
+            "space-md": "0.75rem",
+            "margin-desktop": "2rem",
+            "space-sm": "0.5rem",
+            "gutter": "1rem",
+            "space-lg": "1.25rem"
+          },
+          "fontFamily": {
+            "body-lg": ["Inter"],
+            "headline-md": ["Plus Jakarta Sans"],
+            "display-hero": ["Plus Jakarta Sans"],
+            "label-sm": ["Inter"],
+            "label-md": ["Inter"],
+            "metric-stat-lg": ["Inter"],
+            "body-md": ["Inter"],
+            "display-hero-mobile": ["Plus Jakarta Sans"],
+            "label-code": ["Inter"],
+            "metric-stat-sm": ["Inter"],
+            "headline-lg": ["Plus Jakarta Sans"],
+            "body-sm": ["Inter"],
+            "headline-sm": ["Plus Jakarta Sans"]
+          },
+          "fontSize": {
+            "body-lg": ["15px", { "lineHeight": "22px", "fontWeight": "400" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.015em", "fontWeight": "700" }],
+            "display-hero": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.03em", "fontWeight": "800" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "600" }],
+            "label-md": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
+            "metric-stat-lg": ["32px", { "lineHeight": "38px", "letterSpacing": "-0.025em", "fontWeight": "700" }],
+            "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "display-hero-mobile": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+            "label-code": ["10px", { "lineHeight": "12px", "letterSpacing": "0.06em", "fontWeight": "700" }],
+            "metric-stat-sm": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+      font-size: 18px;
+      line-height: 1;
+    }
+    .material-symbols-outlined.fill-icon {
+      font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #F1F5F9;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="h-full font-body-md text-text-primary bg-surface-canvas antialiased overflow-x-hidden">
+<!-- ========================================================================= -->
+<!-- 1. LEFT SIDEBAR NAVIGATION (Anchored from Shared Component JSON)        -->
+<!-- ========================================================================= -->
+<aside class="fixed top-0 left-0 h-screen w-60 z-30 bg-surface-card border-r border-border-strong flex flex-col justify-between p-4 select-none">
+<div class="flex flex-col h-full">
+<!-- Brand & Header -->
+<div class="flex items-center gap-3 px-1 mb-5">
+<img alt="Eko India Financial Services official brand avatar" class="w-9 h-9 rounded-lg object-contain shadow-xs border border-border-strong p-0.5 bg-white" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZW1VEw6RZrCsFyrKuupFQPAR8aqOWxmVn1vfTTJcG3xWf-_FwYpSZ2yiQM1UwmtrWv7DFUUJCLH25ExG6mnAEl1VsUUIYVErBFv1KyRFWJ8FWpBdWIsakeYYIBAtAxP2_aiEev2leXGHNXMsJdSNYj2LGmNYWStIkwPXfF6_x7XmGXiDxf5sOVU80nfUIaMnfoHHraEmsEfTuXIa7Wpzh7zm-nI2WkD3ZMd_frZWpPRvq4FHhsolwW99X5utSW62A"/>
+<div>
+<div class="font-headline-sm text-headline-sm text-text-primary font-bold tracking-tight">InstaBoard</div>
+<div class="font-label-sm text-label-sm text-text-secondary">Enterprise Analytics</div>
+</div>
+</div>
+<!-- Quick Action CTA -->
+<div class="mb-4">
+<button class="w-full flex items-center justify-center gap-2 bg-primary-container text-text-primary hover:bg-brand-primary-hover font-semibold py-2 px-3 rounded-lg text-label-md font-label-md transition-colors shadow-xs">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+<span>New Campaign</span>
+</button>
+</div>
+<!-- Navigation Hierarchy -->
+<div class="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-1">
+<!-- WORKSPACE Group -->
+<div>
+<div class="px-2 mb-1.5 font-label-code text-label-code text-text-tertiary tracking-wider uppercase font-semibold">WORKSPACE</div>
+<nav class="space-y-0.5">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-canvas hover:text-text-primary font-label-md text-label-md transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-canvas hover:text-text-primary font-label-md text-label-md transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">campaign</span>
+<span>Campaigns</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-canvas hover:text-text-primary font-label-md text-label-md transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">movie</span>
+<span>Content</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-canvas hover:text-text-primary font-label-md text-label-md transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">group</span>
+<span>Audience</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-canvas hover:text-text-primary font-label-md text-label-md transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span>Comments</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-canvas hover:text-text-primary font-label-md text-label-md transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">contact_page</span>
+<span>Leads</span>
+</a>
+</nav>
+</div>
+<!-- INTELLIGENCE & REPORTS Group -->
+<div>
+<div class="px-2 mb-1.5 font-label-code text-label-code text-text-tertiary tracking-wider uppercase font-semibold">INTELLIGENCE &amp; REPORTS</div>
+<nav class="space-y-0.5">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-canvas hover:text-text-primary font-label-md text-label-md transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-ai-accent">auto_awesome</span>
+<span>AI Insights</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-canvas hover:text-text-primary font-label-md text-label-md transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">assessment</span>
+<span>Reports</span>
+</a>
+</nav>
+</div>
+<!-- CONNECT & SYSTEM Group (Current context highlighted) -->
+<div>
+<div class="px-2 mb-1.5 font-label-code text-label-code text-text-tertiary tracking-wider uppercase font-semibold">CONNECT &amp; SYSTEM</div>
+<nav class="space-y-0.5">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-canvas hover:text-text-primary font-label-md text-label-md transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">switch_account</span>
+<span>Instagram Accounts</span>
+</a>
+<!-- Active Tab: Notifications / Activity Log -->
+<a class="flex items-center justify-between px-3 py-2 rounded-lg bg-surface-container-low text-text-primary font-label-md text-label-md font-semibold border-l-2 border-primary-container transition-colors duration-150" href="#">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary-container">notifications</span>
+<span>Notifications</span>
+</div>
+<span class="bg-primary-container text-text-primary text-[10px] font-bold px-1.5 py-0.5 rounded-full">3</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-canvas hover:text-text-primary font-label-md text-label-md transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+</div>
+</div>
+<!-- User / Profile Footer Strip -->
+<div class="pt-3 border-t border-border-strong mt-auto">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-full bg-surface-container-high border border-border-strong flex items-center justify-center font-bold text-text-primary font-label-sm text-label-sm">
+              PS
+            </div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-semibold text-text-primary truncate max-w-[110px]">Priya Sharma</span>
+<span class="font-label-code text-label-code text-text-tertiary">Account Admin</span>
+</div>
+</div>
+<button class="text-text-tertiary hover:text-text-primary p-1 rounded-md transition-colors">
+<span class="material-symbols-outlined text-[18px]">logout</span>
+</button>
+</div>
+</div>
+</div>
+</aside>
+<!-- ========================================================================= -->
+<!-- 2. TOP APP BAR / HEADER (Docked full width top-0 with ml-60)               -->
+<!-- ========================================================================= -->
+<header class="fixed top-0 right-0 left-60 z-20 bg-surface-card border-b border-border-strong h-14 px-6 flex items-center justify-between">
+<!-- Left: Account & Synchronization metadata -->
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2.5 bg-surface-canvas border border-border-strong px-2.5 py-1 rounded-lg">
+<div class="w-5 h-5 rounded-full bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center text-white text-[10px] font-bold">
+          E
+        </div>
+<div class="flex items-center gap-1.5">
+<span class="font-headline-sm text-headline-sm text-text-primary font-bold">Eko India Financial Services</span>
+<span class="font-label-sm text-label-sm text-text-secondary">@ekoindia</span>
+<span class="material-symbols-outlined text-status-completed text-[16px] fill-icon" title="Verified Account">verified</span>
+</div>
+</div>
+<div class="hidden lg:flex items-center gap-1.5 text-text-secondary font-label-sm text-label-sm border-l border-border-strong pl-4">
+<span class="w-2 h-2 rounded-full bg-status-active"></span>
+<span>Synced 12m ago</span>
+</div>
+</div>
+<!-- Right: Filters, System Clock, Export & Sync Buttons -->
+<div class="flex items-center gap-3">
+<!-- Date Range Indicator -->
+<div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border-strong bg-white font-label-md text-label-md text-text-primary">
+<span class="material-symbols-outlined text-text-secondary text-[16px]">calendar_today</span>
+<span class="font-medium">Oct 01 - Oct 31, 2024</span>
+</div>
+<!-- Secondary Action: Export -->
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border-strong bg-white hover:bg-surface-canvas text-text-primary font-label-md text-label-md font-semibold transition-colors shadow-xs">
+<span class="material-symbols-outlined text-[16px]">file_download</span>
+<span>Export</span>
+</button>
+<!-- Primary Action: Sync Data -->
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary-container hover:bg-brand-primary-hover text-text-primary font-label-md text-label-md font-bold transition-colors shadow-xs">
+<span class="material-symbols-outlined text-[16px]">sync</span>
+<span>Sync Data</span>
+</button>
+<div class="h-4 w-px bg-border-strong mx-1"></div>
+<!-- Icon Actions -->
+<button class="p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-canvas transition-colors" title="System Settings">
+<span class="material-symbols-outlined text-[20px]">tune</span>
+</button>
+<button class="p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-canvas transition-colors" title="Documentation &amp; Help">
+<span class="material-symbols-outlined text-[20px]">help_outline</span>
+</button>
+</div>
+</header>
+<!-- ========================================================================= -->
+<!-- 3. MAIN WORKSPACE / CONTENT CANVAS                                        -->
+<!-- ========================================================================= -->
+<main class="ml-60 pt-14 min-h-screen p-6 max-w-7xl">
+<!-- Breadcrumb & Top Tabs -->
+<div class="pt-2 pb-4">
+<div class="flex items-center gap-2 font-label-sm text-label-sm text-text-secondary mb-2">
+<span class="hover:text-text-primary cursor-pointer">System</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="font-semibold text-text-primary">Activity Log</span>
+</div>
+<!-- Sub-Navigation Switcher Tabs -->
+<div class="flex items-center gap-6 border-b border-border-strong">
+<a class="pb-3 px-1 text-label-md font-label-md text-text-secondary hover:text-text-primary transition-colors flex items-center gap-2" href="#">
+<span>Notifications Inbox</span>
+<span class="px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-surface-card-subtle text-text-secondary">3</span>
+</a>
+<a class="pb-3 px-1 text-label-md font-label-md font-bold text-text-primary border-b-2 border-primary-container flex items-center gap-2" href="#">
+<span class="material-symbols-outlined text-[18px] text-primary">history</span>
+<span>Activity Log</span>
+<span class="px-1.5 py-0.5 rounded-full text-[11px] font-bold bg-primary-container text-text-primary">142</span>
+</a>
+</div>
+</div>
+<!-- Header Section -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-text-primary font-bold">Activity Log &amp; Audit Trail</h1>
+<p class="font-body-md text-body-md text-text-secondary mt-1">
+          Audit-ready chronological record of automated synchronization, user actions, campaign milestones, and system events.
+        </p>
+</div>
+<div class="flex items-center gap-3 shrink-0">
+<!-- Live Feed Toggle -->
+<div class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border-strong bg-white">
+<span class="relative flex h-2.5 w-2.5">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-status-active opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-status-active"></span>
+</span>
+<span class="font-label-sm text-label-sm font-semibold text-text-primary">Live Feed</span>
+<input checked="" class="form-checkbox h-4 w-4 text-primary-container rounded border-border-strong focus:ring-0 cursor-pointer" type="checkbox"/>
+</div>
+<!-- Export Audit Log -->
+<button class="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border-strong bg-white hover:bg-surface-canvas text-text-primary font-label-md text-label-md font-semibold transition-colors shadow-xs">
+<span class="material-symbols-outlined text-[18px]">download_for_offline</span>
+<span>Export Audit Log</span>
+<span class="font-label-code text-label-code text-text-tertiary">CSV</span>
+</button>
+</div>
+</div>
+<!-- ========================================================================= -->
+<!-- 4. KPI SUMMARY METRIC STRIP (4-card modular cluster)                       -->
+<!-- ========================================================================= -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+<!-- Card 1: Total Events -->
+<div class="bg-surface-card border border-border-strong rounded-xl p-4 flex flex-col justify-between hover:border-text-secondary transition-all">
+<div class="flex items-center justify-between text-text-secondary mb-2">
+<span class="font-label-sm text-label-sm font-semibold uppercase tracking-wider">Total Events Logged</span>
+<span class="material-symbols-outlined text-text-tertiary text-[20px]">list_alt</span>
+</div>
+<div>
+<div class="font-metric-stat-lg text-metric-stat-lg font-bold text-text-primary">142</div>
+<div class="font-body-sm text-body-sm text-text-secondary mt-1 flex items-center gap-1">
+<span class="text-status-active font-medium">+18.4%</span>
+<span>vs previous 30-day period</span>
+</div>
+</div>
+<div class="mt-3 pt-2 border-t border-border-subtle flex items-center justify-between text-label-code text-label-code text-text-tertiary">
+<span>PERIOD</span>
+<span class="font-semibold text-text-secondary">OCT 01 - 31, 2024</span>
+</div>
+</div>
+<!-- Card 2: Automated Actions -->
+<div class="bg-surface-card border border-border-strong rounded-xl p-4 flex flex-col justify-between hover:border-text-secondary transition-all">
+<div class="flex items-center justify-between text-text-secondary mb-2">
+<span class="font-label-sm text-label-sm font-semibold uppercase tracking-wider">Automated System Actions</span>
+<span class="material-symbols-outlined text-tertiary text-[20px]">smart_toy</span>
+</div>
+<div>
+<div class="flex items-baseline gap-2">
+<div class="font-metric-stat-lg text-metric-stat-lg font-bold text-text-primary">118</div>
+<span class="font-label-md text-label-md font-semibold text-text-secondary">(83%)</span>
+</div>
+<div class="font-body-sm text-body-sm text-text-secondary mt-1">
+            Meta Graph webhooks, AI synthesis, scheduled sync
+          </div>
+</div>
+<div class="mt-3 pt-2 border-t border-border-subtle flex items-center justify-between text-label-code text-label-code text-text-tertiary">
+<span>PIPELINE HEALTH</span>
+<span class="font-semibold text-status-active flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-status-active"></span> 99.98%
+          </span>
+</div>
+</div>
+<!-- Card 3: Operator Actions -->
+<div class="bg-surface-card border border-border-strong rounded-xl p-4 flex flex-col justify-between hover:border-text-secondary transition-all">
+<div class="flex items-center justify-between text-text-secondary mb-2">
+<span class="font-label-sm text-label-sm font-semibold uppercase tracking-wider">Operator / Staff Actions</span>
+<span class="material-symbols-outlined text-primary text-[20px]">badge</span>
+</div>
+<div>
+<div class="flex items-baseline gap-2">
+<div class="font-metric-stat-lg text-metric-stat-lg font-bold text-text-primary">24</div>
+<span class="font-label-md text-label-md font-semibold text-text-secondary">(17%)</span>
+</div>
+<div class="font-body-sm text-body-sm text-text-secondary mt-1">
+            Report generation, comment triage, preference updates
+          </div>
+</div>
+<div class="mt-3 pt-2 border-t border-border-subtle flex items-center justify-between text-label-code text-label-code text-text-tertiary">
+<span>ACTIVE OPERATORS</span>
+<span class="font-semibold text-text-secondary">2 ACCOUNTS</span>
+</div>
+</div>
+<!-- Card 4: Failed / Warnings -->
+<div class="bg-surface-card border border-border-strong rounded-xl p-4 flex flex-col justify-between hover:border-text-secondary transition-all">
+<div class="flex items-center justify-between text-text-secondary mb-2">
+<span class="font-label-sm text-label-sm font-semibold uppercase tracking-wider">Failed / Warning Events</span>
+<span class="material-symbols-outlined text-status-paused text-[20px]">warning</span>
+</div>
+<div>
+<div class="flex items-baseline gap-2">
+<div class="font-metric-stat-lg text-metric-stat-lg font-bold text-status-paused">3</div>
+<span class="font-label-md text-label-md font-semibold text-text-secondary">Events</span>
+</div>
+<div class="font-body-sm text-body-sm text-text-secondary mt-1">
+            Token expiry alerts, transient rate limit throttling
+          </div>
+</div>
+<div class="mt-3 pt-2 border-t border-border-subtle flex items-center justify-between text-label-code text-label-code text-text-tertiary">
+<span>RESOLVED STATUS</span>
+<span class="font-semibold text-text-secondary">2 of 3 ADDRESSED</span>
+</div>
+</div>
+</div>
+<!-- ========================================================================= -->
+<!-- 5. GRANULAR FILTERING TOOLBAR                                             -->
+<!-- ========================================================================= -->
+<div class="bg-surface-card border border-border-strong rounded-xl p-3 mb-4 space-y-3">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+<!-- Search Input -->
+<div class="md:col-span-4 relative">
+<span class="material-symbols-outlined text-text-tertiary absolute left-3 top-2.5 text-[18px]">search</span>
+<input class="w-full pl-9 pr-3 py-1.5 text-label-md font-label-md border border-border-strong rounded-lg focus:border-border-focused focus:ring-0 placeholder:text-text-tertiary text-text-primary" placeholder="Search by event, entity ID, actor, or description..." type="text"/>
+</div>
+<!-- Category Dropdown -->
+<div class="md:col-span-3">
+<div class="relative">
+<select class="w-full pl-3 pr-8 py-1.5 text-label-md font-label-md border border-border-strong rounded-lg focus:border-border-focused focus:ring-0 bg-white text-text-primary cursor-pointer appearance-none">
+<option value="">All Categories (8)</option>
+<option value="data_sync">Data Sync &amp; API</option>
+<option value="campaigns">Campaigns</option>
+<option value="content">Content</option>
+<option value="ai">AI Intelligence</option>
+<option value="reports">Reports</option>
+<option value="leads">Leads &amp; Comments</option>
+<option value="security">Security &amp; Accounts</option>
+</select>
+<span class="material-symbols-outlined text-text-secondary absolute right-2.5 top-2 pointer-events-none text-[18px]">expand_more</span>
+</div>
+</div>
+<!-- Outcome Filter -->
+<div class="md:col-span-2">
+<div class="relative">
+<select class="w-full pl-3 pr-8 py-1.5 text-label-md font-label-md border border-border-strong rounded-lg focus:border-border-focused focus:ring-0 bg-white text-text-primary cursor-pointer appearance-none">
+<option value="">All Outcomes</option>
+<option value="success">Success</option>
+<option value="in_progress">In Progress</option>
+<option value="warning">Warning / Attention</option>
+<option value="failed">Error / Failed</option>
+</select>
+<span class="material-symbols-outlined text-text-secondary absolute right-2.5 top-2 pointer-events-none text-[18px]">expand_more</span>
+</div>
+</div>
+<!-- Actor Filter -->
+<div class="md:col-span-3">
+<div class="relative">
+<select class="w-full pl-3 pr-8 py-1.5 text-label-md font-label-md border border-border-strong rounded-lg focus:border-border-focused focus:ring-0 bg-white text-text-primary cursor-pointer appearance-none">
+<option value="">All Actors</option>
+<option value="meta_webhook">System / Meta Webhook</option>
+<option value="synthesis_cron">System / Synthesis Cron</option>
+<option value="priya_s">Operator: Priya Sharma</option>
+<option value="admin">Operator: Account Admin</option>
+</select>
+<span class="material-symbols-outlined text-text-secondary absolute right-2.5 top-2 pointer-events-none text-[18px]">expand_more</span>
+</div>
+</div>
+</div>
+<!-- Quick Active Filter Chips -->
+<div class="flex items-center justify-between pt-2 border-t border-border-subtle text-body-sm font-body-sm text-text-secondary">
+<div class="flex items-center gap-2 flex-wrap">
+<span class="text-text-tertiary font-label-code text-label-code font-semibold uppercase">ACTIVE SCOPE:</span>
+<span class="inline-flex items-center gap-1 bg-surface-canvas border border-border-strong px-2 py-0.5 rounded text-[12px] text-text-primary font-medium">
+            Account: @ekoindia
+          </span>
+<span class="inline-flex items-center gap-1 bg-surface-canvas border border-border-strong px-2 py-0.5 rounded text-[12px] text-text-primary font-medium">
+            Date: Oct 01 - 31, 2024
+            <button class="hover:text-error ml-0.5"><span class="material-symbols-outlined text-[13px]">close</span></button>
+</span>
+<button class="text-primary hover:underline text-[12px] font-semibold ml-2">Clear filters</button>
+</div>
+<div class="text-text-tertiary font-label-code text-label-code">
+          INDEX STATE: <span class="text-text-secondary font-semibold">RECONCILED IN-SYNC</span>
+</div>
+</div>
+</div>
+<!-- ========================================================================= -->
+<!-- 6. ACTIVITY LOG TABLE / CHRONOLOGICAL AUDIT TRAIL                          -->
+<!-- ========================================================================= -->
+<div class="bg-surface-card border border-border-strong rounded-xl overflow-hidden shadow-xs mb-4">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-canvas text-text-secondary font-label-sm text-label-sm uppercase tracking-wider border-b border-border-strong">
+<th class="py-3 px-4 font-semibold w-48" scope="col">Timestamp (IST)</th>
+<th class="py-3 px-4 font-semibold w-44" scope="col">Event Category</th>
+<th class="py-3 px-4 font-semibold min-w-[280px]" scope="col">Reconciled Event &amp; Context</th>
+<th class="py-3 px-4 font-semibold w-48" scope="col">Related Entity</th>
+<th class="py-3 px-4 font-semibold w-44" scope="col">Actor / Source</th>
+<th class="py-3 px-4 font-semibold w-28 text-center" scope="col">Outcome</th>
+<th class="py-3 px-4 font-semibold w-24 text-right" scope="col">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-strong text-body-sm font-body-sm text-text-primary">
+<!-- ROW 1: Report Generated (Operator) -->
+<tr class="hover:bg-surface-canvas transition-colors duration-150 group">
+<td class="py-3 px-4 whitespace-nowrap">
+<div class="font-medium text-text-primary font-label-md text-label-md">Oct 31, 2024</div>
+<div class="font-label-code text-label-code text-text-tertiary">10:30:14 AM IST</div>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-surface-card-subtle text-text-secondary border border-border-strong">
+<span class="material-symbols-outlined text-[13px] text-primary">assessment</span>
+<span>Report Generated</span>
+</span>
+</td>
+<td class="py-3 px-4">
+<div class="font-semibold text-text-primary">Executive Performance Export</div>
+<div class="text-text-secondary text-[12px] line-clamp-1">
+                  Generated executive PDF &amp; CSV report '#REP-2024-884' for SBI CSP Recruitment Campaign (842K views, 186 verified leads).
+                </div>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="font-mono text-[11px] bg-surface-canvas border border-border-strong px-2 py-0.5 rounded font-semibold text-text-primary">
+                  #REP-2024-884
+                </span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<div class="flex items-center gap-1.5">
+<span class="w-4 h-4 rounded-full bg-surface-container-high text-[9px] font-bold flex items-center justify-center">PS</span>
+<span class="text-text-secondary font-medium text-[12px]">Operator: Priya S.</span>
+</div>
+</td>
+<td class="py-3 px-4 text-center whitespace-nowrap">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-status-active-subtle text-status-active border border-[#A7F3D0]">
+<span class="w-1.5 h-1.5 rounded-full bg-status-active"></span>
+<span>Success</span>
+</span>
+</td>
+<td class="py-3 px-4 text-right whitespace-nowrap">
+<button class="text-primary hover:text-brand-primary-hover font-label-sm text-label-sm font-semibold underline-offset-2 hover:underline" onclick="openAuditModal(1)">
+                  View
+                </button>
+</td>
+</tr>
+<!-- ROW 2: Data Synchronization (System) -->
+<tr class="hover:bg-surface-canvas transition-colors duration-150 group">
+<td class="py-3 px-4 whitespace-nowrap">
+<div class="font-medium text-text-primary font-label-md text-label-md">Oct 31, 2024</div>
+<div class="font-label-code text-label-code text-text-tertiary">10:18:22 AM IST</div>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-surface-card-subtle text-text-secondary border border-border-strong">
+<span class="material-symbols-outlined text-[13px] text-tertiary">sync</span>
+<span>Data Sync</span>
+</span>
+</td>
+<td class="py-3 px-4">
+<div class="font-semibold text-text-primary">Scheduled Cron Ingestion</div>
+<div class="text-text-secondary text-[12px] line-clamp-1">
+                  Scheduled 6-hour cron sync completed. Synced 128 media assets, 18,642 comments, and demographic metrics via Graph API v19.0.
+                </div>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="font-mono text-[11px] bg-surface-canvas border border-border-strong px-2 py-0.5 rounded text-text-secondary">
+                  @ekoindia (biz_948)
+                </span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-text-tertiary">memory</span>
+<span class="text-text-secondary text-[12px]">System / Graph API</span>
+</div>
+</td>
+<td class="py-3 px-4 text-center whitespace-nowrap">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-status-active-subtle text-status-active border border-[#A7F3D0]">
+<span class="w-1.5 h-1.5 rounded-full bg-status-active"></span>
+<span>Success (4.2s)</span>
+</span>
+</td>
+<td class="py-3 px-4 text-right whitespace-nowrap">
+<button class="text-primary hover:text-brand-primary-hover font-label-sm text-label-sm font-semibold underline-offset-2 hover:underline" onclick="openAuditModal(2)">
+                  View
+                </button>
+</td>
+</tr>
+<!-- ROW 3: AI Insight Synthesized (AI Engine) -->
+<tr class="hover:bg-surface-canvas transition-colors duration-150 group">
+<td class="py-3 px-4 whitespace-nowrap">
+<div class="font-medium text-text-primary font-label-md text-label-md">Oct 31, 2024</div>
+<div class="font-label-code text-label-code text-text-tertiary">10:14:00 AM IST</div>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-ai-subtle text-ai-accent border border-ai-border">
+<span class="material-symbols-outlined text-[13px] text-ai-accent">auto_awesome</span>
+<span>AI Synthesis</span>
+</span>
+</td>
+<td class="py-3 px-4">
+<div class="font-semibold text-text-primary flex items-center gap-1.5">
+<span>Reel Performance Strategic Synthesis</span>
+<span class="font-label-code text-label-code text-ai-accent bg-ai-subtle px-1 rounded uppercase">94.6% Conf</span>
+</div>
+<div class="text-text-secondary text-[12px] line-clamp-1">
+                  Synthesis Engine v4.2 produced strategic insight 'Short-Form Hindi Reels Outperform Carousels by 3.8x in Lead Conversion'.
+                </div>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="font-mono text-[11px] bg-surface-canvas border border-border-strong px-2 py-0.5 rounded text-text-secondary">
+                  Camp: SBI CSP Oct
+                </span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-ai-accent">psychology</span>
+<span class="text-text-secondary text-[12px]">System / AI v4.2</span>
+</div>
+</td>
+<td class="py-3 px-4 text-center whitespace-nowrap">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-status-active-subtle text-status-active border border-[#A7F3D0]">
+<span class="w-1.5 h-1.5 rounded-full bg-status-active"></span>
+<span>Success</span>
+</span>
+</td>
+<td class="py-3 px-4 text-right whitespace-nowrap">
+<button class="text-primary hover:text-brand-primary-hover font-label-sm text-label-sm font-semibold underline-offset-2 hover:underline" onclick="openAuditModal(3)">
+                  View
+                </button>
+</td>
+</tr>
+<!-- ROW 4: Token Expiry Warning (Attention) -->
+<tr class="hover:bg-surface-canvas transition-colors duration-150 group bg-amber-50/20">
+<td class="py-3 px-4 whitespace-nowrap">
+<div class="font-medium text-text-primary font-label-md text-label-md">Oct 31, 2024</div>
+<div class="font-label-code text-label-code text-text-tertiary">09:42:10 AM IST</div>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-status-paused-subtle text-status-paused border border-[#FDE68A]">
+<span class="material-symbols-outlined text-[13px] text-status-paused">warning</span>
+<span>Token Warning</span>
+</span>
+</td>
+<td class="py-3 px-4">
+<div class="font-semibold text-text-primary flex items-center gap-1">
+<span>OAuth Window Expiry Approaching</span>
+<span class="text-[10px] bg-status-paused-subtle text-status-paused font-bold px-1 rounded">4-DAY TTL</span>
+</div>
+<div class="text-text-secondary text-[12px] line-clamp-1">
+                  Long-lived OAuth access token for Creator Account @ekomitracare detected within 4-day expiry window. Action required.
+                </div>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="font-mono text-[11px] bg-surface-canvas border border-border-strong px-2 py-0.5 rounded text-status-paused font-semibold">
+                  @ekomitracare
+                </span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-text-tertiary">key</span>
+<span class="text-text-secondary text-[12px]">System / Auth Monitor</span>
+</div>
+</td>
+<td class="py-3 px-4 text-center whitespace-nowrap">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-status-paused-subtle text-status-paused border border-[#FDE68A]">
+<span class="w-1.5 h-1.5 rounded-full bg-status-paused"></span>
+<span>Action Req.</span>
+</span>
+</td>
+<td class="py-3 px-4 text-right whitespace-nowrap">
+<button class="text-primary hover:text-brand-primary-hover font-label-sm text-label-sm font-semibold underline-offset-2 hover:underline" onclick="openAuditModal(4)">
+                  View
+                </button>
+</td>
+</tr>
+<!-- ROW 5: Lead Converted from Comment -->
+<tr class="hover:bg-surface-canvas transition-colors duration-150 group">
+<td class="py-3 px-4 whitespace-nowrap">
+<div class="font-medium text-text-primary font-label-md text-label-md">Oct 31, 2024</div>
+<div class="font-label-code text-label-code text-text-tertiary">09:12:05 AM IST</div>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-surface-card-subtle text-text-secondary border border-border-strong">
+<span class="material-symbols-outlined text-[13px] text-status-active">person_add</span>
+<span>Lead Converted</span>
+</span>
+</td>
+<td class="py-3 px-4">
+<div class="font-semibold text-text-primary">Comment Intent Conversion</div>
+<div class="text-text-secondary text-[12px] line-clamp-1">
+                  Comment by Rajesh Maurya on Reel '#REEL-OCT-889' triaged and converted to high-intent CSP applicant lead.
+                </div>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="font-mono text-[11px] bg-surface-canvas border border-border-strong px-2 py-0.5 rounded text-text-secondary">
+                  Lead: Rajesh M.
+                </span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<div class="flex items-center gap-1.5">
+<span class="w-4 h-4 rounded-full bg-surface-container-high text-[9px] font-bold flex items-center justify-center">PS</span>
+<span class="text-text-secondary text-[12px]">Operator: Priya S.</span>
+</div>
+</td>
+<td class="py-3 px-4 text-center whitespace-nowrap">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-status-active-subtle text-status-active border border-[#A7F3D0]">
+<span class="w-1.5 h-1.5 rounded-full bg-status-active"></span>
+<span>Success</span>
+</span>
+</td>
+<td class="py-3 px-4 text-right whitespace-nowrap">
+<button class="text-primary hover:text-brand-primary-hover font-label-sm text-label-sm font-semibold underline-offset-2 hover:underline" onclick="openAuditModal(5)">
+                  View
+                </button>
+</td>
+</tr>
+<!-- ROW 6: Report Scheduled Execution -->
+<tr class="hover:bg-surface-canvas transition-colors duration-150 group">
+<td class="py-3 px-4 whitespace-nowrap">
+<div class="font-medium text-text-primary font-label-md text-label-md">Oct 30, 2024</div>
+<div class="font-label-code text-label-code text-text-tertiary">04:20:00 PM IST</div>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-surface-card-subtle text-text-secondary border border-border-strong">
+<span class="material-symbols-outlined text-[13px] text-tertiary">schedule</span>
+<span>Scheduled Job</span>
+</span>
+</td>
+<td class="py-3 px-4">
+<div class="font-semibold text-text-primary">Weekly Retention Digest</div>
+<div class="text-text-secondary text-[12px] line-clamp-1">
+                  Automated weekly compilation completed: Reel Engagement and Retention Report (#REP-2024-878).
+                </div>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="font-mono text-[11px] bg-surface-canvas border border-border-strong px-2 py-0.5 rounded text-text-secondary">
+                  #REP-2024-878
+                </span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-text-tertiary">timer</span>
+<span class="text-text-secondary text-[12px]">System / Scheduler</span>
+</div>
+</td>
+<td class="py-3 px-4 text-center whitespace-nowrap">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-status-active-subtle text-status-active border border-[#A7F3D0]">
+<span class="w-1.5 h-1.5 rounded-full bg-status-active"></span>
+<span>Success</span>
+</span>
+</td>
+<td class="py-3 px-4 text-right whitespace-nowrap">
+<button class="text-primary hover:text-brand-primary-hover font-label-sm text-label-sm font-semibold underline-offset-2 hover:underline" onclick="openAuditModal(6)">
+                  View
+                </button>
+</td>
+</tr>
+<!-- ROW 7: Notification Preferences Updated -->
+<tr class="hover:bg-surface-canvas transition-colors duration-150 group">
+<td class="py-3 px-4 whitespace-nowrap">
+<div class="font-medium text-text-primary font-label-md text-label-md">Oct 30, 2024</div>
+<div class="font-label-code text-label-code text-text-tertiary">11:15:30 AM IST</div>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-surface-card-subtle text-text-secondary border border-border-strong">
+<span class="material-symbols-outlined text-[13px] text-text-secondary">settings</span>
+<span>Config Change</span>
+</span>
+</td>
+<td class="py-3 px-4">
+<div class="font-semibold text-text-primary">Alert Sensitivity Adjustment</div>
+<div class="text-text-secondary text-[12px] line-clamp-1">
+                  Configured lead potential threshold to 'High Priority Only' and enabled in-app alert streaming.
+                </div>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="font-mono text-[11px] bg-surface-canvas border border-border-strong px-2 py-0.5 rounded text-text-secondary">
+                  Sys/Alerts
+                </span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<div class="flex items-center gap-1.5">
+<span class="w-4 h-4 rounded-full bg-surface-container-high text-[9px] font-bold flex items-center justify-center">AD</span>
+<span class="text-text-secondary text-[12px]">Operator: Admin</span>
+</div>
+</td>
+<td class="py-3 px-4 text-center whitespace-nowrap">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-status-active-subtle text-status-active border border-[#A7F3D0]">
+<span class="w-1.5 h-1.5 rounded-full bg-status-active"></span>
+<span>Success</span>
+</span>
+</td>
+<td class="py-3 px-4 text-right whitespace-nowrap">
+<button class="text-primary hover:text-brand-primary-hover font-label-sm text-label-sm font-semibold underline-offset-2 hover:underline" onclick="openAuditModal(7)">
+                  View
+                </button>
+</td>
+</tr>
+<!-- ROW 8: Graph API Rate Limit Alert (Warning/Recovered) -->
+<tr class="hover:bg-surface-canvas transition-colors duration-150 group bg-amber-50/10">
+<td class="py-3 px-4 whitespace-nowrap">
+<div class="font-medium text-text-primary font-label-md text-label-md">Oct 29, 2024</div>
+<div class="font-label-code text-label-code text-text-tertiary">02:45:12 PM IST</div>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-status-paused-subtle text-status-paused border border-[#FDE68A]">
+<span class="material-symbols-outlined text-[13px] text-status-paused">speed</span>
+<span>Rate Limit</span>
+</span>
+</td>
+<td class="py-3 px-4">
+<div class="font-semibold text-text-primary">Transient Batch Polling Throttled</div>
+<div class="text-text-secondary text-[12px] line-clamp-1">
+                  Batch comment polling throttled briefly at 420 calls/hr; backed off and completed via exponential retry.
+                </div>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="font-mono text-[11px] bg-surface-canvas border border-border-strong px-2 py-0.5 rounded text-text-secondary">
+                  /media/comments
+                </span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-text-tertiary">router</span>
+<span class="text-text-secondary text-[12px]">System / API Gateway</span>
+</div>
+</td>
+<td class="py-3 px-4 text-center whitespace-nowrap">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-status-completed-subtle text-status-completed border border-[#BAE6FD]">
+<span class="w-1.5 h-1.5 rounded-full bg-status-completed"></span>
+<span>Resolved</span>
+</span>
+</td>
+<td class="py-3 px-4 text-right whitespace-nowrap">
+<button class="text-primary hover:text-brand-primary-hover font-label-sm text-label-sm font-semibold underline-offset-2 hover:underline" onclick="openAuditModal(8)">
+                  View
+                </button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination & Row Summary Footer -->
+<div class="p-3 bg-surface-canvas border-t border-border-strong flex flex-col sm:flex-row items-center justify-between gap-3">
+<div class="text-body-sm font-body-sm text-text-secondary font-medium">
+          Showing <span class="font-bold text-text-primary">1 - 8</span> of <span class="font-bold text-text-primary">142</span> audit events
+        </div>
+<div class="flex items-center gap-1">
+<button class="px-2.5 py-1 text-label-sm font-label-sm rounded border border-border-strong bg-white text-text-tertiary cursor-not-allowed">
+            Previous
+          </button>
+<button class="px-2.5 py-1 text-label-sm font-label-sm rounded bg-primary-container text-text-primary font-bold shadow-xs">
+            1
+          </button>
+<button class="px-2.5 py-1 text-label-sm font-label-sm rounded border border-border-strong bg-white text-text-primary hover:bg-surface-canvas transition-colors">
+            2
+          </button>
+<button class="px-2.5 py-1 text-label-sm font-label-sm rounded border border-border-strong bg-white text-text-primary hover:bg-surface-canvas transition-colors">
+            3
+          </button>
+<span class="px-1 text-text-tertiary">...</span>
+<button class="px-2.5 py-1 text-label-sm font-label-sm rounded border border-border-strong bg-white text-text-primary hover:bg-surface-canvas transition-colors">
+            18
+          </button>
+<button class="px-2.5 py-1 text-label-sm font-label-sm rounded border border-border-strong bg-white text-text-primary hover:bg-surface-canvas transition-colors font-medium">
+            Next
+          </button>
+</div>
+</div>
+</div>
+<!-- Supplementary Informative Banner: Retention & Compliance -->
+<div class="p-3 bg-white border border-border-strong rounded-xl flex items-center justify-between text-body-sm text-text-secondary">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">verified_user</span>
+<span>Audit logs are tamper-evident, cryptographically hashed, and retained for 365 days under Eko Enterprise Data Governance standards.</span>
+</div>
+<a class="text-primary hover:text-brand-primary-hover font-semibold text-label-sm flex items-center gap-1 shrink-0" href="#">
+        Retention Policies <span class="material-symbols-outlined text-[14px]">open_in_new</span>
+</a>
+</div>
+</main>
+<!-- ========================================================================= -->
+<!-- 7. INTERACTIVE EVENT AUDIT DETAIL MODAL / SLIDE-OVER                       -->
+<!-- ========================================================================= -->
+<div class="fixed inset-0 z-50 hidden bg-[#0F172A]/40 backdrop-blur-[2px] flex items-center justify-center p-4" id="auditModal">
+<div class="bg-surface-card border border-border-strong rounded-xl w-full max-w-2xl overflow-hidden shadow-2xl transition-all scale-95 opacity-0 duration-200" id="modalDialog">
+<!-- Modal Header -->
+<div class="px-6 py-4 border-b border-border-strong flex items-center justify-between bg-surface-canvas">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-lg bg-primary-container/20 border border-primary-container/30 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]">manage_search</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm font-bold text-text-primary" id="modalEventTitle">Event Audit Detail</h3>
+<span class="font-label-code text-label-code text-text-tertiary" id="modalEventId">LOG_TX_948291039821</span>
+</div>
+</div>
+<button class="text-text-tertiary hover:text-text-primary p-1 rounded-lg hover:bg-surface-card-subtle transition-colors" onclick="closeAuditModal()">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Modal Body -->
+<div class="p-6 space-y-4 max-h-[75vh] overflow-y-auto custom-scrollbar">
+<!-- Metadata 2x2 Grid -->
+<div class="grid grid-cols-2 gap-3 p-3 bg-surface-canvas border border-border-strong rounded-lg text-body-sm font-body-sm">
+<div>
+<div class="font-label-code text-label-code text-text-tertiary">TIMESTAMP (IST)</div>
+<div class="font-semibold text-text-primary" id="modalTimestamp">Oct 31, 2024 • 10:30:14 AM</div>
+</div>
+<div>
+<div class="font-label-code text-label-code text-text-tertiary">HTTP RESPONSE STATUS</div>
+<div class="font-semibold text-status-active flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-status-active"></span> 200 OK (0.34s)
+            </div>
+</div>
+<div>
+<div class="font-label-code text-label-code text-text-tertiary">ACTOR / SOURCE IDENTITY</div>
+<div class="font-semibold text-text-primary" id="modalActor">Priya Sharma (priya.s@eko.co.in)</div>
+</div>
+<div>
+<div class="font-label-code text-label-code text-text-tertiary">ORIGIN IP / USER AGENT</div>
+<div class="font-mono text-[11px] text-text-secondary">103.21.144.18 (MacOS Chrome 130)</div>
+</div>
+</div>
+<!-- Event Description -->
+<div>
+<label class="font-label-sm text-label-sm font-bold text-text-primary block mb-1">Audit Narrative &amp; Reconciled Context</label>
+<div class="p-3 bg-white border border-border-strong rounded-lg text-body-sm text-text-secondary" id="modalDescription">
+            Generated executive PDF &amp; CSV report '#REP-2024-884' for SBI CSP Recruitment Campaign (842K views, 186 verified leads).
+          </div>
+</div>
+<!-- Raw JSON Payload View -->
+<div>
+<div class="flex items-center justify-between mb-1.5">
+<label class="font-label-sm text-label-sm font-bold text-text-primary">Raw Immutable Payload Snippet (JSON)</label>
+<button class="text-primary hover:text-brand-primary-hover font-label-code text-label-code font-bold uppercase flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">content_copy</span> Copy Raw
+            </button>
+</div>
+<div class="bg-text-primary text-slate-200 p-3 rounded-lg font-mono text-[11px] overflow-x-auto custom-scrollbar border border-slate-700">
+<pre id="modalJsonSnippet">{
+  "event_id": "evt_rep_848201",
+  "event_type": "report_generation_completed",
+  "actor": {
+    "type": "operator",
+    "uid": "usr_priya_sharma_eko",
+    "role": "Account Manager"
+  },
+  "entity": {
+    "module": "reports",
+    "resource_id": "REP-2024-884",
+    "format": ["pdf", "csv"],
+    "metrics_period": "2024-10-01T00:00:00Z/2024-10-31T23:59:59Z"
+  },
+  "system_reconciliation": {
+    "meta_graph_version": "v19.0",
+    "status": "SUCCESS",
+    "checksum": "sha256:7c9e12089b3f309a9"
+  }
+}</pre>
+</div>
+</div>
+</div>
+<!-- Modal Footer -->
+<div class="px-6 py-3 border-t border-border-strong bg-surface-canvas flex items-center justify-between">
+<button class="px-3.5 py-1.5 rounded-lg border border-border-strong bg-white hover:bg-surface-canvas text-text-primary font-label-md text-label-md font-semibold transition-colors" onclick="closeAuditModal()">
+          Close
+        </button>
+<a class="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-primary-container hover:bg-brand-primary-hover text-text-primary font-label-md text-label-md font-bold transition-colors shadow-xs" href="#">
+<span>Open Related Module</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+</div>
+</div>
+</div>
+<!-- Inline Script for Interactive Micro-Interactions -->
+<script>
+    const sampleEventData = {
+      1: {
+        title: "Report Generated: #REP-2024-884",
+        id: "EVT_REP_2024_884_GEN",
+        timestamp: "Oct 31, 2024 • 10:30:14 AM IST",
+        actor: "Operator: Priya Sharma (Account Manager)",
+        desc: "Generated executive PDF & CSV report '#REP-2024-884' for SBI CSP Recruitment Campaign (842K views, 186 verified leads). File artifacts stored in secured S3 bucket.",
+        json: `{\n  "event_id": "EVT_REP_2024_884_GEN",\n  "type": "REPORT_EXPORT_COMPLETED",\n  "actor": "Priya Sharma",\n  "resource": "#REP-2024-884",\n  "leads_included": 186,\n  "reach_views": 842000,\n  "storage_destination": "s3://eko-analytics-reports/2024/oct/REP-884.pdf"\n}`
+      },
+      2: {
+        title: "Scheduled Data Sync: Meta Graph API",
+        id: "EVT_SYNC_CRON_6H_091",
+        timestamp: "Oct 31, 2024 • 10:18:22 AM IST",
+        actor: "System / Meta Graph API v19.0",
+        desc: "Scheduled 6-hour cron sync completed. Synced 128 media assets, 18,642 comments, and demographic metrics via Graph API v19.0 in 4.2 seconds.",
+        json: `{\n  "event_id": "EVT_SYNC_CRON_6H_091",\n  "type": "GRAPH_API_SCHEDULED_SYNC",\n  "account_id": "ig_biz_9482710381",\n  "sync_stats": {\n    "media_count": 128,\n    "comments_analyzed": 18642,\n    "duration_sec": 4.2\n  },\n  "status": 200\n}`
+      },
+      3: {
+        title: "AI Insight Synthesized: Reel Lead Multiplier",
+        id: "EVT_AI_SYNTH_V42_1140",
+        timestamp: "Oct 31, 2024 • 10:14:00 AM IST",
+        actor: "System / AI Engine v4.2",
+        desc: "Synthesis Engine v4.2 produced strategic insight 'Short-Form Hindi Reels Outperform Carousels by 3.8x in Lead Conversion' with a 94.6% statistical confidence score.",
+        json: `{\n  "event_id": "EVT_AI_SYNTH_V42_1140",\n  "type": "AI_STRATEGIC_INSIGHT",\n  "confidence_score": 0.946,\n  "hypothesis": "Short-Form Hindi Reels Outperform Carousels by 3.8x",\n  "campaign_target": "SBI CSP October",\n  "engine_model": "Eko-Instagram-Synthesis-v4.2"\n}`
+      },
+      4: {
+        title: "Security Alert: OAuth Token Expiry",
+        id: "EVT_SEC_OAUTH_WARN_4D",
+        timestamp: "Oct 31, 2024 • 09:42:10 AM IST",
+        actor: "System / Auth Monitor Gateway",
+        desc: "Long-lived OAuth access token for Creator Account @ekomitracare detected within 4-day expiry window. Action required by account administrator to re-authorize.",
+        json: `{\n  "event_id": "EVT_SEC_OAUTH_WARN_4D",\n  "type": "OAUTH_EXPIRATION_WARNING",\n  "target_handle": "@ekomitracare",\n  "ttl_remaining_hours": 96,\n  "action_required": "RE_AUTHORIZE_CREATOR_TOKEN",\n  "severity": "WARNING"\n}`
+      },
+      5: {
+        title: "Lead Converted from Reel Comment",
+        id: "EVT_LEAD_CONV_RAJESH_889",
+        timestamp: "Oct 31, 2024 • 09:12:05 AM IST",
+        actor: "Operator: Priya Sharma",
+        desc: "Comment by Rajesh Maurya on Reel '#REEL-OCT-889' triaged and converted to high-intent CSP applicant lead with localized Gorakhpur tag.",
+        json: `{\n  "event_id": "EVT_LEAD_CONV_RAJESH_889",\n  "type": "COMMENT_TRIAGE_CONVERTED",\n  "applicant_name": "Rajesh Maurya",\n  "territory": "Gorakhpur",\n  "source_reel": "#REEL-OCT-889",\n  "conversion_channel": "Instagram Direct Lead Form"\n}`
+      },
+      6: {
+        title: "Scheduled Report Compiled: #REP-2024-878",
+        id: "EVT_SCHED_REP_878",
+        timestamp: "Oct 30, 2024 • 04:20:00 PM IST",
+        actor: "System / Report Scheduler",
+        desc: "Automated weekly compilation completed: Reel Engagement and Retention Report (#REP-2024-878). Broadcasted to 4 management email subscribers.",
+        json: `{\n  "event_id": "EVT_SCHED_REP_878",\n  "type": "SCHEDULED_COMPILATION_FINISH",\n  "report_id": "#REP-2024-878",\n  "subscribers_notified": 4,\n  "format": "PDF"\n}`
+      },
+      7: {
+        title: "Notification Preferences Updated",
+        id: "EVT_CONF_PREF_UPD_ADMIN",
+        timestamp: "Oct 30, 2024 • 11:15:30 AM IST",
+        actor: "Operator: Account Admin",
+        desc: "Configured lead potential threshold to 'High Priority Only' and enabled in-app alert streaming for urgent CSP inquiries.",
+        json: `{\n  "event_id": "EVT_CONF_PREF_UPD_ADMIN",\n  "type": "SETTINGS_NOTIFICATION_PREF",\n  "new_threshold": "HIGH_PRIORITY_ONLY",\n  "streaming_enabled": true\n}`
+      },
+      8: {
+        title: "Graph API Transient Throttling Recovered",
+        id: "EVT_API_THROTTLE_RECOVER_420",
+        timestamp: "Oct 29, 2024 • 02:45:12 PM IST",
+        actor: "System / API Gateway",
+        desc: "Batch comment polling throttled briefly at 420 calls/hr; backed off and completed via exponential retry in 18.2s.",
+        json: `{\n  "event_id": "EVT_API_THROTTLE_RECOVER_420",\n  "type": "RATE_LIMIT_WARNING_RECOVERED",\n  "endpoint": "/media/comments",\n  "retry_attempts": 2,\n  "final_status": 200\n}`
+      }
+    };
+
+    function openAuditModal(id) {
+      const data = sampleEventData[id] || sampleEventData[1];
+      document.getElementById('modalEventTitle').innerText = data.title;
+      document.getElementById('modalEventId').innerText = data.id;
+      document.getElementById('modalTimestamp').innerText = data.timestamp;
+      document.getElementById('modalActor').innerText = data.actor;
+      document.getElementById('modalDescription').innerText = data.desc;
+      document.getElementById('modalJsonSnippet').innerText = data.json;
+
+      const modal = document.getElementById('auditModal');
+      const dialog = document.getElementById('modalDialog');
+      modal.classList.remove('hidden');
+      setTimeout(() => {
+        dialog.classList.remove('scale-95', 'opacity-0');
+        dialog.classList.add('scale-100', 'opacity-100');
+      }, 10);
+    }
+
+    function closeAuditModal() {
+      const modal = document.getElementById('auditModal');
+      const dialog = document.getElementById('modalDialog');
+      dialog.classList.remove('scale-100', 'opacity-100');
+      dialog.classList.add('scale-95', 'opacity-0');
+      setTimeout(() => {
+        modal.classList.add('hidden');
+      }, 150);
+    }
+
+    // Close on backdrop click
+    document.getElementById('auditModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeAuditModal();
+      }
+    });
+
+    // Close on ESC key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeAuditModal();
+      }
+    });
+  </script>
+</body></html>

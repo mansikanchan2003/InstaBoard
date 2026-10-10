@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.env
+.env.*
+!.env.example
+# local PostgreSQL helper cluster (python -m scripts.local_postgres)
+.pgdata/
+.pgdata.log

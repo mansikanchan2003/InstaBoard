@@ -1,0 +1,2630 @@
+<!DOCTYPE html>
+
+<html class="h-full bg-surface-canvas" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Eko InstaBoard - Instagram Campaign Intelligence & Analytics</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Plus+Jakarta+Sans:wght@100..900&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "status-active": "#10B981",
+            "on-primary-fixed": "#291800",
+            "outline": "#857462",
+            "surface-variant": "#d3e4fe",
+            "border-subtle": "#F1F5F9",
+            "primary-fixed-dim": "#ffb955",
+            "status-draft-subtle": "#F1F5F9",
+            "tertiary": "#006398",
+            "ai-border": "#C7D2FE",
+            "status-draft": "#64748B",
+            "surface-bright": "#f8f9ff",
+            "text-tertiary": "#94A3B8",
+            "border-focused": "#0F172A",
+            "on-primary-fixed-variant": "#633f00",
+            "ai-accent": "#6366F1",
+            "on-error-container": "#93000a",
+            "surface-card-subtle": "#F1F5F9",
+            "background": "#f8f9ff",
+            "surface-card": "#FFFFFF",
+            "on-primary": "#ffffff",
+            "status-paused-subtle": "#FFFBEB",
+            "secondary-container": "#dae2fd",
+            "surface-canvas": "#F8FAFC",
+            "on-primary-container": "#644000",
+            "on-secondary-container": "#5c647a",
+            "on-background": "#0b1c30",
+            "inverse-primary": "#ffb955",
+            "tertiary-fixed-dim": "#93ccff",
+            "text-secondary": "#475569",
+            "error-container": "#ffdad6",
+            "primary-container": "#f5a623",
+            "status-completed-subtle": "#F0F9FF",
+            "surface-container": "#e5eeff",
+            "secondary-fixed": "#dae2fd",
+            "on-surface": "#0b1c30",
+            "surface-dim": "#cbdbf5",
+            "text-primary": "#0F172A",
+            "tertiary-container": "#6abdff",
+            "status-completed": "#0284C7",
+            "on-secondary": "#ffffff",
+            "border-strong": "#E2E8F0",
+            "tertiary-fixed": "#cce5ff",
+            "surface-container-highest": "#d3e4fe",
+            "on-secondary-fixed": "#131b2e",
+            "on-secondary-fixed-variant": "#3f465c",
+            "secondary": "#565e74",
+            "on-tertiary-fixed-variant": "#004b73",
+            "brand-primary-hover": "#D97706",
+            "surface-container-high": "#dce9ff",
+            "surface": "#f8f9ff",
+            "ai-subtle": "#EEF2FF",
+            "error": "#ba1a1a",
+            "inverse-surface": "#213145",
+            "secondary-fixed-dim": "#bec6e0",
+            "on-tertiary": "#ffffff",
+            "on-tertiary-container": "#004b74",
+            "surface-container-low": "#eff4ff",
+            "primary-fixed": "#ffddb4",
+            "status-paused": "#F59E0B",
+            "outline-variant": "#d7c3ae",
+            "status-active-subtle": "#ECFDF5",
+            "inverse-on-surface": "#eaf1ff",
+            "primary": "#835500",
+            "on-tertiary-fixed": "#001d31",
+            "surface-tint": "#835500",
+            "surface-container-lowest": "#ffffff",
+            "on-surface-variant": "#524534",
+            "on-error": "#ffffff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "fontFamily": {
+            "label-code": ["Inter"],
+            "body-sm": ["Inter"],
+            "display-hero-mobile": ["Plus Jakarta Sans"],
+            "display-hero": ["Plus Jakarta Sans"],
+            "headline-lg": ["Plus Jakarta Sans"],
+            "label-sm": ["Inter"],
+            "metric-stat-sm": ["Inter"],
+            "body-lg": ["Inter"],
+            "metric-stat-lg": ["Inter"],
+            "headline-sm": ["Plus Jakarta Sans"],
+            "label-md": ["Inter"],
+            "body-md": ["Inter"],
+            "headline-md": ["Plus Jakarta Sans"]
+          },
+          "fontSize": {
+            "label-code": ["10px", { "lineHeight": "12px", "letterSpacing": "0.06em", "fontWeight": "700" }],
+            "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+            "display-hero-mobile": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+            "display-hero": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.03em", "fontWeight": "800" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "600" }],
+            "metric-stat-sm": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "body-lg": ["15px", { "lineHeight": "22px", "fontWeight": "400" }],
+            "metric-stat-lg": ["32px", { "lineHeight": "38px", "letterSpacing": "-0.025em", "fontWeight": "700" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "label-md": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
+            "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.015em", "fontWeight": "700" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+      font-size: 19px;
+      line-height: 1;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
+    }
+  </style>
+</head>
+<body class="h-full font-body-md text-text-primary overflow-hidden bg-surface-canvas selection:bg-primary-container selection:text-text-primary">
+<!-- SIDEBAR NAVIGATION (Shared Component: SideNavBar) -->
+<aside class="fixed top-0 left-0 h-screen w-60 z-30 bg-surface-card border-r border-border-strong flex flex-col justify-between p-4 select-none" id="sideNav">
+<div class="flex flex-col gap-4">
+<!-- Brand Header -->
+<div class="flex items-center gap-3 px-2 py-1">
+<div class="w-9 h-9 rounded-lg bg-surface-canvas border border-border-strong p-1 flex items-center justify-center shrink-0">
+<img alt="Eko India Financial Services official brand avatar" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPiN67QIE75Mpjbjeh3yoH29aPfkyXEnyzz8zGJKqVNmHZ83GEUvHytL-BgBP_lC0XacVcq6W_lPC-udvBuwxbuGuPugQL7EqPSP2og_aIznXJPh-OpFmP5Vscja3jCeASqwc7_34AjXicMuHOxUdmhnl5mLO-IAUd97O4sYk0i_uYN0DDseUhS8VzL3k3trVK6GgGCq_z1A5QtEKmGd2-W1AOjrmj0lPLFuc_EmECzCt9VBV8O1s"/>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-headline-md text-headline-sm text-text-primary font-bold tracking-tight">InstaBoard</span>
+<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-primary-container text-text-primary leading-none">v2.4</span>
+</div>
+<span class="font-label-sm text-label-sm text-text-secondary truncate">Enterprise Analytics</span>
+</div>
+</div>
+<!-- Quick Action CTA -->
+<button class="w-full py-2 px-3 bg-primary-container hover:bg-brand-primary-hover text-text-primary font-bold rounded-lg text-label-md flex items-center justify-center gap-2 transition-colors duration-150 shadow-sm" onclick="openCreateModal()">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+<span>New Campaign</span>
+</button>
+<!-- Nav Items Rail -->
+<nav class="flex flex-col gap-1 mt-1">
+<span class="font-label-code text-label-code text-text-tertiary px-3 uppercase tracking-wider mb-1">MAIN</span>
+<button class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg bg-surface-container-low text-text-primary font-semibold border-l-2 border-primary-container transition-colors duration-150" data-tab="Dashboard" onclick="switchView('dashboard')">
+<span class="material-symbols-outlined text-primary-container">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</button>
+<button class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary font-medium hover:bg-surface-canvas hover:text-text-primary transition-colors duration-150" data-tab="Campaigns" onclick="switchView('campaigns')">
+<span class="material-symbols-outlined">campaign</span>
+<span class="font-label-md text-label-md">Campaigns</span>
+</button>
+<button class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary font-medium hover:bg-surface-canvas hover:text-text-primary transition-colors duration-150" data-tab="Content" onclick="switchView('content')">
+<span class="material-symbols-outlined">movie</span>
+<span class="font-label-md text-label-md">Content</span>
+</button>
+<button class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary font-medium hover:bg-surface-canvas hover:text-text-primary transition-colors duration-150" data-tab="Audience" onclick="switchView('audience')">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-md text-label-md">Audience</span>
+</button>
+<button class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary font-medium hover:bg-surface-canvas hover:text-text-primary transition-colors duration-150" data-tab="Comments" onclick="switchView('comments')">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span class="font-label-md text-label-md">Comments</span>
+<span class="ml-auto text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-status-active-subtle text-status-active border border-emerald-200">142</span>
+</button>
+<button class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary font-medium hover:bg-surface-canvas hover:text-text-primary transition-colors duration-150" data-tab="Leads" onclick="switchView('leads')">
+<span class="material-symbols-outlined">contact_page</span>
+<span class="font-label-md text-label-md">Leads</span>
+<span class="ml-auto text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-primary-container/20 text-on-primary-container">482</span>
+</button>
+<span class="font-label-code text-label-code text-text-tertiary px-3 uppercase tracking-wider mt-3 mb-1">INTELLIGENCE</span>
+<button class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary font-medium hover:bg-surface-canvas hover:text-text-primary transition-colors duration-150" data-tab="AI Insights" onclick="switchView('ai-insights')">
+<span class="material-symbols-outlined text-ai-accent">auto_awesome</span>
+<span class="font-label-md text-label-md">AI Insights</span>
+<span class="ml-auto text-[9px] font-bold px-1 py-0.5 rounded bg-ai-subtle text-ai-accent border border-ai-border">AI</span>
+</button>
+<span class="font-label-code text-label-code text-text-tertiary px-3 uppercase tracking-wider mt-3 mb-1">REPORTING</span>
+<button class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary font-medium hover:bg-surface-canvas hover:text-text-primary transition-colors duration-150" data-tab="Reports" onclick="switchView('reports')">
+<span class="material-symbols-outlined">assessment</span>
+<span class="font-label-md text-label-md">Reports</span>
+</button>
+</nav>
+</div>
+<!-- Footer System Navigation -->
+<div class="border-t border-border-strong pt-3 flex flex-col gap-1">
+<button class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary font-medium hover:bg-surface-canvas hover:text-text-primary transition-colors duration-150" data-tab="Instagram Accounts" onclick="switchView('instagram-accounts')">
+<span class="material-symbols-outlined">switch_account</span>
+<span class="font-label-md text-label-md">Instagram Accounts</span>
+</button>
+<button class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary font-medium hover:bg-surface-canvas hover:text-text-primary transition-colors duration-150" data-tab="Notifications" onclick="switchView('notifications')">
+<span class="material-symbols-outlined">notifications</span>
+<span class="font-label-md text-label-md">Notifications</span>
+<span class="ml-auto w-2 h-2 rounded-full bg-status-active"></span>
+</button>
+<button class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary font-medium hover:bg-surface-canvas hover:text-text-primary transition-colors duration-150" data-tab="Settings" onclick="switchView('settings')">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</button>
+</div>
+</aside>
+<!-- TOP HEADER NAVBAR (Shared Component: TopNavBar) -->
+<header class="fixed top-0 left-60 right-0 h-14 z-20 bg-surface-card border-b border-border-strong flex items-center justify-between px-6">
+<!-- Left Section: Search & Active Entity -->
+<div class="flex items-center gap-4">
+<!-- Connected Account Switcher Badge -->
+<div class="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-surface-canvas border border-border-strong text-text-primary text-label-md hover:bg-surface-card-subtle cursor-pointer transition-colors" onclick="switchView('instagram-accounts')">
+<div class="w-5 h-5 rounded-full bg-primary-container flex items-center justify-center font-bold text-[10px] text-text-primary">E</div>
+<span class="font-semibold text-text-primary font-headline-sm text-xs">Eko India Financial Services</span>
+<span class="text-text-tertiary font-normal">@ekoindia</span>
+<span class="material-symbols-outlined text-status-completed text-[16px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="material-symbols-outlined text-[16px] text-text-secondary">arrow_drop_down</span>
+</div>
+<!-- Quick Global Search Input -->
+<div class="relative w-72">
+<span class="material-symbols-outlined absolute left-2.5 top-2 text-text-tertiary text-[18px]">search</span>
+<input class="w-full h-8 pl-8 pr-3 bg-surface-canvas border border-border-strong rounded-lg text-label-md text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-border-focused transition-all" id="globalSearchInput" placeholder="Search campaigns, reels, handles..." type="text"/>
+</div>
+</div>
+<!-- Center/Right Action Cluster -->
+<div class="flex items-center gap-3">
+<!-- Sync Status & Action -->
+<div class="flex items-center gap-2 px-2.5 py-1 rounded bg-surface-canvas border border-border-strong text-text-secondary font-label-sm">
+<span class="w-2 h-2 rounded-full bg-status-active animate-pulse"></span>
+<span id="syncStatusLabel">Synced 12m ago</span>
+<button class="hover:text-text-primary ml-1 flex items-center text-text-secondary" onclick="triggerDataSync()" title="Force Sync Data">
+<span class="material-symbols-outlined text-[16px]" id="syncIcon">sync</span>
+</button>
+</div>
+<!-- Date Range Selector -->
+<div class="flex items-center gap-1.5 px-3 py-1 bg-surface-canvas border border-border-strong rounded text-label-md text-text-primary cursor-pointer hover:bg-surface-card-subtle">
+<span class="material-symbols-outlined text-[16px] text-text-secondary">calendar_today</span>
+<span class="font-medium text-xs">Last 30 Days: Oct 1 - Oct 31, 2024</span>
+<span class="material-symbols-outlined text-[16px] text-text-secondary">arrow_drop_down</span>
+</div>
+<!-- Export Secondary Action -->
+<button class="h-8 px-3 rounded border border-border-strong text-label-md font-semibold text-text-primary hover:bg-surface-canvas flex items-center gap-1.5 transition-colors" onclick="switchView('reports')">
+<span class="material-symbols-outlined text-[16px]">tune</span>
+<span>Export</span>
+</button>
+<!-- Sync Data Primary Action -->
+<button class="h-8 px-3 rounded bg-primary-container text-text-primary font-bold text-label-md hover:bg-brand-primary-hover flex items-center gap-1.5 transition-colors" onclick="triggerDataSync()">
+<span class="material-symbols-outlined text-[16px]">cloud_sync</span>
+<span>Sync Data</span>
+</button>
+<div class="h-5 w-px bg-border-strong mx-1"></div>
+<!-- User Profile & Notifications -->
+<button class="relative p-1 text-text-secondary hover:text-text-primary" onclick="switchView('notifications')">
+<span class="material-symbols-outlined text-[22px]">notifications</span>
+<span class="absolute top-0 right-0 w-4 h-4 rounded-full bg-status-paused text-[10px] font-bold text-white flex items-center justify-center">3</span>
+</button>
+<div class="flex items-center gap-2 pl-1 cursor-pointer" onclick="switchView('settings')">
+<div class="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-500 to-orange-400 text-white font-bold text-xs flex items-center justify-center border border-border-strong">
+          PS
+        </div>
+<div class="hidden xl:flex flex-col text-left">
+<span class="font-label-sm text-xs text-text-primary font-bold leading-none">Priya Sharma</span>
+<span class="text-[10px] text-text-secondary leading-tight">Growth Lead</span>
+</div>
+</div>
+</div>
+</header>
+<!-- MAIN SCROLLABLE CONTENT CANVAS -->
+<main class="ml-60 pt-14 h-screen overflow-y-auto custom-scrollbar p-6" id="mainContainer">
+<!-- STATE SWITCHER BAR (Interactive testing banner) -->
+<div class="mb-4 bg-surface-card border border-border-strong rounded-lg p-2.5 flex items-center justify-between text-label-sm">
+<div class="flex items-center gap-2">
+<span class="font-bold text-text-primary flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-primary-container">toggle_on</span>
+          Interactive States:
+        </span>
+<button class="state-btn px-2.5 py-0.5 rounded text-xs font-semibold bg-surface-container-low text-text-primary border border-primary-container" onclick="setAppState('normal')">Normal Loaded</button>
+<button class="state-btn px-2.5 py-0.5 rounded text-xs font-medium text-text-secondary hover:bg-surface-canvas" onclick="setAppState('skeleton')">Skeleton Shimmer</button>
+<button class="state-btn px-2.5 py-0.5 rounded text-xs font-medium text-text-secondary hover:bg-surface-canvas" onclick="setAppState('empty')">Empty State</button>
+<button class="state-btn px-2.5 py-0.5 rounded text-xs font-medium text-text-secondary hover:bg-surface-canvas" onclick="setAppState('error')">API Rate Limit / Error</button>
+</div>
+<div class="text-[11px] text-text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-status-active">verified_user</span>
+        Eko InstaBoard Production Environment (Mock Data Mode)
+      </div>
+</div>
+<!-- ERROR STATE VIEW (Conditional) -->
+<div class="hidden mb-6 bg-error-container border border-error/20 p-4 rounded-lg flex items-start gap-3" id="errorStateContainer">
+<span class="material-symbols-outlined text-error text-[24px]">warning</span>
+<div class="flex-1">
+<h4 class="font-bold text-text-primary text-body-md">Instagram Graph API Rate Limit Alert</h4>
+<p class="text-body-sm text-text-secondary mt-0.5">Campaign metrics sync throttled by Meta Graph API quota. Cached performance metrics from 12 mins ago are displayed.</p>
+</div>
+<button class="px-3 py-1.5 bg-surface-card border border-border-strong hover:bg-surface-canvas rounded text-label-sm font-bold text-text-primary transition-colors" onclick="triggerDataSync()">
+        Retry Sync Now
+      </button>
+</div>
+<!-- SKELETON PLACEHOLDER WRAPPER (Conditional) -->
+<div class="hidden space-y-4 animate-pulse" id="skeletonContainer">
+<div class="grid grid-cols-4 gap-4">
+<div class="h-28 bg-border-strong rounded-lg"></div>
+<div class="h-28 bg-border-strong rounded-lg"></div>
+<div class="h-28 bg-border-strong rounded-lg"></div>
+<div class="h-28 bg-border-strong rounded-lg"></div>
+</div>
+<div class="h-80 bg-border-strong rounded-lg"></div>
+<div class="h-64 bg-border-strong rounded-lg"></div>
+</div>
+<!-- NORMAL DATA CONTAINER -->
+<div id="viewsContentWrapper">
+<!-- ========================================== -->
+<!-- VIEW 1: DASHBOARD VIEW                    -->
+<!-- ========================================== -->
+<section class="view-panel space-y-6" id="view-dashboard">
+<!-- Header Banner & AI Summary Ribbon -->
+<div class="bg-gradient-to-r from-amber-50 via-white to-blue-50/40 border border-border-strong rounded-lg p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-primary-container text-text-primary flex items-center justify-center font-bold">
+<span class="material-symbols-outlined text-[24px]">analytics</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<h1 class="font-headline-md text-headline-md text-text-primary">Eko India Campaign Overview</h1>
+<span class="font-label-sm text-[11px] px-2 py-0.5 rounded-full bg-status-active-subtle border border-emerald-200 text-status-active font-semibold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-status-active"></span> 6 Active Campaigns
+                </span>
+</div>
+<p class="text-body-sm text-text-secondary">Tracking agent recruitment, financial inclusion reels, and rural kiosk conversions across 142.8K followers.</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="px-3 py-1.5 bg-ai-subtle border border-ai-border text-ai-accent rounded-lg text-label-md font-semibold flex items-center gap-1.5 hover:bg-indigo-100 transition-colors" onclick="switchView('ai-insights')">
+<span class="material-symbols-outlined text-[16px]">auto_awesome</span>
+<span>AI Health Score: 92/100</span>
+</button>
+<button class="px-3.5 py-1.5 bg-primary-container hover:bg-brand-primary-hover text-text-primary rounded-lg text-label-md font-bold transition-colors" onclick="openCreateModal()">
+              + New Campaign
+            </button>
+</div>
+</div>
+<!-- 8 Primary KPI Cards -->
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+<!-- KPI 1 -->
+<div class="bg-surface-card border border-border-strong rounded-lg p-3 hover:border-slate-300 transition-colors">
+<span class="text-label-sm text-text-secondary block">Active Campaigns</span>
+<div class="font-metric-stat-lg text-metric-stat-sm text-text-primary mt-1 font-bold">6</div>
+<span class="text-[11px] text-text-tertiary">2 ending this week</span>
+</div>
+<!-- KPI 2 -->
+<div class="bg-surface-card border border-border-strong rounded-lg p-3 hover:border-slate-300 transition-colors">
+<span class="text-label-sm text-text-secondary block">Total Views</span>
+<div class="font-metric-stat-lg text-metric-stat-sm text-text-primary mt-1 font-bold">2.84M</div>
+<span class="text-[11px] text-status-active font-semibold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[14px]">trending_up</span> +18.4%
+            </span>
+</div>
+<!-- KPI 3 -->
+<div class="bg-surface-card border border-border-strong rounded-lg p-3 hover:border-slate-300 transition-colors">
+<span class="text-label-sm text-text-secondary block">Total Reach</span>
+<div class="font-metric-stat-lg text-metric-stat-sm text-text-primary mt-1 font-bold">1.42M</div>
+<span class="text-[11px] text-status-active font-semibold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[14px]">trending_up</span> +14.2%
+            </span>
+</div>
+<!-- KPI 4 -->
+<div class="bg-surface-card border border-border-strong rounded-lg p-3 hover:border-slate-300 transition-colors">
+<span class="text-label-sm text-text-secondary block">Engagement Rate</span>
+<div class="font-metric-stat-lg text-metric-stat-sm text-text-primary mt-1 font-bold">4.82%</div>
+<span class="text-[11px] text-status-active font-semibold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[14px]">trending_up</span> +0.6%
+            </span>
+</div>
+<!-- KPI 5 -->
+<div class="bg-surface-card border border-border-strong rounded-lg p-3 hover:border-slate-300 transition-colors">
+<span class="text-label-sm text-text-secondary block">Total Likes</span>
+<div class="font-metric-stat-lg text-metric-stat-sm text-text-primary mt-1 font-bold">94.2K</div>
+<span class="text-[11px] text-status-active font-semibold">+9.8% vs prev</span>
+</div>
+<!-- KPI 6 -->
+<div class="bg-surface-card border border-border-strong rounded-lg p-3 hover:border-slate-300 transition-colors">
+<span class="text-label-sm text-text-secondary block">Total Comments</span>
+<div class="font-metric-stat-lg text-metric-stat-sm text-text-primary mt-1 font-bold">6,410</div>
+<span class="text-[11px] text-status-active font-semibold">+22.1% spike</span>
+</div>
+<!-- KPI 7 -->
+<div class="bg-surface-card border border-border-strong rounded-lg p-3 hover:border-slate-300 transition-colors">
+<span class="text-label-sm text-text-secondary block">Shares & Saves</span>
+<div class="font-metric-stat-lg text-metric-stat-sm text-text-primary mt-1 font-bold">31.3K</div>
+<span class="text-[11px] text-text-secondary">18.9K / 12.4K</span>
+</div>
+<!-- KPI 8 -->
+<div class="bg-surface-card border border-primary-container rounded-lg p-3 bg-amber-50/20">
+<div class="flex items-center justify-between">
+<span class="text-label-sm text-on-primary-container font-bold">Leads Generated</span>
+<span class="material-symbols-outlined text-[16px] text-primary-container">stars</span>
+</div>
+<div class="font-metric-stat-lg text-metric-stat-sm text-text-primary mt-1 font-bold">482</div>
+<span class="text-[11px] text-status-active font-bold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[14px]">trending_up</span> +31.2%
+            </span>
+</div>
+</div>
+<!-- Performance Trends Chart & Dynamic Switcher -->
+<div class="bg-surface-card border border-border-strong rounded-lg p-5">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border-strong">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-text-primary">Performance Trends</h2>
+<p class="text-body-sm text-text-secondary">Aggregated reach and attribution across 30 days of active campaigns</p>
+</div>
+<!-- Trend Metric Pills Switcher -->
+<div class="flex items-center flex-wrap gap-1 bg-surface-canvas p-1 rounded-lg border border-border-strong text-label-sm" id="chartPillGroup">
+<button class="chart-pill px-3 py-1 rounded bg-white text-text-primary font-bold shadow-xs" onclick="switchChartMetric('views')">Views</button>
+<button class="chart-pill px-3 py-1 rounded text-text-secondary hover:text-text-primary" onclick="switchChartMetric('reach')">Reach</button>
+<button class="chart-pill px-3 py-1 rounded text-text-secondary hover:text-text-primary" onclick="switchChartMetric('engagement')">Engagement</button>
+<button class="chart-pill px-3 py-1 rounded text-text-secondary hover:text-text-primary" onclick="switchChartMetric('leads')">Leads</button>
+<button class="chart-pill px-3 py-1 rounded text-text-secondary hover:text-text-primary" onclick="switchChartMetric('shares')">Shares</button>
+</div>
+</div>
+<!-- SVG Chart Visualizer -->
+<div class="pt-4">
+<div class="h-64 w-full relative">
+<svg class="w-full h-full" fill="none" preserveaspectratio="none" viewbox="0 0 900 240">
+<!-- Grid Lines -->
+<line stroke="#E2E8F0" stroke-dasharray="4 4" x1="0" x2="900" y1="40" y2="40"></line>
+<line stroke="#E2E8F0" stroke-dasharray="4 4" x1="0" x2="900" y1="100" y2="100"></line>
+<line stroke="#E2E8F0" stroke-dasharray="4 4" x1="0" x2="900" y1="160" y2="160"></line>
+<line stroke="#E2E8F0" x1="0" x2="900" y1="220" y2="220"></line>
+<!-- Linear Gradient Definition -->
+<defs>
+<lineargradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#F5A623" stop-opacity="0.28"></stop>
+<stop offset="100%" stop-color="#F5A623" stop-opacity="0.0"></stop>
+</lineargradient>
+<lineargradient id="chartGradientSecondary" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#0284C7" stop-opacity="0.15"></stop>
+<stop offset="100%" stop-color="#0284C7" stop-opacity="0.0"></stop>
+</lineargradient>
+</defs>
+<!-- Gradient Area Fill -->
+<polygon fill="url(#chartGradient)" id="chartArea" points="0,220 0,180 80,165 160,190 240,140 320,110 400,125 480,85 560,95 640,60 720,70 800,45 880,30 900,30 900,220"></polygon>
+<!-- Primary Trend Line -->
+<polyline fill="none" id="chartLine" points="0,180 80,165 160,190 240,140 320,110 400,125 480,85 560,95 640,60 720,70 800,45 880,30 900,30" stroke="#F5A623" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"></polyline>
+<!-- Secondary Comparison Polyline (Previous 30 Days Baseline) -->
+<polyline fill="none" points="0,205 80,195 160,180 240,175 320,160 400,150 480,140 560,135 640,120 720,115 800,105 880,95 900,90" stroke="#94A3B8" stroke-dasharray="6 4" stroke-linecap="round" stroke-width="2"></polyline>
+<!-- Data Points Markers -->
+<circle cx="320" cy="110" fill="#FFFFFF" r="4" stroke="#F5A623" stroke-width="2"></circle>
+<circle cx="480" cy="85" fill="#FFFFFF" r="4" stroke="#F5A623" stroke-width="2"></circle>
+<circle cx="640" cy="60" fill="#FFFFFF" r="4" stroke="#F5A623" stroke-width="2"></circle>
+<circle cx="880" cy="30" fill="#F5A623" r="5" stroke="#FFFFFF" stroke-width="2"></circle>
+</svg>
+</div>
+<!-- Chart Date Labels & Legend -->
+<div class="flex items-center justify-between text-body-sm text-text-tertiary pt-2 border-t border-border-subtle">
+<span>Oct 1</span>
+<span>Oct 6</span>
+<span>Oct 11</span>
+<span>Oct 16</span>
+<span>Oct 21</span>
+<span>Oct 26</span>
+<span>Oct 31</span>
+</div>
+<div class="flex items-center justify-end gap-6 pt-3 text-label-sm">
+<div class="flex items-center gap-2">
+<span class="w-3 h-1 bg-primary-container rounded"></span>
+<span class="text-text-primary font-medium">Current 30 Days (Oct 1 - Oct 31)</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-3 h-0.5 border-b border-dashed border-text-tertiary"></span>
+<span class="text-text-secondary">Previous Baseline (Sep 1 - Sep 30)</span>
+</div>
+</div>
+</div>
+</div>
+<!-- 2 Column Split: Campaigns Table + AI Executive Brief -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Campaign Performance Table (2 Cols) -->
+<div class="lg:col-span-2 bg-surface-card border border-border-strong rounded-lg p-5">
+<div class="flex items-center justify-between mb-4">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-text-primary">Campaign Performance</h3>
+<p class="text-body-sm text-text-secondary">Click row to open granular attribution analytics</p>
+</div>
+<button class="text-label-md text-text-primary hover:text-primary-container font-semibold flex items-center gap-1" onclick="switchView('campaigns')">
+<span>View All (6)</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left text-label-md">
+<thead>
+<tr class="bg-surface-canvas border-y border-border-strong text-text-secondary text-[11px] font-semibold uppercase tracking-wider">
+<th class="py-2.5 px-3">Campaign Name</th>
+<th class="py-2.5 px-3">Status</th>
+<th class="py-2.5 px-3 text-right">Views</th>
+<th class="py-2.5 px-3 text-right">Reach</th>
+<th class="py-2.5 px-3 text-right">Engagement</th>
+<th class="py-2.5 px-3 text-right">Leads</th>
+<th class="py-2.5 px-3 text-right">Conv. Rate</th>
+<th class="py-2.5 px-3 text-center">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-subtle" id="campaignOverviewTbody">
+<!-- Row 1: Active Primary -->
+<tr class="hover:bg-surface-canvas cursor-pointer transition-colors group" onclick="openCampaignDetail('SBI CSP October Campaign')">
+<td class="py-3 px-3">
+<div class="font-bold text-text-primary group-hover:text-primary-container transition-colors">SBI CSP October Campaign</div>
+<span class="text-[11px] text-text-tertiary">Oct 1 - Oct 31 • Agent Recruitment</span>
+</td>
+<td class="py-3 px-3">
+<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-status-active-subtle text-status-active border border-emerald-200 inline-flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-status-active"></span> Active
+                      </span>
+</td>
+<td class="py-3 px-3 text-right font-semibold text-text-primary">942.5K</td>
+<td class="py-3 px-3 text-right text-text-secondary">512.0K</td>
+<td class="py-3 px-3 text-right text-text-primary">5.24%</td>
+<td class="py-3 px-3 text-right font-bold text-text-primary">184</td>
+<td class="py-3 px-3 text-right text-status-active font-semibold">1.82%</td>
+<td class="py-3 px-3 text-center">
+<button class="px-2 py-1 rounded bg-surface-canvas hover:bg-surface-card border border-border-strong text-[11px] font-semibold text-text-primary">Detail</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-canvas cursor-pointer transition-colors group" onclick="openCampaignDetail('SBI CSP Mitra Recruitment')">
+<td class="py-3 px-3">
+<div class="font-bold text-text-primary group-hover:text-primary-container transition-colors">SBI CSP Mitra Recruitment</div>
+<span class="text-[11px] text-text-tertiary">Sep 15 - Oct 20 • Operator Gen</span>
+</td>
+<td class="py-3 px-3">
+<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-status-active-subtle text-status-active border border-emerald-200 inline-flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-status-active"></span> Active
+                      </span>
+</td>
+<td class="py-3 px-3 text-right font-semibold text-text-primary">680.1K</td>
+<td class="py-3 px-3 text-right text-text-secondary">389.2K</td>
+<td class="py-3 px-3 text-right text-text-primary">4.91%</td>
+<td class="py-3 px-3 text-right font-bold text-text-primary">142</td>
+<td class="py-3 px-3 text-right text-status-active font-semibold">1.64%</td>
+<td class="py-3 px-3 text-center">
+<button class="px-2 py-1 rounded bg-surface-canvas hover:bg-surface-card border border-border-strong text-[11px] font-semibold text-text-primary">Detail</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-canvas cursor-pointer transition-colors group" onclick="openCampaignDetail('Digital Banking Awareness')">
+<td class="py-3 px-3">
+<div class="font-bold text-text-primary group-hover:text-primary-container transition-colors">Digital Banking Awareness</div>
+<span class="text-[11px] text-text-tertiary">Oct 5 - Nov 5 • Brand Awareness</span>
+</td>
+<td class="py-3 px-3">
+<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-status-active-subtle text-status-active border border-emerald-200 inline-flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-status-active"></span> Active
+                      </span>
+</td>
+<td class="py-3 px-3 text-right font-semibold text-text-primary">512.4K</td>
+<td class="py-3 px-3 text-right text-text-secondary">290.8K</td>
+<td class="py-3 px-3 text-right text-text-primary">4.10%</td>
+<td class="py-3 px-3 text-right font-bold text-text-primary">56</td>
+<td class="py-3 px-3 text-right text-text-secondary">0.92%</td>
+<td class="py-3 px-3 text-center">
+<button class="px-2 py-1 rounded bg-surface-canvas hover:bg-surface-card border border-border-strong text-[11px] font-semibold text-text-primary">Detail</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-canvas cursor-pointer transition-colors group" onclick="openCampaignDetail('Rural Banking Access')">
+<td class="py-3 px-3">
+<div class="font-bold text-text-primary group-hover:text-primary-container transition-colors">Rural Banking Access</div>
+<span class="text-[11px] text-text-tertiary">Oct 12 - Oct 26 • CSP Expansion</span>
+</td>
+<td class="py-3 px-3">
+<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-status-completed-subtle text-status-completed border border-sky-200 inline-flex items-center gap-1">
+                        Completed
+                      </span>
+</td>
+<td class="py-3 px-3 text-right font-semibold text-text-primary">412.0K</td>
+<td class="py-3 px-3 text-right text-text-secondary">228.4K</td>
+<td class="py-3 px-3 text-right text-text-primary">4.75%</td>
+<td class="py-3 px-3 text-right font-bold text-text-primary">68</td>
+<td class="py-3 px-3 text-right text-status-active font-semibold">1.41%</td>
+<td class="py-3 px-3 text-center">
+<button class="px-2 py-1 rounded bg-surface-canvas hover:bg-surface-card border border-border-strong text-[11px] font-semibold text-text-primary">Detail</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- AI Executive Summary Card (1 Col) -->
+<div class="bg-surface-card border border-border-strong rounded-lg p-5 flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-ai-accent text-[20px]">auto_awesome</span>
+<h3 class="font-headline-sm text-headline-sm text-text-primary">AI Executive Brief</h3>
+</div>
+<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-ai-subtle text-ai-accent border border-ai-border">
+                  [AI-INFERRED]
+                </span>
+</div>
+<div class="space-y-3.5 text-body-sm">
+<div class="p-2.5 rounded bg-surface-canvas border border-border-subtle">
+<span class="font-bold text-[11px] text-status-active uppercase tracking-wide block mb-0.5">What is working</span>
+<p class="text-text-primary text-xs">Reels under 45s featuring real CSP operator testimonial videos in Hindi generated <strong>62% of all recruits</strong>.</p>
+</div>
+<div class="p-2.5 rounded bg-surface-canvas border border-border-subtle">
+<span class="font-bold text-[11px] text-status-paused uppercase tracking-wide block mb-0.5">What is declining</span>
+<p class="text-text-primary text-xs">Static carousel posts have dropped by 18% in save rate compared to short-form Reels with direct call-to-actions.</p>
+</div>
+<div class="p-2.5 rounded bg-surface-canvas border border-border-subtle">
+<span class="font-bold text-[11px] text-tertiary uppercase tracking-wide block mb-0.5">Biggest Opportunity</span>
+<p class="text-text-primary text-xs">East UP & Bihar show a <strong>3.2x higher lead conversion rate</strong> when mentioning SBI CSP eligibility criteria in the first 3 seconds.</p>
+</div>
+<div class="p-2.5 rounded bg-amber-50 border border-amber-200">
+<span class="font-bold text-[11px] text-on-primary-container uppercase tracking-wide block mb-0.5">Recommended Action</span>
+<p class="text-text-primary text-xs font-medium">Auto-dispatch WhatsApp follow-ups to comments tagged "Eligibility Inquiry" within 15 minutes.</p>
+</div>
+</div>
+</div>
+<button class="mt-4 w-full py-2 bg-surface-canvas hover:bg-slate-100 border border-border-strong rounded text-label-md font-semibold text-text-primary text-center transition-colors" onclick="switchView('ai-insights')">
+              Read Deep AI Report →
+            </button>
+</div>
+</div>
+<!-- Row: Top Performing Content Gallery & Audience Snapshot -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Top Performing Content (2 Cols) -->
+<div class="lg:col-span-2 bg-surface-card border border-border-strong rounded-lg p-5">
+<div class="flex items-center justify-between mb-4">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-text-primary">Top Performing Content</h3>
+<p class="text-body-sm text-text-secondary">Reels ranked by retention and verified agent inquiries</p>
+</div>
+<button class="text-label-md text-text-primary hover:text-primary-container font-semibold" onclick="switchView('content')">View Library →</button>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+<!-- Content Card 1 -->
+<div class="bg-surface-canvas border border-border-strong rounded-lg p-3 cursor-pointer hover:border-primary-container transition-all group" onclick="openReelDrawer('How to open SBI CSP in Gorakhpur')">
+<div class="relative h-32 rounded bg-slate-200 overflow-hidden mb-2.5 flex items-center justify-center">
+<img class="w-full h-full object-cover" data-alt="A professional Indian banking correspondent kiosk operator wearing an official ID badge in a modern rural customer service point in Uttar Pradesh, warm cinematic lighting, realistic high definition documentary style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_cMhaW5A8rla0IDlu9njOH_5yZsnSu3FAvX3J9DAoDx0AypbHM34qw2EbaJ6SsI9gXbj77FKwPdFCqeA9gu2193L5JgxKzl88vOsJpRILQCJj8p0IgemhYR1l-2_FmZfSsjhs_7paBfQjxVulxn5TTYkIHujqG-o6npISabj_jwHjs3N2xhXioDrK2ekBjKG-p2hpouww2r96YYfgdZThyQkfcT6EIL0vcalmvg"/>
+<span class="absolute top-2 left-2 bg-black/70 text-white text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">movie</span> 0:42
+                  </span>
+<span class="absolute bottom-2 right-2 bg-primary-container text-text-primary text-[10px] font-bold px-1.5 py-0.5 rounded">
+                    94 Leads
+                  </span>
+</div>
+<h4 class="font-bold text-xs text-text-primary line-clamp-1 group-hover:text-primary-container">How to open SBI CSP in Gorakhpur</h4>
+<div class="flex items-center justify-between text-[11px] text-text-secondary mt-1.5 pt-1.5 border-t border-border-strong">
+<span>412.4K Views</span>
+<span class="text-status-active font-semibold">91% Retention</span>
+</div>
+</div>
+<!-- Content Card 2 -->
+<div class="bg-surface-canvas border border-border-strong rounded-lg p-3 cursor-pointer hover:border-primary-container transition-all group" onclick="openReelDrawer('Daily Income of Eko CSP Mitra')">
+<div class="relative h-32 rounded bg-slate-200 overflow-hidden mb-2.5 flex items-center justify-center">
+<img class="w-full h-full object-cover" data-alt="An energetic young Indian business owner reviewing digital payment receipts and mobile banking apps at a financial service counter with crisp warm ambient daylight." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC1rqNG9vrvT2oaMbKaaigfqQoNYMcwryJuEUrwDBVcZFp_vVxt9qCb-jA1QY9DgPbL_xJyuzleAfV76YJaxa2WqJFpltDBYfh8mxsQGDQJ-Wo9FIYLYa8jB4SDduwaC5_5pSYVENbhpUYpcpyabn4pDD8sEjvt2ZPEomgqQ8q1RA8K9U2gjYhAyqhfgFa2SFqabzGJcknUZmxL60G495aMSUWUqQUReWwShwckZQ"/>
+<span class="absolute top-2 left-2 bg-black/70 text-white text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">movie</span> 0:38
+                  </span>
+<span class="absolute bottom-2 right-2 bg-primary-container text-text-primary text-[10px] font-bold px-1.5 py-0.5 rounded">
+                    82 Leads
+                  </span>
+</div>
+<h4 class="font-bold text-xs text-text-primary line-clamp-1 group-hover:text-primary-container">Daily Income of Eko CSP Mitra</h4>
+<div class="flex items-center justify-between text-[11px] text-text-secondary mt-1.5 pt-1.5 border-t border-border-strong">
+<span>328.1K Views</span>
+<span class="text-status-active font-semibold">88% Retention</span>
+</div>
+</div>
+<!-- Content Card 3 -->
+<div class="bg-surface-canvas border border-border-strong rounded-lg p-3 cursor-pointer hover:border-primary-container transition-all group" onclick="openReelDrawer('Aadhaar Banking (AePS) Commission Guide')">
+<div class="relative h-32 rounded bg-slate-200 overflow-hidden mb-2.5 flex items-center justify-center">
+<img class="w-full h-full object-cover" data-alt="A biometric Aadhaar fingerprint scanner device resting on a clean wooden desk with micro ATM POS device in a brightly lit Indian banking service kiosk." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCj0yT6923ktFzIoBqUX3jVQ6kSrPlo3XnJ7V459AmMvQbBB85fKpokzFJScvdSlEspWegSsEZbekETCOWD-Foy9w1BJlILhLrz59RqimD5nAPGE77kzfhZc9GLrMlC3EiI5KrJnqEA7Hn6gP5G6OIcKPa0-leUJd2jQIS8-Pv6pKA_bbMuyoLQmDJPrmop_Dr7AQDpjerA9B08tjaLSv_atg1XL9_Xti5KKC0-JA"/>
+<span class="absolute top-2 left-2 bg-black/70 text-white text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">movie</span> 0:51
+                  </span>
+<span class="absolute bottom-2 right-2 bg-primary-container text-text-primary text-[10px] font-bold px-1.5 py-0.5 rounded">
+                    64 Leads
+                  </span>
+</div>
+<h4 class="font-bold text-xs text-text-primary line-clamp-1 group-hover:text-primary-container">Aadhaar Banking (AePS) Guide</h4>
+<div class="flex items-center justify-between text-[11px] text-text-secondary mt-1.5 pt-1.5 border-t border-border-strong">
+<span>264.9K Views</span>
+<span class="text-status-active font-semibold">82% Retention</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Audience Snapshot (1 Col) -->
+<div class="bg-surface-card border border-border-strong rounded-lg p-5">
+<div class="flex items-center justify-between mb-3">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-text-primary">Audience Snapshot</h3>
+<p class="text-body-sm text-text-secondary">Core demographics</p>
+</div>
+<button class="text-xs font-semibold text-text-primary hover:text-primary-container" onclick="switchView('audience')">Details →</button>
+</div>
+<!-- Gender Split Bar -->
+<div class="mb-4">
+<div class="flex items-center justify-between text-xs mb-1">
+<span class="font-semibold text-text-primary">Male 68%</span>
+<span class="font-semibold text-text-secondary">Female 32%</span>
+</div>
+<div class="w-full h-2 rounded-full bg-slate-200 overflow-hidden flex">
+<div class="bg-text-primary h-full" style="width: 68%;"></div>
+<div class="bg-primary-container h-full" style="width: 32%;"></div>
+</div>
+</div>
+<!-- Age Brackets -->
+<div class="mb-4">
+<span class="text-[11px] font-semibold text-text-secondary block mb-1.5">Dominant Age Bracket</span>
+<div class="flex items-center justify-between text-xs py-1 border-b border-border-subtle">
+<span class="font-medium text-text-primary">25 - 34 years (Key Operator Demographic)</span>
+<span class="font-bold text-text-primary">48.4%</span>
+</div>
+<div class="flex items-center justify-between text-xs py-1 border-b border-border-subtle">
+<span class="text-text-secondary">18 - 24 years (Students / First-time job)</span>
+<span class="font-medium text-text-secondary">31.2%</span>
+</div>
+<div class="flex items-center justify-between text-xs py-1">
+<span class="text-text-secondary">35 - 44 years (Established retailers)</span>
+<span class="font-medium text-text-secondary">14.1%</span>
+</div>
+</div>
+<!-- Top Regions -->
+<div>
+<span class="text-[11px] font-semibold text-text-secondary block mb-1">Top Geographies</span>
+<div class="flex flex-wrap gap-1.5">
+<span class="px-2 py-0.5 rounded bg-surface-canvas border border-border-strong text-xs font-medium text-text-primary">Uttar Pradesh (34%)</span>
+<span class="px-2 py-0.5 rounded bg-surface-canvas border border-border-strong text-xs font-medium text-text-primary">Bihar (22%)</span>
+<span class="px-2 py-0.5 rounded bg-surface-canvas border border-border-strong text-xs font-medium text-text-primary">Maharashtra (14%)</span>
+<span class="px-2 py-0.5 rounded bg-surface-canvas border border-border-strong text-xs font-medium text-text-primary">West Bengal (11%)</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- ========================================== -->
+<!-- VIEW 2: CAMPAIGNS VIEW                    -->
+<!-- ========================================== -->
+<section class="view-panel hidden space-y-6" id="view-campaigns">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+<div>
+<h1 class="font-headline-md text-headline-md text-text-primary">Campaigns Center</h1>
+<p class="text-body-sm text-text-secondary">Create, track and analyze Instagram campaigns mapped to CSP recruitment goals</p>
+</div>
+<button class="px-4 py-2 bg-primary-container hover:bg-brand-primary-hover text-text-primary font-bold rounded-lg text-label-md flex items-center gap-2 self-start transition-colors" onclick="openCreateModal()">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+<span>New Campaign</span>
+</button>
+</div>
+<!-- Filter Toolbar -->
+<div class="bg-surface-card border border-border-strong rounded-lg p-3 flex flex-wrap items-center justify-between gap-3">
+<div class="flex items-center gap-2 flex-1 min-w-[240px]">
+<div class="relative w-full max-w-sm">
+<span class="material-symbols-outlined absolute left-2.5 top-2 text-text-tertiary text-[18px]">search</span>
+<input class="w-full h-8 pl-8 pr-3 bg-surface-canvas border border-border-strong rounded text-label-md" placeholder="Filter campaigns..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-2 flex-wrap text-label-sm">
+<select class="h-8 px-2.5 bg-surface-canvas border border-border-strong rounded text-text-primary text-xs">
+<option>Status: All</option>
+<option selected="">Status: Active</option>
+<option>Status: Scheduled</option>
+<option>Status: Draft</option>
+<option>Status: Completed</option>
+</select>
+<select class="h-8 px-2.5 bg-surface-canvas border border-border-strong rounded text-text-primary text-xs">
+<option>Objective: All</option>
+<option>Agent Recruitment</option>
+<option>Kiosk Awareness</option>
+<option>AePS Financial Literacy</option>
+</select>
+<button class="h-8 px-3 rounded bg-surface-canvas border border-border-strong text-text-secondary hover:text-text-primary flex items-center gap-1 text-xs">
+<span class="material-symbols-outlined text-[14px]">tune</span> Clear Filters
+            </button>
+</div>
+</div>
+<!-- Campaigns Detailed Table -->
+<div class="bg-surface-card border border-border-strong rounded-lg overflow-hidden">
+<table class="w-full text-left text-label-md">
+<thead>
+<tr class="bg-surface-canvas border-b border-border-strong text-text-secondary text-[11px] font-semibold uppercase tracking-wider">
+<th class="py-3 px-4">Campaign Name & Objective</th>
+<th class="py-3 px-4">Status</th>
+<th class="py-3 px-4">Linked Content</th>
+<th class="py-3 px-4 text-right">Views</th>
+<th class="py-3 px-4 text-right">Reach</th>
+<th class="py-3 px-4 text-right">Eng. Rate</th>
+<th class="py-3 px-4 text-right">Leads</th>
+<th class="py-3 px-4 text-right">Conv. Rate</th>
+<th class="py-3 px-4 text-center">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-subtle">
+<tr class="hover:bg-surface-canvas cursor-pointer transition-colors" onclick="openCampaignDetail('SBI CSP October Campaign')">
+<td class="py-3.5 px-4">
+<div class="font-bold text-text-primary hover:text-primary-container">SBI CSP October Campaign</div>
+<span class="text-xs text-text-tertiary">Oct 1 - Oct 31, 2024 • CSP Agent Recruitment</span>
+</td>
+<td class="py-3.5 px-4">
+<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-status-active-subtle text-status-active border border-emerald-200">Active</span>
+</td>
+<td class="py-3.5 px-4 text-text-secondary text-xs">7 Reels / 2 Carousels</td>
+<td class="py-3.5 px-4 text-right font-bold text-text-primary">942,500</td>
+<td class="py-3.5 px-4 text-right text-text-secondary">512,000</td>
+<td class="py-3.5 px-4 text-right text-text-primary">5.24%</td>
+<td class="py-3.5 px-4 text-right font-bold text-on-primary-container">184</td>
+<td class="py-3.5 px-4 text-right text-status-active font-semibold">1.82%</td>
+<td class="py-3.5 px-4 text-center">
+<button class="px-2.5 py-1 bg-surface-canvas hover:bg-surface-card border border-border-strong rounded text-xs font-semibold">View Detail</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-canvas cursor-pointer transition-colors" onclick="openCampaignDetail('SBI CSP Mitra Recruitment')">
+<td class="py-3.5 px-4">
+<div class="font-bold text-text-primary hover:text-primary-container">SBI CSP Mitra Recruitment</div>
+<span class="text-xs text-text-tertiary">Sep 15 - Oct 20, 2024 • Operator Onboarding</span>
+</td>
+<td class="py-3.5 px-4">
+<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-status-active-subtle text-status-active border border-emerald-200">Active</span>
+</td>
+<td class="py-3.5 px-4 text-text-secondary text-xs">5 Reels</td>
+<td class="py-3.5 px-4 text-right font-bold text-text-primary">680,120</td>
+<td class="py-3.5 px-4 text-right text-text-secondary">389,200</td>
+<td class="py-3.5 px-4 text-right text-text-primary">4.91%</td>
+<td class="py-3.5 px-4 text-right font-bold text-on-primary-container">142</td>
+<td class="py-3.5 px-4 text-right text-status-active font-semibold">1.64%</td>
+<td class="py-3.5 px-4 text-center">
+<button class="px-2.5 py-1 bg-surface-canvas hover:bg-surface-card border border-border-strong rounded text-xs font-semibold">View Detail</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-canvas cursor-pointer transition-colors" onclick="openCampaignDetail('Digital Banking Awareness')">
+<td class="py-3.5 px-4">
+<div class="font-bold text-text-primary hover:text-primary-container">Digital Banking Awareness</div>
+<span class="text-xs text-text-tertiary">Oct 5 - Nov 5, 2024 • Public Education</span>
+</td>
+<td class="py-3.5 px-4">
+<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-status-active-subtle text-status-active border border-emerald-200">Active</span>
+</td>
+<td class="py-3.5 px-4 text-text-secondary text-xs">4 Reels / 3 Single Posts</td>
+<td class="py-3.5 px-4 text-right font-bold text-text-primary">512,400</td>
+<td class="py-3.5 px-4 text-right text-text-secondary">290,800</td>
+<td class="py-3.5 px-4 text-right text-text-primary">4.10%</td>
+<td class="py-3.5 px-4 text-right font-bold text-on-primary-container">56</td>
+<td class="py-3.5 px-4 text-right text-text-secondary">0.92%</td>
+<td class="py-3.5 px-4 text-center">
+<button class="px-2.5 py-1 bg-surface-canvas hover:bg-surface-card border border-border-strong rounded text-xs font-semibold">View Detail</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-canvas cursor-pointer transition-colors" onclick="openCampaignDetail('Financial Literacy Week')">
+<td class="py-3.5 px-4">
+<div class="font-bold text-text-primary hover:text-primary-container">Financial Literacy Week</div>
+<span class="text-xs text-text-tertiary">Nov 10 - Nov 17, 2024 • Community Literacy</span>
+</td>
+<td class="py-3.5 px-4">
+<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-status-paused-subtle text-status-paused border border-amber-200">Scheduled</span>
+</td>
+<td class="py-3.5 px-4 text-text-secondary text-xs">3 Scheduled Posts</td>
+<td class="py-3.5 px-4 text-right font-bold text-text-primary">—</td>
+<td class="py-3.5 px-4 text-right text-text-secondary">—</td>
+<td class="py-3.5 px-4 text-right text-text-primary">—</td>
+<td class="py-3.5 px-4 text-right font-bold text-text-secondary">0</td>
+<td class="py-3.5 px-4 text-right text-text-secondary">—</td>
+<td class="py-3.5 px-4 text-center">
+<button class="px-2.5 py-1 bg-surface-canvas hover:bg-surface-card border border-border-strong rounded text-xs font-semibold">Edit Plan</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-canvas cursor-pointer transition-colors" onclick="openCampaignDetail('Rural Banking Access')">
+<td class="py-3.5 px-4">
+<div class="font-bold text-text-primary hover:text-primary-container">Rural Banking Access</div>
+<span class="text-xs text-text-tertiary">Oct 12 - Oct 26, 2024 • CSP Kiosk Expansion</span>
+</td>
+<td class="py-3.5 px-4">
+<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-status-completed-subtle text-status-completed border border-sky-200">Completed</span>
+</td>
+<td class="py-3.5 px-4 text-text-secondary text-xs">6 Reels</td>
+<td class="py-3.5 px-4 text-right font-bold text-text-primary">412,000</td>
+<td class="py-3.5 px-4 text-right text-text-secondary">228,400</td>
+<td class="py-3.5 px-4 text-right text-text-primary">4.75%</td>
+<td class="py-3.5 px-4 text-right font-bold text-on-primary-container">68</td>
+<td class="py-3.5 px-4 text-right text-status-active font-semibold">1.41%</td>
+<td class="py-3.5 px-4 text-center">
+<button class="px-2.5 py-1 bg-surface-canvas hover:bg-surface-card border border-border-strong rounded text-xs font-semibold">View Detail</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-canvas cursor-pointer transition-colors" onclick="openCampaignDetail('Eko Kiosk Awareness')">
+<td class="py-3.5 px-4">
+<div class="font-bold text-text-primary hover:text-primary-container">Eko Kiosk Awareness</div>
+<span class="text-xs text-text-tertiary">Sep 1 - Sep 30, 2024 • Brand Footprint</span>
+</td>
+<td class="py-3.5 px-4">
+<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-status-completed-subtle text-status-completed border border-sky-200">Completed</span>
+</td>
+<td class="py-3.5 px-4 text-text-secondary text-xs">8 Reels</td>
+<td class="py-3.5 px-4 text-right font-bold text-text-primary">298,000</td>
+<td class="py-3.5 px-4 text-right text-text-secondary">160,200</td>
+<td class="py-3.5 px-4 text-right text-text-primary">3.88%</td>
+<td class="py-3.5 px-4 text-right font-bold text-on-primary-container">32</td>
+<td class="py-3.5 px-4 text-right text-text-secondary">0.78%</td>
+<td class="py-3.5 px-4 text-center">
+<button class="px-2.5 py-1 bg-surface-canvas hover:bg-surface-card border border-border-strong rounded text-xs font-semibold">View Detail</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- ========================================== -->
+<!-- VIEW 3: CAMPAIGN DETAIL VIEW (Deep Drilldown) -->
+<!-- ========================================== -->
+<section class="view-panel hidden space-y-6" id="view-campaign-detail">
+<!-- Breadcrumb & Back -->
+<div class="flex items-center gap-2 text-label-md text-text-secondary">
+<button class="hover:text-text-primary flex items-center gap-1 font-semibold" onclick="switchView('campaigns')">
+<span class="material-symbols-outlined text-[16px]">arrow_back</span> Campaigns
+          </button>
+<span>/</span>
+<span class="text-text-primary font-bold">SBI CSP October Campaign</span>
+</div>
+<!-- Detail Banner Card -->
+<div class="bg-surface-card border border-border-strong rounded-lg p-5">
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+<div>
+<div class="flex items-center gap-3">
+<h1 class="font-headline-md text-headline-md text-text-primary">SBI CSP October Campaign</h1>
+<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-status-active-subtle text-status-active border border-emerald-200">Active</span>
+<span class="text-xs bg-slate-100 text-text-secondary px-2 py-0.5 rounded font-medium">Recruitment ID: #EKO-CAMP-882</span>
+</div>
+<p class="text-body-sm text-text-secondary mt-1">Driving customer service point operator registrations across Uttar Pradesh, Bihar, and Madhya Pradesh.</p>
+<div class="flex items-center gap-4 text-xs text-text-secondary mt-2">
+<span><strong>Duration:</strong> Oct 1 - Oct 31, 2024</span>
+<span><strong>Target Goal:</strong> 250 Verified CSP Leads</span>
+<span><strong>Current Pace:</strong> 184 Leads (73.6% achieved)</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="px-3 py-1.5 rounded border border-border-strong text-label-md font-semibold hover:bg-surface-canvas flex items-center gap-1.5" onclick="switchView('reports')">
+<span class="material-symbols-outlined text-[16px]">file_download</span> Export PDF
+              </button>
+<button class="px-3.5 py-1.5 rounded bg-primary-container hover:bg-brand-primary-hover text-text-primary font-bold text-label-md flex items-center gap-1.5" onclick="switchView('leads')">
+<span class="material-symbols-outlined text-[16px]">groups</span> View Attributed Leads (184)
+              </button>
+</div>
+</div>
+<!-- Campaign Internal Tabs -->
+<div class="flex items-center gap-6 border-b border-border-strong mt-6 text-label-md">
+<button class="pb-2.5 font-bold text-text-primary border-b-2 border-primary-container">Overview & Funnel</button>
+<button class="pb-2.5 font-medium text-text-secondary hover:text-text-primary" onclick="switchView('content')">Linked Content (7 Reels)</button>
+<button class="pb-2.5 font-medium text-text-secondary hover:text-text-primary" onclick="switchView('audience')">Audience Geo</button>
+<button class="pb-2.5 font-medium text-text-secondary hover:text-text-primary" onclick="switchView('comments')">Comments Stream (142)</button>
+<button class="pb-2.5 font-medium text-text-secondary hover:text-text-primary" onclick="switchView('leads')">Attributed Leads (184)</button>
+<button class="pb-2.5 font-medium text-text-secondary hover:text-text-primary flex items-center gap-1" onclick="switchView('ai-insights')">
+<span class="material-symbols-outlined text-ai-accent text-[16px]">auto_awesome</span> AI Diagnosis
+            </button>
+</div>
+</div>
+<!-- Funnel Progression & Watch Retention -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Conversion Funnel (2 Cols) -->
+<div class="lg:col-span-2 bg-surface-card border border-border-strong rounded-lg p-5">
+<h3 class="font-headline-sm text-headline-sm text-text-primary mb-1">Attribution Conversion Funnel</h3>
+<p class="text-body-sm text-text-secondary mb-4">From initial Instagram impression down to verified banking CSP lead qualification</p>
+<div class="space-y-3">
+<!-- Funnel Stage 1 -->
+<div>
+<div class="flex justify-between text-xs font-semibold mb-1">
+<span>1. Total Views & Discovery (942,500)</span>
+<span>100%</span>
+</div>
+<div class="w-full bg-slate-100 h-6 rounded overflow-hidden flex items-center px-2">
+<div class="bg-slate-300 h-full -ml-2 rounded" style="width: 100%;"></div>
+</div>
+</div>
+<!-- Funnel Stage 2 -->
+<div>
+<div class="flex justify-between text-xs font-semibold mb-1">
+<span>2. Reel 100% Completed Watchers (386,400)</span>
+<span>41.0% drop-off retention</span>
+</div>
+<div class="w-full bg-slate-100 h-6 rounded overflow-hidden flex items-center px-2">
+<div class="bg-slate-400 h-full -ml-2 rounded" style="width: 41%;"></div>
+</div>
+</div>
+<!-- Funnel Stage 3 -->
+<div>
+<div class="flex justify-between text-xs font-semibold mb-1">
+<span>3. Engagement Interactions (Likes + Comments + Saves) (49,380)</span>
+<span>5.2% engagement</span>
+</div>
+<div class="w-full bg-slate-100 h-6 rounded overflow-hidden flex items-center px-2">
+<div class="bg-amber-300 h-full -ml-2 rounded" style="width: 18%;"></div>
+</div>
+</div>
+<!-- Funnel Stage 4 -->
+<div>
+<div class="flex justify-between text-xs font-semibold mb-1">
+<span>4. Onboarding Inquiries in Comments & DMs (1,240)</span>
+<span>High Purchase Intent</span>
+</div>
+<div class="w-full bg-slate-100 h-6 rounded overflow-hidden flex items-center px-2">
+<div class="bg-primary-container h-full -ml-2 rounded" style="width: 8%;"></div>
+</div>
+</div>
+<!-- Funnel Stage 5 -->
+<div>
+<div class="flex justify-between text-xs font-semibold mb-1">
+<span class="text-on-primary-container font-bold">5. Verified Qualified Leads Contacted (184 CSP Applicants)</span>
+<span class="text-status-active font-bold">14.8% from inquiries</span>
+</div>
+<div class="w-full bg-amber-50 border border-amber-200 h-7 rounded overflow-hidden flex items-center px-3">
+<div class="bg-brand-primary-hover h-full -ml-3 rounded" style="width: 5%;"></div>
+<span class="text-xs font-bold text-text-primary ml-2">184 Verified Applicants</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Watch Time Retention Breakdown (1 Col) -->
+<div class="bg-surface-card border border-border-strong rounded-lg p-5">
+<h3 class="font-headline-sm text-headline-sm text-text-primary mb-1">Viewer Retention Curve</h3>
+<p class="text-body-sm text-text-secondary mb-4">Average across top 3 campaign Reels</p>
+<div class="h-44 w-full relative">
+<svg class="w-full h-full" fill="none" viewbox="0 0 300 120">
+<line stroke="#E2E8F0" stroke-dasharray="3 3" x1="0" x2="300" y1="20" y2="20"></line>
+<line stroke="#E2E8F0" stroke-dasharray="3 3" x1="0" x2="300" y1="60" y2="60"></line>
+<line stroke="#E2E8F0" x1="0" x2="300" y1="100" y2="100"></line>
+<polyline fill="none" points="0,20 30,30 60,40 100,48 150,55 200,62 250,75 300,82" stroke="#F5A623" stroke-width="2.5"></polyline>
+</svg>
+</div>
+<div class="flex justify-between text-[11px] text-text-tertiary">
+<span>0s (Hook)</span>
+<span>15s</span>
+<span>30s</span>
+<span>45s (CTA)</span>
+</div>
+<div class="mt-4 p-2.5 rounded bg-surface-canvas border border-border-strong text-xs">
+<span class="font-bold text-text-primary block">AI Hook Rating: 9.4/10</span>
+<p class="text-text-secondary mt-0.5">82% of viewers stayed past second 3 due to the high-contrast title banner: 'SBI CSP पात्रता और कमाई'.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- ========================================== -->
+<!-- VIEW 4: CONTENT LIBRARY VIEW              -->
+<!-- ========================================== -->
+<section class="view-panel hidden space-y-6" id="view-content">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+<div>
+<h1 class="font-headline-md text-headline-md text-text-primary">Content Library</h1>
+<p class="text-body-sm text-text-secondary">Analyze Reels, carousels, and posts attribution metrics</p>
+</div>
+<div class="flex items-center gap-2">
+<div class="flex bg-surface-card border border-border-strong rounded p-0.5 text-xs">
+<button class="px-3 py-1 rounded bg-surface-canvas font-bold text-text-primary">Grid View</button>
+<button class="px-3 py-1 rounded text-text-secondary hover:text-text-primary">Table View</button>
+</div>
+</div>
+</div>
+<!-- Content Filters -->
+<div class="bg-surface-card border border-border-strong rounded-lg p-3 flex flex-wrap items-center justify-between gap-3 text-label-sm">
+<div class="flex items-center gap-2 flex-wrap">
+<button class="px-3 py-1 rounded bg-surface-container-low border border-primary-container text-text-primary font-bold">All Types (34)</button>
+<button class="px-3 py-1 rounded text-text-secondary hover:bg-surface-canvas">Reels Only (22)</button>
+<button class="px-3 py-1 rounded text-text-secondary hover:bg-surface-canvas">Carousels (8)</button>
+<button class="px-3 py-1 rounded text-text-secondary hover:bg-surface-canvas">Single Images (4)</button>
+</div>
+<div class="flex items-center gap-2">
+<select class="h-8 px-2.5 bg-surface-canvas border border-border-strong rounded text-xs text-text-primary">
+<option>Sort by: Most Leads Generated</option>
+<option>Sort by: Total Views</option>
+<option>Sort by: Retention Rate</option>
+</select>
+</div>
+</div>
+<!-- Content Grid Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+<!-- Content Item 1 -->
+<div class="bg-surface-card border border-border-strong rounded-lg overflow-hidden hover:border-primary-container cursor-pointer transition-all flex flex-col group" onclick="openReelDrawer('How to open SBI CSP in Gorakhpur')">
+<div class="relative h-44 bg-slate-200">
+<img class="w-full h-full object-cover" data-alt="A portrait of a verified customer service point CSP agent demonstrating micro banking kiosk services on a tablet inside a clean rural storefront in Uttar Pradesh." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzdk3S0WXZa0BIk6csIR4sASlhgn55zICfIzse8-D_5OR2vOPAZ_Knn0d4Y4JW4u5Fn5dz6KfCCMQdv5LpGLiksk-JugvpLQAkONvszz6vCb1zHiMiaRCQNRYophkoqfiawIHGfZw1yqZ2L2GZ7tm9Szo8BAMTSGInGNAzhXe-4QGPP_aK_HmGS1oJHsrsOXbjrEs5EBEZZTa1Y5uvt0CprXFEDBQAvNE4IHlqbg"/>
+<span class="absolute top-2 left-2 bg-black/75 text-white text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">movie</span> 0:42
+              </span>
+<span class="absolute top-2 right-2 bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">
+                +94 Leads
+              </span>
+</div>
+<div class="p-3.5 flex-1 flex flex-col justify-between">
+<div>
+<span class="text-[10px] font-bold text-primary uppercase">SBI CSP October Campaign</span>
+<h3 class="font-bold text-xs text-text-primary mt-1 line-clamp-2 group-hover:text-primary-container">
+                  How to open SBI CSP in Gorakhpur: Step-by-step documentation guide for new agents
+                </h3>
+</div>
+<div class="mt-3 pt-2.5 border-t border-border-subtle grid grid-cols-3 text-center text-xs">
+<div>
+<span class="text-text-tertiary text-[10px] block">Views</span>
+<span class="font-bold text-text-primary">412.4K</span>
+</div>
+<div>
+<span class="text-text-tertiary text-[10px] block">Shares</span>
+<span class="font-bold text-text-primary">7,810</span>
+</div>
+<div>
+<span class="text-text-tertiary text-[10px] block">Hook</span>
+<span class="font-bold text-status-active">9.2/10</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Content Item 2 -->
+<div class="bg-surface-card border border-border-strong rounded-lg overflow-hidden hover:border-primary-container cursor-pointer transition-all flex flex-col group" onclick="openReelDrawer('Daily Income of Eko CSP Mitra')">
+<div class="relative h-44 bg-slate-200">
+<img class="w-full h-full object-cover" data-alt="Indian rural entrepreneur sitting at a digital banking booth smiling while counting passbooks and banking cards under soft realistic sunlight." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCrWavkMDmBlBDPJmtvCdbfHN8pXrFKDk1uwqzBkA4GZwpaIL9yyjlNU1eA5oNEKMd7ITLuV2romvLBC6VrclLnPA_P79S5SFOzLm22HpmjsvP3L1fil_CvOgH00wlDUtJimAAGED_3RPSNNPqw5ABObgAk-Hef825yWrCAx_wuMO-z7JNRU7W6_O_il8Z7x2A6bzuS7_UaY9R7tlChtQRay2rTO6_ulrYbvT0Riw"/>
+<span class="absolute top-2 left-2 bg-black/75 text-white text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">movie</span> 0:38
+              </span>
+<span class="absolute top-2 right-2 bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">
+                +82 Leads
+              </span>
+</div>
+<div class="p-3.5 flex-1 flex flex-col justify-between">
+<div>
+<span class="text-[10px] font-bold text-primary uppercase">SBI CSP Mitra Recruitment</span>
+<h3 class="font-bold text-xs text-text-primary mt-1 line-clamp-2 group-hover:text-primary-container">
+                  Daily Income of Eko CSP Mitra: Real passbook balance and AePS commission breakdown
+                </h3>
+</div>
+<div class="mt-3 pt-2.5 border-t border-border-subtle grid grid-cols-3 text-center text-xs">
+<div>
+<span class="text-text-tertiary text-[10px] block">Views</span>
+<span class="font-bold text-text-primary">328.1K</span>
+</div>
+<div>
+<span class="text-text-tertiary text-[10px] block">Shares</span>
+<span class="font-bold text-text-primary">4,920</span>
+</div>
+<div>
+<span class="text-text-tertiary text-[10px] block">Hook</span>
+<span class="font-bold text-status-active">8.9/10</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Content Item 3 -->
+<div class="bg-surface-card border border-border-strong rounded-lg overflow-hidden hover:border-primary-container cursor-pointer transition-all flex flex-col group" onclick="openReelDrawer('Aadhaar Banking (AePS) Guide')">
+<div class="relative h-44 bg-slate-200">
+<img class="w-full h-full object-cover" data-alt="Close up shot of hands utilizing a secure fingerprint authentication scanner for money transfer service in a small community center." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtfFBrZJKFQ4HWLH8IxKIK69kEjgq4W13KUUISFo9nH9eBfXuDXB793EaV67OdXI9z6-jq_K7ccp1jesj4D7Ed0CuVwNxJ5W0ekxLuqvvMc87HWeHc20yhzOO5dlQ2Y9yL3W9JB8pqOAmN8cnDjgJxiEc_ProZD1DQa_aocTbhPk2kDaURcpUmhl5LO7ylz0-dXWRGgNA3gxNJwSDHKuRL5giiPq13RWkbTlUd-w"/>
+<span class="absolute top-2 left-2 bg-black/75 text-white text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">movie</span> 0:51
+              </span>
+<span class="absolute top-2 right-2 bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">
+                +64 Leads
+              </span>
+</div>
+<div class="p-3.5 flex-1 flex flex-col justify-between">
+<div>
+<span class="text-[10px] font-bold text-primary uppercase">Rural Banking Access</span>
+<h3 class="font-bold text-xs text-text-primary mt-1 line-clamp-2 group-hover:text-primary-container">
+                  Aadhaar Banking (AePS) Commission Guide: How rural retail stores can offer ATM cash outs
+                </h3>
+</div>
+<div class="mt-3 pt-2.5 border-t border-border-subtle grid grid-cols-3 text-center text-xs">
+<div>
+<span class="text-text-tertiary text-[10px] block">Views</span>
+<span class="font-bold text-text-primary">264.9K</span>
+</div>
+<div>
+<span class="text-text-tertiary text-[10px] block">Shares</span>
+<span class="font-bold text-text-primary">3,140</span>
+</div>
+<div>
+<span class="text-text-tertiary text-[10px] block">Hook</span>
+<span class="font-bold text-status-active">8.4/10</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Content Item 4 -->
+<div class="bg-surface-card border border-border-strong rounded-lg overflow-hidden hover:border-primary-container cursor-pointer transition-all flex flex-col group" onclick="openReelDrawer('Micro-ATM setup under 5 minutes')">
+<div class="relative h-44 bg-slate-200">
+<img class="w-full h-full object-cover" data-alt="A handheld wireless POS card swiping terminal connected to a modern smartphone displaying instantaneous transaction success in clean bright lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBzjVT0pyS4p8cZwQ4X3eO3BgarmbL3FhJo8NLkM8sxO_vpUnVXviqUcblh30hlZ2jWxyC9u9cfQZY_0-8aZ-9nmzBXlbQB6j0E-P5GiXte1Azp3N8Veu-gL03wTR_hBbiQNgvUR1L4J3Uh1C5tmlhdj2WJKPZJmvMToEMwxNVf6yjMQEFsudwXkKN-dJvRAtAmMQtVTS0IUJplrAUbdaFpzjzJq4WqURmwsyhiog"/>
+<span class="absolute top-2 left-2 bg-black/75 text-white text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">movie</span> 0:34
+              </span>
+<span class="absolute top-2 right-2 bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">
+                +45 Leads
+              </span>
+</div>
+<div class="p-3.5 flex-1 flex flex-col justify-between">
+<div>
+<span class="text-[10px] font-bold text-primary uppercase">Digital Banking Awareness</span>
+<h3 class="font-bold text-xs text-text-primary mt-1 line-clamp-2 group-hover:text-primary-container">
+                  Micro-ATM setup under 5 minutes: Bluetooth pairing and direct settlement test
+                </h3>
+</div>
+<div class="mt-3 pt-2.5 border-t border-border-subtle grid grid-cols-3 text-center text-xs">
+<div>
+<span class="text-text-tertiary text-[10px] block">Views</span>
+<span class="font-bold text-text-primary">198.0K</span>
+</div>
+<div>
+<span class="text-text-tertiary text-[10px] block">Shares</span>
+<span class="font-bold text-text-primary">2,100</span>
+</div>
+<div>
+<span class="text-text-tertiary text-[10px] block">Hook</span>
+<span class="font-bold text-status-active">8.1/10</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- ========================================== -->
+<!-- VIEW 5: AUDIENCE INTELLIGENCE VIEW        -->
+<!-- ========================================== -->
+<section class="view-panel hidden space-y-6" id="view-audience">
+<div>
+<h1 class="font-headline-md text-headline-md text-text-primary">Audience Intelligence</h1>
+<p class="text-body-sm text-text-secondary">Demographics, geographic clustering, and AI-inferred operator personas</p>
+</div>
+<!-- Top Overview Demographics Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Follower Discovery Ratio -->
+<div class="bg-surface-card border border-border-strong rounded-lg p-5">
+<h3 class="font-headline-sm text-headline-sm text-text-primary mb-1">Follower vs Discovery</h3>
+<p class="text-body-sm text-text-secondary mb-4">Reel reach attribution breakdown</p>
+<div class="flex items-center justify-center py-4">
+<div class="relative w-36 h-36 rounded-full border-8 border-border-strong flex items-center justify-center">
+<div class="absolute inset-0 rounded-full border-8 border-primary-container border-t-transparent border-l-transparent transform -rotate-45"></div>
+<div class="text-center">
+<span class="font-bold text-2xl text-text-primary">81%</span>
+<span class="text-[10px] text-text-secondary block">Non-Followers</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between text-xs pt-2 border-t border-border-subtle">
+<div class="flex items-center gap-1.5">
+<span class="w-3 h-3 rounded bg-primary-container"></span>
+<span>Non-Followers (Viral / Explore)</span>
+</div>
+<span class="font-bold">81.2%</span>
+</div>
+<div class="flex items-center justify-between text-xs pt-1">
+<div class="flex items-center gap-1.5">
+<span class="w-3 h-3 rounded bg-slate-300"></span>
+<span>Existing Followers</span>
+</div>
+<span class="font-bold">18.8%</span>
+</div>
+</div>
+<!-- Age Distribution -->
+<div class="bg-surface-card border border-border-strong rounded-lg p-5">
+<h3 class="font-headline-sm text-headline-sm text-text-primary mb-1">Age Brackets</h3>
+<p class="text-body-sm text-text-secondary mb-4">Registered Instagram account ages</p>
+<div class="space-y-2.5 text-xs">
+<div>
+<div class="flex justify-between mb-1">
+<span>18 - 24 years</span>
+<span class="font-bold">31.2%</span>
+</div>
+<div class="h-2 rounded-full bg-slate-100 overflow-hidden">
+<div class="bg-slate-400 h-full rounded-full" style="width: 31.2%;"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between mb-1">
+<span class="font-bold text-text-primary">25 - 34 years (Primary CSP Target)</span>
+<span class="font-bold text-text-primary">48.4%</span>
+</div>
+<div class="h-2 rounded-full bg-slate-100 overflow-hidden">
+<div class="bg-primary-container h-full rounded-full" style="width: 48.4%;"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between mb-1">
+<span>35 - 44 years</span>
+<span class="font-bold">14.1%</span>
+</div>
+<div class="h-2 rounded-full bg-slate-100 overflow-hidden">
+<div class="bg-slate-400 h-full rounded-full" style="width: 14.1%;"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between mb-1">
+<span>45 - 54 years</span>
+<span class="font-bold">4.2%</span>
+</div>
+<div class="h-2 rounded-full bg-slate-100 overflow-hidden">
+<div class="bg-slate-300 h-full rounded-full" style="width: 4.2%;"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between mb-1">
+<span>55+ years</span>
+<span class="font-bold">2.1%</span>
+</div>
+<div class="h-2 rounded-full bg-slate-100 overflow-hidden">
+<div class="bg-slate-300 h-full rounded-full" style="width: 2.1%;"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Top Cities & States -->
+<div class="bg-surface-card border border-border-strong rounded-lg p-5">
+<h3 class="font-headline-sm text-headline-sm text-text-primary mb-1">Top Geographies</h3>
+<p class="text-body-sm text-text-secondary mb-4">Highest concentration of video viewers</p>
+<div class="space-y-3">
+<div class="flex items-center justify-between text-xs py-1 border-b border-border-subtle">
+<span class="font-bold text-text-primary">1. Lucknow, Uttar Pradesh</span>
+<span class="font-semibold text-text-primary">18.4% of total reach</span>
+</div>
+<div class="flex items-center justify-between text-xs py-1 border-b border-border-subtle">
+<span class="font-bold text-text-primary">2. Patna, Bihar</span>
+<span class="font-semibold text-text-primary">14.2% of total reach</span>
+</div>
+<div class="flex items-center justify-between text-xs py-1 border-b border-border-subtle">
+<span class="font-bold text-text-primary">3. Gorakhpur, Uttar Pradesh</span>
+<span class="font-semibold text-text-primary">11.6% of total reach</span>
+</div>
+<div class="flex items-center justify-between text-xs py-1 border-b border-border-subtle">
+<span class="font-bold text-text-primary">4. Varanasi, Uttar Pradesh</span>
+<span class="font-semibold text-text-primary">9.1% of total reach</span>
+</div>
+<div class="flex items-center justify-between text-xs py-1">
+<span class="font-bold text-text-primary">5. Indore, Madhya Pradesh</span>
+<span class="font-semibold text-text-primary">7.8% of total reach</span>
+</div>
+</div>
+</div>
+</div>
+<!-- AI-Inferred Personas -->
+<div class="bg-surface-card border border-border-strong rounded-lg p-5">
+<div class="flex items-center justify-between mb-4">
+<div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-ai-accent text-[20px]">psychology</span>
+<h3 class="font-headline-sm text-headline-sm text-text-primary">AI Audience Personas</h3>
+</div>
+<p class="text-body-sm text-text-secondary">Synthesized from comment linguistics, engagement vectors, and viewing patterns</p>
+</div>
+<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-ai-subtle text-ai-accent border border-ai-border">
+              [AI-ESTIMATED / NOT INSTAGRAM FIRST-PARTY]
+            </span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div class="p-4 rounded-lg bg-surface-canvas border border-border-strong">
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-on-primary-container">64% Match</span>
+<h4 class="font-bold text-body-md text-text-primary mt-2">Rural Micro-Entrepreneur</h4>
+<p class="text-body-sm text-text-secondary mt-1">Owns existing kirana, mobile recharge, or photocopy shop. Highly motivated by secondary revenue streams through AePS cash withdrawal commissions.</p>
+<div class="mt-3 pt-2 border-t border-border-subtle text-[11px] text-text-secondary">
+<strong>Key Motivator:</strong> "SBI trust & zero shop displacement"
+              </div>
+</div>
+<div class="p-4 rounded-lg bg-surface-canvas border border-border-strong">
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-status-completed">26% Match</span>
+<h4 class="font-bold text-body-md text-text-primary mt-2">Aspiring CSC/CSP Operator</h4>
+<p class="text-body-sm text-text-secondary mt-1">Recent diploma or graduate looking for a respected self-employment role in their native panchayat or village block.</p>
+<div class="mt-3 pt-2 border-t border-border-subtle text-[11px] text-text-secondary">
+<strong>Key Motivator:</strong> "Official banking certificate & device financing"
+              </div>
+</div>
+<div class="p-4 rounded-lg bg-surface-canvas border border-border-strong">
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-text-primary">10% Match</span>
+<h4 class="font-bold text-body-md text-text-primary mt-2">Financial Literacy Seeker</h4>
+<p class="text-body-sm text-text-secondary mt-1">Individual consumer checking how to link Jan Dhan accounts, check pension deposits, or utilize local village micro-ATMs.</p>
+<div class="mt-3 pt-2 border-t border-border-subtle text-[11px] text-text-secondary">
+<strong>Key Motivator:</strong> "Fraud prevention & Aadhaar linkage"
+              </div>
+</div>
+</div>
+</div>
+</section>
+<!-- ========================================== -->
+<!-- VIEW 6: COMMENTS INTELLIGENCE VIEW        -->
+<!-- ========================================== -->
+<section class="view-panel hidden space-y-6" id="view-comments">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+<div>
+<h1 class="font-headline-md text-headline-md text-text-primary">Comments Intelligence</h1>
+<p class="text-body-sm text-text-secondary">Classify intent, sentiment, and 1-click convert inquiries to pipeline leads</p>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-xs text-text-secondary">Sentiment Split:</span>
+<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-status-active-subtle text-status-active border border-emerald-200">62% Positive</span>
+<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-surface-canvas text-text-secondary border border-border-strong">26% Neutral</span>
+<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-status-paused-subtle text-status-paused border border-amber-200">12% Inquiries</span>
+</div>
+</div>
+<!-- Filter Bar -->
+<div class="bg-surface-card border border-border-strong rounded-lg p-3 flex flex-wrap items-center justify-between gap-3 text-label-sm">
+<div class="flex items-center gap-2 flex-1 min-w-[200px]">
+<input class="w-full max-w-md h-8 px-3 bg-surface-canvas border border-border-strong rounded text-xs" placeholder="Search comments by keyword or username..." type="text"/>
+</div>
+<div class="flex items-center gap-2 text-xs">
+<button class="px-3 py-1 rounded bg-surface-container-low border border-primary-container text-text-primary font-bold">All Comments (142)</button>
+<button class="px-3 py-1 rounded text-text-secondary hover:bg-surface-canvas">High Lead Potential (38)</button>
+<button class="px-3 py-1 rounded text-text-secondary hover:bg-surface-canvas">Unanswered (19)</button>
+</div>
+</div>
+<!-- Stream of Comments Cards -->
+<div class="space-y-3" id="commentsStreamContainer">
+<!-- Comment Item 1 (High Lead) -->
+<div class="bg-surface-card border border-border-strong hover:border-primary-container rounded-lg p-4 cursor-pointer transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-4" onclick="openCommentDrawer('Ramesh Maurya', '@ramesh_m_up', 'Sir hum Gorakhpur Badhalganj se hain. SBI CSP kholna chahte hain. Kitna investment aur kya documents lagenge? Contact no dijiye please.', 'High', 94)">
+<div class="flex items-start gap-3">
+<div class="w-9 h-9 rounded-full bg-slate-200 flex items-center justify-center font-bold text-xs shrink-0">RM</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-bold text-text-primary text-xs">Ramesh Maurya</span>
+<span class="text-text-tertiary text-xs">@ramesh_m_up</span>
+<span class="text-text-tertiary text-[11px]">• 18m ago on Reel: How to open SBI CSP</span>
+<span class="px-2 py-0.2 rounded-full text-[10px] font-bold bg-amber-100 text-on-primary-container border border-amber-200">
+                    Lead Potential: HIGH (94%)
+                  </span>
+</div>
+<p class="text-body-sm text-text-primary mt-1 font-medium">"Sir hum Gorakhpur Badhalganj se hain. SBI CSP kholna chahte hain. Kitna investment aur kya documents lagenge? Contact no dijiye please."</p>
+<div class="flex items-center gap-3 text-[11px] text-text-secondary mt-1.5">
+<span class="flex items-center gap-1 text-ai-accent"><span class="material-symbols-outlined text-[13px]">psychology</span> AI Intent: CSP Mitra Onboarding Inquiry</span>
+<span>• Sentiment: Positive / High Intent</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-2 self-end md:self-center shrink-0">
+<button class="px-3 py-1 bg-primary-container hover:bg-brand-primary-hover text-text-primary text-xs font-bold rounded">
+                Convert to Lead
+              </button>
+</div>
+</div>
+<!-- Comment Item 2 (High Lead) -->
+<div class="bg-surface-card border border-border-strong hover:border-primary-container rounded-lg p-4 cursor-pointer transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-4" onclick="openCommentDrawer('Sunita Devi', '@sunita_csp_bihar', 'Mere paas already ek mobile shop hai Muzaffarpur me. Eko CSP device kitne din me deliver ho jayega?', 'High', 91)">
+<div class="flex items-start gap-3">
+<div class="w-9 h-9 rounded-full bg-slate-200 flex items-center justify-center font-bold text-xs shrink-0">SD</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-bold text-text-primary text-xs">Sunita Devi</span>
+<span class="text-text-tertiary text-xs">@sunita_csp_bihar</span>
+<span class="text-text-tertiary text-[11px]">• 42m ago on Reel: Daily Income of Eko CSP</span>
+<span class="px-2 py-0.2 rounded-full text-[10px] font-bold bg-amber-100 text-on-primary-container border border-amber-200">
+                    Lead Potential: HIGH (91%)
+                  </span>
+</div>
+<p class="text-body-sm text-text-primary mt-1 font-medium">"Mere paas already ek mobile shop hai Muzaffarpur me. Eko CSP device kitne din me deliver ho jayega?"</p>
+<div class="flex items-center gap-3 text-[11px] text-text-secondary mt-1.5">
+<span class="flex items-center gap-1 text-ai-accent"><span class="material-symbols-outlined text-[13px]">psychology</span> AI Intent: Device Delivery Inquiry</span>
+<span>• Sentiment: Transactional</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-2 self-end md:self-center shrink-0">
+<button class="px-3 py-1 bg-primary-container hover:bg-brand-primary-hover text-text-primary text-xs font-bold rounded">
+                Convert to Lead
+              </button>
+</div>
+</div>
+<!-- Comment Item 3 (Medium Lead) -->
+<div class="bg-surface-card border border-border-strong hover:border-primary-container rounded-lg p-4 cursor-pointer transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-4" onclick="openCommentDrawer('Amitabh Verma', '@amit_v_lucknow', 'Commission rate kitna rehta hai cash withdrawal pe? Minimum balance kitna chahiye account me?', 'Medium', 74)">
+<div class="flex items-start gap-3">
+<div class="w-9 h-9 rounded-full bg-slate-200 flex items-center justify-center font-bold text-xs shrink-0">AV</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-bold text-text-primary text-xs">Amitabh Verma</span>
+<span class="text-text-tertiary text-xs">@amit_v_lucknow</span>
+<span class="text-text-tertiary text-[11px]">• 2h ago on Reel: Aadhaar Banking Guide</span>
+<span class="px-2 py-0.2 rounded-full text-[10px] font-bold bg-blue-100 text-status-completed border border-sky-200">
+                    Lead Potential: MEDIUM (74%)
+                  </span>
+</div>
+<p class="text-body-sm text-text-primary mt-1">"Commission rate kitna rehta hai cash withdrawal pe? Minimum balance kitna chahiye account me?"</p>
+<div class="flex items-center gap-3 text-[11px] text-text-secondary mt-1.5">
+<span class="flex items-center gap-1 text-ai-accent"><span class="material-symbols-outlined text-[13px]">psychology</span> AI Intent: Commission Inquiry</span>
+<span>• Sentiment: Neutral</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-2 self-end md:self-center shrink-0">
+<button class="px-3 py-1 bg-surface-canvas hover:bg-slate-200 text-text-primary text-xs font-semibold rounded border border-border-strong">
+                Review & Reply
+              </button>
+</div>
+</div>
+</div>
+</section>
+<!-- ========================================== -->
+<!-- VIEW 7: LEADS PIPELINE VIEW               -->
+<!-- ========================================== -->
+<section class="view-panel hidden space-y-6" id="view-leads">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+<div>
+<h1 class="font-headline-md text-headline-md text-text-primary">Campaign Leads Management</h1>
+<p class="text-body-sm text-text-secondary">Track potential CSP applicants captured via Instagram video engagement</p>
+</div>
+<div class="flex items-center gap-2">
+<button class="px-3 py-1.5 rounded bg-surface-card border border-border-strong text-label-md font-semibold hover:bg-surface-canvas" onclick="switchView('reports')">Export CSV</button>
+</div>
+</div>
+<!-- Pipeline Funnel Stats Cards -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+<div class="bg-surface-card border border-border-strong rounded-lg p-3">
+<span class="text-xs text-text-secondary block">Total Comment Inquiries</span>
+<span class="text-xl font-bold text-text-primary mt-1 block">6,410</span>
+<span class="text-[11px] text-text-tertiary">All Instagram comments</span>
+</div>
+<div class="bg-surface-card border border-border-strong rounded-lg p-3">
+<span class="text-xs text-text-secondary block">AI Filtered Potential</span>
+<span class="text-xl font-bold text-text-primary mt-1 block">1,120</span>
+<span class="text-[11px] text-status-active font-semibold">17.5% intent rate</span>
+</div>
+<div class="bg-surface-card border border-primary-container rounded-lg p-3 bg-amber-50/20">
+<span class="text-xs text-on-primary-container font-bold block">Qualified Campaign Leads</span>
+<span class="text-xl font-bold text-text-primary mt-1 block">482</span>
+<span class="text-[11px] text-status-active font-bold">+31.2% this month</span>
+</div>
+<div class="bg-surface-card border border-border-strong rounded-lg p-3">
+<span class="text-xs text-text-secondary block">Converted Operators</span>
+<span class="text-xl font-bold text-text-primary mt-1 block">138</span>
+<span class="text-[11px] text-status-completed font-semibold">28.6% close rate</span>
+</div>
+</div>
+<!-- Leads Table -->
+<div class="bg-surface-card border border-border-strong rounded-lg overflow-hidden">
+<table class="w-full text-left text-label-md">
+<thead>
+<tr class="bg-surface-canvas border-b border-border-strong text-text-secondary text-[11px] font-semibold uppercase tracking-wider">
+<th class="py-3 px-4">Applicant Name / Handle</th>
+<th class="py-3 px-4">Associated Campaign</th>
+<th class="py-3 px-4">Content Source</th>
+<th class="py-3 px-4 text-center">Score</th>
+<th class="py-3 px-4">Pipeline Status</th>
+<th class="py-3 px-4">Last Contact</th>
+<th class="py-3 px-4 text-center">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-subtle" id="leadsTbody">
+<tr class="hover:bg-surface-canvas cursor-pointer transition-colors" onclick="openLeadDrawer('Ramesh Maurya', '@ramesh_m_up', 'Gorakhpur, UP', 'SBI CSP October Campaign', 'How to open SBI CSP in Gorakhpur', 'New', 94)">
+<td class="py-3.5 px-4">
+<div class="font-bold text-text-primary">Ramesh Maurya</div>
+<span class="text-xs text-text-tertiary">@ramesh_m_up • Gorakhpur, UP</span>
+</td>
+<td class="py-3.5 px-4 text-xs font-semibold text-text-primary">SBI CSP October Campaign</td>
+<td class="py-3.5 px-4 text-xs text-text-secondary">Reel: How to open SBI CSP</td>
+<td class="py-3.5 px-4 text-center">
+<span class="px-2 py-0.5 rounded text-xs font-bold bg-amber-100 text-on-primary-container">94</span>
+</td>
+<td class="py-3.5 px-4">
+<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-status-completed border border-sky-200">New</span>
+</td>
+<td class="py-3.5 px-4 text-xs text-text-tertiary">18m ago</td>
+<td class="py-3.5 px-4 text-center">
+<button class="px-2.5 py-1 bg-surface-canvas hover:bg-surface-card border border-border-strong rounded text-xs font-semibold">Manage</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-canvas cursor-pointer transition-colors" onclick="openLeadDrawer('Sunita Devi', '@sunita_csp_bihar', 'Muzaffarpur, Bihar', 'SBI CSP Mitra Recruitment', 'Daily Income of Eko CSP Mitra', 'Contacted', 91)">
+<td class="py-3.5 px-4">
+<div class="font-bold text-text-primary">Sunita Devi</div>
+<span class="text-xs text-text-tertiary">@sunita_csp_bihar • Muzaffarpur, BR</span>
+</td>
+<td class="py-3.5 px-4 text-xs font-semibold text-text-primary">SBI CSP Mitra Recruitment</td>
+<td class="py-3.5 px-4 text-xs text-text-secondary">Reel: Daily Income of Eko CSP</td>
+<td class="py-3.5 px-4 text-center">
+<span class="px-2 py-0.5 rounded text-xs font-bold bg-amber-100 text-on-primary-container">91</span>
+</td>
+<td class="py-3.5 px-4">
+<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-status-paused border border-amber-200">Contacted</span>
+</td>
+<td class="py-3.5 px-4 text-xs text-text-tertiary">2h ago</td>
+<td class="py-3.5 px-4 text-center">
+<button class="px-2.5 py-1 bg-surface-canvas hover:bg-surface-card border border-border-strong rounded text-xs font-semibold">Manage</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-canvas cursor-pointer transition-colors" onclick="openLeadDrawer('Vikram Chauhan', '@vikram_c_mp', 'Gwalior, MP', 'Rural Banking Access', 'Aadhaar Banking Guide', 'Qualified', 86)">
+<td class="py-3.5 px-4">
+<div class="font-bold text-text-primary">Vikram Chauhan</div>
+<span class="text-xs text-text-tertiary">@vikram_c_mp • Gwalior, MP</span>
+</td>
+<td class="py-3.5 px-4 text-xs font-semibold text-text-primary">Rural Banking Access</td>
+<td class="py-3.5 px-4 text-xs text-text-secondary">Reel: Aadhaar Banking Guide</td>
+<td class="py-3.5 px-4 text-center">
+<span class="px-2 py-0.5 rounded text-xs font-bold bg-slate-100 text-text-primary">86</span>
+</td>
+<td class="py-3.5 px-4">
+<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-status-active-subtle text-status-active border border-emerald-200">Qualified</span>
+</td>
+<td class="py-3.5 px-4 text-xs text-text-tertiary">1d ago</td>
+<td class="py-3.5 px-4 text-center">
+<button class="px-2.5 py-1 bg-surface-canvas hover:bg-surface-card border border-border-strong rounded text-xs font-semibold">Manage</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-canvas cursor-pointer transition-colors" onclick="openLeadDrawer('Deepak Tiwari', '@deepak_tiwari_csp', 'Varanasi, UP', 'SBI CSP October Campaign', 'How to open SBI CSP in Gorakhpur', 'Converted', 97)">
+<td class="py-3.5 px-4">
+<div class="font-bold text-text-primary">Deepak Tiwari</div>
+<span class="text-xs text-text-tertiary">@deepak_tiwari_csp • Varanasi, UP</span>
+</td>
+<td class="py-3.5 px-4 text-xs font-semibold text-text-primary">SBI CSP October Campaign</td>
+<td class="py-3.5 px-4 text-xs text-text-secondary">Reel: How to open SBI CSP</td>
+<td class="py-3.5 px-4 text-center">
+<span class="px-2 py-0.5 rounded text-xs font-bold bg-emerald-100 text-status-active">97</span>
+</td>
+<td class="py-3.5 px-4">
+<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-status-active border border-emerald-200">Converted</span>
+</td>
+<td class="py-3.5 px-4 text-xs text-text-tertiary">3d ago</td>
+<td class="py-3.5 px-4 text-center">
+<button class="px-2.5 py-1 bg-surface-canvas hover:bg-surface-card border border-border-strong rounded text-xs font-semibold">Manage</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- ========================================== -->
+<!-- VIEW 8: AI INSIGHTS VIEW                  -->
+<!-- ========================================== -->
+<section class="view-panel hidden space-y-6" id="view-ai-insights">
+<div class="flex items-center justify-between">
+<div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-ai-accent text-[24px]">auto_awesome</span>
+<h1 class="font-headline-md text-headline-md text-text-primary">AI Campaign Intelligence</h1>
+</div>
+<p class="text-body-sm text-text-secondary">Machine-learning attribution models, video script optimization, and predictive lead vectors</p>
+</div>
+<span class="text-xs font-bold px-3 py-1 rounded-full bg-ai-subtle text-ai-accent border border-ai-border">
+            Model: Eko-FinVision v3.2
+          </span>
+</div>
+<!-- 4 Actionable Intelligence Pillars -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Pillar 1: What is Working -->
+<div class="bg-surface-card border border-border-strong rounded-lg p-5">
+<div class="flex items-center gap-2 text-status-active font-bold text-sm mb-3">
+<span class="material-symbols-outlined text-[20px]">thumb_up</span>
+<span>Validated Winning Patterns</span>
+</div>
+<ul class="space-y-3 text-body-sm">
+<li class="p-3 rounded bg-surface-canvas border border-border-subtle">
+<strong class="text-text-primary block text-xs">First 3-Second Hook in Vernacular Hindi:</strong>
+<p class="text-text-secondary text-xs mt-0.5">Videos starting with "गांव में बैंक खोलकर ₹25,000 महीना कैसे कमाएं" achieved <strong>3.4x higher viewer completion</strong> than generic corporate branding.</p>
+</li>
+<li class="p-3 rounded bg-surface-canvas border border-border-subtle">
+<strong class="text-text-primary block text-xs">Proof of Device & Passbook Printing:</strong>
+<p class="text-text-secondary text-xs mt-0.5">Showing physical thermal receipt printers in action boosted comments containing "how to apply" by 44%.</p>
+</li>
+</ul>
+</div>
+<!-- Pillar 2: What is Declining -->
+<div class="bg-surface-card border border-border-strong rounded-lg p-5">
+<div class="flex items-center gap-2 text-status-paused font-bold text-sm mb-3">
+<span class="material-symbols-outlined text-[20px]">warning</span>
+<span>Underperforming Content Signals</span>
+</div>
+<ul class="space-y-3 text-body-sm">
+<li class="p-3 rounded bg-surface-canvas border border-border-subtle">
+<strong class="text-text-primary block text-xs">Static Infographics on Complex Regulations:</strong>
+<p class="text-text-secondary text-xs mt-0.5">Static image carousels detailing RBI KYC guidelines had an <strong>82% bounce rate</strong> before slide 3.</p>
+</li>
+<li class="p-3 rounded bg-surface-canvas border border-border-subtle">
+<strong class="text-text-primary block text-xs">Generic English Captions:</strong>
+<p class="text-text-secondary text-xs mt-0.5">English-only hashtags reduced discoverability on rural Tier 2/3 Instagram feeds by 68%.</p>
+</li>
+</ul>
+</div>
+<!-- Pillar 3: Lead Generation Hotspots -->
+<div class="bg-surface-card border border-border-strong rounded-lg p-5">
+<div class="flex items-center gap-2 text-tertiary font-bold text-sm mb-3">
+<span class="material-symbols-outlined text-[20px]">explore</span>
+<span>Lead Generation Hotspots</span>
+</div>
+<p class="text-body-sm text-text-secondary mb-3">Geographic corridors with highest conversion velocity:</p>
+<div class="space-y-2 text-xs">
+<div class="flex justify-between p-2 rounded bg-surface-canvas">
+<span class="font-bold text-text-primary">Purvanchal Corridor (Gorakhpur, Deoria, Azamgarh)</span>
+<span class="text-status-active font-bold">4.2% Lead Rate</span>
+</div>
+<div class="flex justify-between p-2 rounded bg-surface-canvas">
+<span class="font-bold text-text-primary">North Bihar Belt (Muzaffarpur, Darbhanga, Samastipur)</span>
+<span class="text-status-active font-bold">3.9% Lead Rate</span>
+</div>
+<div class="flex justify-between p-2 rounded bg-surface-canvas">
+<span class="font-bold text-text-primary">Bundelkhand Cluster (Jhansi, Banda, Mahoba)</span>
+<span class="text-status-active font-bold">3.1% Lead Rate</span>
+</div>
+</div>
+</div>
+<!-- Pillar 4: Actionable Recommendations -->
+<div class="bg-surface-card border border-primary-container rounded-lg p-5 bg-amber-50/15">
+<div class="flex items-center gap-2 text-on-primary-container font-bold text-sm mb-3">
+<span class="material-symbols-outlined text-[20px]">recommend</span>
+<span>Automated Growth Recommendations</span>
+</div>
+<div class="space-y-3 text-body-sm">
+<div class="p-3 rounded bg-white border border-amber-200">
+<span class="text-[10px] font-bold text-primary uppercase">High Impact • Confidence 94%</span>
+<h4 class="font-bold text-xs text-text-primary mt-0.5">Launch 'Customer Testimonial' Reel Series</h4>
+<p class="text-text-secondary text-xs mt-1">Record 30-second clips of real villagers withdrawing cash with thumbs in Gorakhpur. Estimated to yield +120 new CSP applicants.</p>
+</div>
+<div class="p-3 rounded bg-white border border-amber-200">
+<span class="text-[10px] font-bold text-primary uppercase">Immediate Action • Confidence 89%</span>
+<h4 class="font-bold text-xs text-text-primary mt-0.5">Implement Instant Auto-DM Trigger for Keywords</h4>
+<p class="text-text-secondary text-xs mt-1">Trigger immediate WhatsApp verification link when comments contain 'SBI CSP', 'kholna hai', or 'kaise kare'.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- ========================================== -->
+<!-- VIEW 9: REPORTS VIEW                      -->
+<!-- ========================================== -->
+<section class="view-panel hidden space-y-6" id="view-reports">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+<div>
+<h1 class="font-headline-md text-headline-md text-text-primary">Reports & Analytics Export</h1>
+<p class="text-body-sm text-text-secondary">Generate executive PDF summaries and raw CSV attribution data</p>
+</div>
+<button class="px-4 py-2 bg-primary-container hover:bg-brand-primary-hover text-text-primary font-bold rounded-lg text-label-md flex items-center gap-2 self-start">
+<span class="material-symbols-outlined text-[18px]">calendar_month</span>
+<span>Schedule Weekly Report</span>
+</button>
+</div>
+<!-- Report Generator Form -->
+<div class="bg-surface-card border border-border-strong rounded-lg p-5">
+<h3 class="font-headline-sm text-headline-sm text-text-primary mb-4">Export Configuration</h3>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+<div>
+<label class="text-xs font-semibold text-text-secondary block mb-1">Date Range</label>
+<select class="w-full h-9 px-3 bg-surface-canvas border border-border-strong rounded text-xs">
+<option>Last 30 Days (Oct 1 - Oct 31, 2024)</option>
+<option>Last 7 Days</option>
+<option>This Quarter (Q3 2024)</option>
+<option>Custom Date Range</option>
+</select>
+</div>
+<div>
+<label class="text-xs font-semibold text-text-secondary block mb-1">Target Campaign</label>
+<select class="w-full h-9 px-3 bg-surface-canvas border border-border-strong rounded text-xs">
+<option>All Active & Completed Campaigns (6)</option>
+<option>SBI CSP October Campaign Only</option>
+<option>SBI CSP Mitra Recruitment Only</option>
+</select>
+</div>
+<div>
+<label class="text-xs font-semibold text-text-secondary block mb-1">Report Preset Type</label>
+<select class="w-full h-9 px-3 bg-surface-canvas border border-border-strong rounded text-xs">
+<option>Executive Performance Summary</option>
+<option>Full Leads & Conversion Attribution</option>
+<option>Reel Retention & Content Deep Dive</option>
+<option>Audience Demographics & Geo Map</option>
+</select>
+</div>
+</div>
+<div class="flex items-center gap-3 pt-3 border-t border-border-strong">
+<button class="px-4 py-2 bg-text-primary hover:bg-slate-800 text-white font-bold rounded text-xs flex items-center gap-1.5 transition-colors" onclick="simulateExport('PDF')">
+<span class="material-symbols-outlined text-[16px]">picture_as_pdf</span> Download Executive PDF
+            </button>
+<button class="px-4 py-2 bg-surface-canvas hover:bg-slate-200 border border-border-strong text-text-primary font-bold rounded text-xs flex items-center gap-1.5 transition-colors" onclick="simulateExport('CSV')">
+<span class="material-symbols-outlined text-[16px]">table_view</span> Export Raw Data (CSV)
+            </button>
+</div>
+</div>
+<!-- Recent Generated Reports List -->
+<div class="bg-surface-card border border-border-strong rounded-lg p-5">
+<h3 class="font-headline-sm text-headline-sm text-text-primary mb-3">Recently Generated Reports</h3>
+<div class="divide-y divide-border-subtle text-xs">
+<div class="py-3 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-red-500 text-[20px]">picture_as_pdf</span>
+<div>
+<span class="font-bold text-text-primary block">Eko_InstaBoard_Monthly_Executive_Oct2024.pdf</span>
+<span class="text-text-tertiary">Generated 2h ago by Priya Sharma • 4.2 MB</span>
+</div>
+</div>
+<button class="px-3 py-1 bg-surface-canvas hover:bg-surface-card border border-border-strong rounded font-semibold text-text-primary">Download</button>
+</div>
+<div class="py-3 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-emerald-600 text-[20px]">table_view</span>
+<div>
+<span class="font-bold text-text-primary block">SBI_CSP_Oct_Attributed_Leads_Full.csv</span>
+<span class="text-text-tertiary">Generated Yesterday • 184 rows • 120 KB</span>
+</div>
+</div>
+<button class="px-3 py-1 bg-surface-canvas hover:bg-surface-card border border-border-strong rounded font-semibold text-text-primary">Download</button>
+</div>
+</div>
+</div>
+</section>
+<!-- ========================================== -->
+<!-- VIEW 10: INSTAGRAM ACCOUNTS VIEW           -->
+<!-- ========================================== -->
+<section class="view-panel hidden space-y-6" id="view-instagram-accounts">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+<div>
+<h1 class="font-headline-md text-headline-md text-text-primary">Connected Instagram Accounts</h1>
+<p class="text-body-sm text-text-secondary">Manage official Meta Graph API connections for Eko brands</p>
+</div>
+<button class="px-4 py-2 bg-primary-container hover:bg-brand-primary-hover text-text-primary font-bold rounded-lg text-label-md flex items-center gap-2 self-start" onclick="openConnectModal()">
+<span class="material-symbols-outlined text-[18px]">add_link</span>
+<span>Connect Instagram Account</span>
+</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Account Card 1: Active -->
+<div class="bg-surface-card border-2 border-primary-container rounded-lg p-5">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-full bg-surface-canvas border border-border-strong p-1">
+<img alt="Eko India Financial Services official brand avatar" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPiN67QIE75Mpjbjeh3yoH29aPfkyXEnyzz8zGJKqVNmHZ83GEUvHytL-BgBP_lC0XacVcq6W_lPC-udvBuwxbuGuPugQL7EqPSP2og_aIznXJPh-OpFmP5Vscja3jCeASqwc7_34AjXicMuHOxUdmhnl5mLO-IAUd97O4sYk0i_uYN0DDseUhS8VzL3k3trVK6GgGCq_z1A5QtEKmGd2-W1AOjrmj0lPLFuc_EmECzCt9VBV8O1s"/>
+</div>
+<div>
+<div class="flex items-center gap-1.5">
+<h3 class="font-bold text-text-primary">Eko India Financial Services</h3>
+<span class="material-symbols-outlined text-status-completed text-[18px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+<span class="text-xs text-text-secondary">@ekoindia • Professional Creator Account</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-status-active-subtle text-status-active border border-emerald-200">Active</span>
+</div>
+<div class="grid grid-cols-3 gap-2 mt-5 pt-4 border-t border-border-strong text-center text-xs">
+<div>
+<span class="text-text-tertiary text-[10px] block">Followers</span>
+<span class="font-bold text-text-primary text-sm">142.8K</span>
+</div>
+<div>
+<span class="text-text-tertiary text-[10px] block">Active Campaigns</span>
+<span class="font-bold text-text-primary text-sm">6</span>
+</div>
+<div>
+<span class="text-text-tertiary text-[10px] block">Sync Health</span>
+<span class="font-bold text-status-active text-sm">99.8%</span>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-border-subtle flex items-center justify-between text-xs">
+<span class="text-text-tertiary">Last synced 12 minutes ago</span>
+<div class="flex items-center gap-2">
+<button class="px-2.5 py-1 bg-surface-canvas hover:bg-slate-200 rounded border border-border-strong font-semibold" onclick="triggerDataSync()">Sync Now</button>
+<button class="px-2.5 py-1 text-text-secondary hover:text-text-primary">Settings</button>
+</div>
+</div>
+</div>
+<!-- Account Card 2: Connected Business Secondary -->
+<div class="bg-surface-card border border-border-strong rounded-lg p-5">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-full bg-slate-100 border border-border-strong flex items-center justify-center font-bold text-slate-700">
+                  EB
+                </div>
+<div>
+<div class="flex items-center gap-1.5">
+<h3 class="font-bold text-text-primary">Eko Business Partner</h3>
+</div>
+<span class="text-xs text-text-secondary">@ekobusiness • Business Account</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-text-secondary border border-border-strong">Connected</span>
+</div>
+<div class="grid grid-cols-3 gap-2 mt-5 pt-4 border-t border-border-strong text-center text-xs">
+<div>
+<span class="text-text-tertiary text-[10px] block">Followers</span>
+<span class="font-bold text-text-primary text-sm">28.4K</span>
+</div>
+<div>
+<span class="text-text-tertiary text-[10px] block">Active Campaigns</span>
+<span class="font-bold text-text-primary text-sm">0</span>
+</div>
+<div>
+<span class="text-text-tertiary text-[10px] block">Sync Health</span>
+<span class="font-bold text-status-active text-sm">100%</span>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-border-subtle flex items-center justify-between text-xs">
+<span class="text-text-tertiary">Last synced 1 hour ago</span>
+<button class="px-2.5 py-1 bg-surface-canvas hover:bg-slate-200 rounded border border-border-strong font-semibold">Switch to Active</button>
+</div>
+</div>
+</div>
+</section>
+<!-- ========================================== -->
+<!-- VIEW 11: NOTIFICATIONS VIEW                -->
+<!-- ========================================== -->
+<section class="view-panel hidden space-y-6" id="view-notifications">
+<div class="flex items-center justify-between">
+<div>
+<h1 class="font-headline-md text-headline-md text-text-primary">System Notifications</h1>
+<p class="text-body-sm text-text-secondary">Live alerts from campaign attribution, incoming leads, and Graph API status</p>
+</div>
+<button class="text-xs font-semibold text-text-secondary hover:text-text-primary">Mark all as read</button>
+</div>
+<div class="bg-surface-card border border-border-strong rounded-lg divide-y divide-border-subtle text-xs">
+<!-- Notification 1 -->
+<div class="p-4 flex items-start gap-3 bg-amber-50/20">
+<span class="w-8 h-8 rounded-full bg-primary-container text-text-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[18px]">stars</span>
+</span>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="font-bold text-text-primary">High-Intent Lead Captured</span>
+<span class="text-text-tertiary text-[11px]">18 mins ago</span>
+</div>
+<p class="text-text-secondary mt-0.5">Ramesh Maurya commented on 'SBI CSP in Gorakhpur' with high onboarding intent score (94%).</p>
+</div>
+</div>
+<!-- Notification 2 -->
+<div class="p-4 flex items-start gap-3 bg-amber-50/20">
+<span class="w-8 h-8 rounded-full bg-blue-100 text-status-completed flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[18px]">trending_up</span>
+</span>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="font-bold text-text-primary">Campaign Goal Surpassed</span>
+<span class="text-text-tertiary text-[11px]">1 hour ago</span>
+</div>
+<p class="text-text-secondary mt-0.5">'SBI CSP October Campaign' reached 940,000 views, outperforming baseline by 18.4%.</p>
+</div>
+</div>
+<!-- Notification 3 -->
+<div class="p-4 flex items-start gap-3">
+<span class="w-8 h-8 rounded-full bg-slate-100 text-text-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[18px]">sync</span>
+</span>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="font-bold text-text-primary">Meta Graph Data Synchronization</span>
+<span class="text-text-tertiary text-[11px]">4 hours ago</span>
+</div>
+<p class="text-text-secondary mt-0.5">Automated batch sync completed successfully for @ekoindia with 0 errors.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- ========================================== -->
+<!-- VIEW 12: SETTINGS VIEW                     -->
+<!-- ========================================== -->
+<section class="view-panel hidden space-y-6" id="view-settings">
+<div>
+<h1 class="font-headline-md text-headline-md text-text-primary">Platform Settings</h1>
+<p class="text-body-sm text-text-secondary">Configure attribution windows, Meta API webhooks, and team roles</p>
+</div>
+<div class="bg-surface-card border border-border-strong rounded-lg p-5 max-w-3xl space-y-6">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-text-primary mb-1">Attribution Window</h3>
+<p class="text-body-sm text-text-secondary mb-3">Define the lookback window for Reel comment-to-lead conversions</p>
+<select class="h-9 px-3 bg-surface-canvas border border-border-strong rounded text-xs text-text-primary">
+<option selected="">7 Days Click / 1 Day View (Default Enterprise)</option>
+<option>14 Days Click / 7 Days View</option>
+<option>30 Days Extended Window</option>
+</select>
+</div>
+<div class="pt-4 border-t border-border-strong">
+<h3 class="font-headline-sm text-headline-sm text-text-primary mb-1">AI Lead Scoring Sensitivity</h3>
+<p class="text-body-sm text-text-secondary mb-3">Confidence threshold before auto-tagging comments as high-intent</p>
+<input class="w-full accent-amber-500" max="95" min="50" type="range" value="75"/>
+<div class="flex justify-between text-xs text-text-secondary mt-1">
+<span>Moderate (50%)</span>
+<span class="font-bold text-text-primary">Strict / High Accuracy (75%)</span>
+<span>Ultra Conservative (95%)</span>
+</div>
+</div>
+<div class="pt-4 border-t border-border-strong">
+<h3 class="font-headline-sm text-headline-sm text-text-primary mb-1">Connected Team Members</h3>
+<div class="space-y-2 mt-3 text-xs">
+<div class="flex items-center justify-between p-2.5 rounded bg-surface-canvas">
+<div>
+<span class="font-bold text-text-primary block">Priya Sharma (You)</span>
+<span class="text-text-secondary">priya.s@eko.in • Growth Lead (Admin)</span>
+</div>
+<span class="px-2 py-0.5 rounded bg-slate-200 font-bold">Admin</span>
+</div>
+<div class="flex items-center justify-between p-2.5 rounded bg-surface-canvas">
+<div>
+<span class="font-bold text-text-primary block">Ankit Saxena</span>
+<span class="text-text-secondary">ankit.s@eko.in • Media Strategist</span>
+</div>
+<span class="px-2 py-0.5 rounded bg-slate-200 font-bold">Editor</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- EMPTY STATE VIEW (Conditional) -->
+<section class="hidden py-16 text-center" id="emptyStateContainer">
+<div class="w-16 h-16 rounded-full bg-slate-100 border border-border-strong flex items-center justify-center mx-auto mb-3 text-text-tertiary">
+<span class="material-symbols-outlined text-[32px]">search_off</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-text-primary">No Matching Campaigns Found</h3>
+<p class="text-body-sm text-text-secondary max-w-sm mx-auto mt-1">No campaigns matched your current filter criteria. Reset your date or objective filters to see active records.</p>
+<button class="mt-4 px-4 py-2 bg-primary-container text-text-primary font-bold rounded text-label-md" onclick="setAppState('normal')">
+          Reset Filter View
+        </button>
+</section>
+</div>
+</main>
+<!-- ==================================================== -->
+<!-- MODAL: 5-STEP CAMPAIGN CREATION WIZARD              -->
+<!-- ==================================================== -->
+<div class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs hidden flex items-center justify-center p-4" id="campaignModal">
+<div class="bg-surface-card border border-border-strong rounded-xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+<!-- Modal Header -->
+<div class="p-4 px-6 border-b border-border-strong flex items-center justify-between bg-surface-canvas">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-text-primary">Create New Instagram Campaign</h2>
+<p class="text-xs text-text-secondary">Step <span id="wizardStepNumber">1</span> of 5: <span id="wizardStepTitle">Campaign Basics</span></p>
+</div>
+<button class="text-text-secondary hover:text-text-primary p-1" onclick="closeCreateModal()">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Step Indicator Ribbon -->
+<div class="grid grid-cols-5 border-b border-border-strong text-center text-[11px] font-semibold">
+<div class="py-2 bg-amber-50 text-text-primary border-b-2 border-primary-container" id="step-tab-1">1. Basics</div>
+<div class="py-2 text-text-tertiary" id="step-tab-2">2. Content</div>
+<div class="py-2 text-text-tertiary" id="step-tab-3">3. Audience</div>
+<div class="py-2 text-text-tertiary" id="step-tab-4">4. Review</div>
+<div class="py-2 text-text-tertiary" id="step-tab-5">5. Launch</div>
+</div>
+<!-- Modal Body (Steps) -->
+<div class="p-6 overflow-y-auto flex-1 text-xs">
+<!-- Step 1: Basics -->
+<div class="space-y-4" id="wizard-content-1">
+<div>
+<label class="font-bold text-text-primary block mb-1">Campaign Title *</label>
+<input class="w-full h-9 px-3 bg-surface-canvas border border-border-strong rounded text-xs text-text-primary" id="newCampTitle" type="text" value="Bihar CSP Onboarding Blitz - Nov 2024"/>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div>
+<label class="font-bold text-text-primary block mb-1">Objective</label>
+<select class="w-full h-9 px-3 bg-surface-canvas border border-border-strong rounded text-xs">
+<option>CSP Agent Recruitment</option>
+<option>AePS Brand Awareness</option>
+<option>Kiosk Operator Training</option>
+</select>
+</div>
+<div>
+<label class="font-bold text-text-primary block mb-1">Target Lead Goal</label>
+<input class="w-full h-9 px-3 bg-surface-canvas border border-border-strong rounded text-xs" type="number" value="300"/>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div>
+<label class="font-bold text-text-primary block mb-1">Start Date</label>
+<input class="w-full h-9 px-3 bg-surface-canvas border border-border-strong rounded text-xs" type="date" value="2024-11-01"/>
+</div>
+<div>
+<label class="font-bold text-text-primary block mb-1">End Date</label>
+<input class="w-full h-9 px-3 bg-surface-canvas border border-border-strong rounded text-xs" type="date" value="2024-11-30"/>
+</div>
+</div>
+</div>
+<!-- Step 2: Content Selection -->
+<div class="space-y-3 hidden" id="wizard-content-2">
+<p class="text-text-secondary mb-2">Select Instagram Reels and posts to attach to this attribution tracking group:</p>
+<div class="space-y-2">
+<label class="flex items-center gap-3 p-2.5 rounded bg-surface-canvas border border-border-strong cursor-pointer hover:border-primary-container">
+<input checked="" class="rounded text-primary-container focus:ring-0" type="checkbox"/>
+<div>
+<span class="font-bold text-text-primary block">How to open SBI CSP in Gorakhpur (0:42)</span>
+<span class="text-text-tertiary">412.4K Views • 94 Attributed Leads</span>
+</div>
+</label>
+<label class="flex items-center gap-3 p-2.5 rounded bg-surface-canvas border border-border-strong cursor-pointer hover:border-primary-container">
+<input checked="" class="rounded text-primary-container focus:ring-0" type="checkbox"/>
+<div>
+<span class="font-bold text-text-primary block">Daily Income of Eko CSP Mitra (0:38)</span>
+<span class="text-text-tertiary">328.1K Views • 82 Attributed Leads</span>
+</div>
+</label>
+<label class="flex items-center gap-3 p-2.5 rounded bg-surface-canvas border border-border-strong cursor-pointer hover:border-primary-container">
+<input class="rounded text-primary-container focus:ring-0" type="checkbox"/>
+<div>
+<span class="font-bold text-text-primary block">Aadhaar Banking (AePS) Commission Guide (0:51)</span>
+<span class="text-text-tertiary">264.9K Views • 64 Attributed Leads</span>
+</div>
+</label>
+</div>
+</div>
+<!-- Step 3: Audience Targeting -->
+<div class="space-y-4 hidden" id="wizard-content-3">
+<div>
+<label class="font-bold text-text-primary block mb-1">Target States</label>
+<div class="flex flex-wrap gap-2">
+<span class="px-2.5 py-1 rounded bg-amber-100 text-on-primary-container font-semibold flex items-center gap-1">Bihar <span class="material-symbols-outlined text-[14px]">close</span></span>
+<span class="px-2.5 py-1 rounded bg-amber-100 text-on-primary-container font-semibold flex items-center gap-1">Uttar Pradesh <span class="material-symbols-outlined text-[14px]">close</span></span>
+<span class="px-2.5 py-1 rounded bg-surface-canvas border border-border-strong text-text-secondary cursor-pointer">+ Add State</span>
+</div>
+</div>
+<div>
+<label class="font-bold text-text-primary block mb-1">Primary Age Demographic</label>
+<select class="w-full h-9 px-3 bg-surface-canvas border border-border-strong rounded text-xs">
+<option>25 - 34 years (Highest Operator Conversion)</option>
+<option>18 - 44 years (Broad Distribution)</option>
+</select>
+</div>
+</div>
+<!-- Step 4: Review -->
+<div class="space-y-3 hidden" id="wizard-content-4">
+<div class="p-3.5 rounded bg-surface-canvas border border-border-strong space-y-2">
+<div class="flex justify-between">
+<span class="text-text-secondary">Campaign:</span>
+<span class="font-bold text-text-primary" id="reviewCampName">Bihar CSP Onboarding Blitz - Nov 2024</span>
+</div>
+<div class="flex justify-between">
+<span class="text-text-secondary">Dates:</span>
+<span class="font-bold text-text-primary">Nov 1 - Nov 30, 2024</span>
+</div>
+<div class="flex justify-between">
+<span class="text-text-secondary">Linked Content:</span>
+<span class="font-bold text-text-primary">2 Active Reels Selected</span>
+</div>
+<div class="flex justify-between">
+<span class="text-text-secondary">Target Attribution Goal:</span>
+<span class="font-bold text-primary-container">300 Verified Leads</span>
+</div>
+</div>
+<div class="p-3 rounded bg-amber-50 border border-amber-200 text-on-primary-container text-[11px]">
+            AI Attribution Webhooks will monitor incoming Reel comments and assign lead tags automatically.
+          </div>
+</div>
+<!-- Step 5: Launch & Confirmation -->
+<div class="text-center py-6 hidden space-y-3" id="wizard-content-5">
+<div class="w-14 h-14 rounded-full bg-emerald-100 text-status-active flex items-center justify-center mx-auto">
+<span class="material-symbols-outlined text-[32px]">check_circle</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-text-primary">Campaign Created & Tracking Active!</h3>
+<p class="text-body-sm text-text-secondary max-w-sm mx-auto">Bihar CSP Onboarding Blitz has been added to your dashboard. Meta Graph webhooks are primed.</p>
+</div>
+</div>
+<!-- Modal Footer -->
+<div class="p-4 px-6 border-t border-border-strong flex items-center justify-between bg-surface-canvas">
+<button class="px-3 py-1.5 rounded border border-border-strong text-xs font-semibold hover:bg-slate-200 disabled:opacity-40" disabled="" id="wizardPrevBtn" onclick="wizardStep(-1)">
+          Back
+        </button>
+<button class="px-4 py-1.5 rounded bg-primary-container hover:bg-brand-primary-hover text-text-primary text-xs font-bold transition-colors" id="wizardNextBtn" onclick="wizardStep(1)">
+          Next Step →
+        </button>
+</div>
+</div>
+</div>
+<!-- ==================================================== -->
+<!-- SLIDE-OVER DRAWER 1: REEL / CONTENT DETAIL          -->
+<!-- ==================================================== -->
+<div class="fixed inset-0 z-50 bg-slate-900/30 backdrop-blur-xs hidden flex justify-end" id="reelDrawer">
+<div class="w-full max-w-md bg-surface-card h-full shadow-2xl flex flex-col justify-between overflow-y-auto border-l border-border-strong animate-slide-left p-6">
+<div>
+<div class="flex items-center justify-between pb-4 border-b border-border-strong">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container">movie</span>
+<h3 class="font-headline-sm text-headline-sm text-text-primary">Reel Intelligence</h3>
+</div>
+<button class="p-1 text-text-secondary hover:text-text-primary" onclick="closeDrawer('reelDrawer')">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="mt-4">
+<div class="h-44 rounded-lg bg-slate-100 overflow-hidden relative mb-3">
+<img class="w-full h-full object-cover" data-alt="High quality film still of an Eko rural banking customer service point agent explaining mobile app transactions with warm ambient studio grade lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBlYyE0sv7v2tWA1z6Gcncyj9LVDouSKCEJ0gcCrW2NZ0q6cB0sdNHcGfJtP0WEy6yGiJccITxMZIpcHHndXKOHmA0gKKuN-77lqWw1FGYmcdJ4yHjZddPhup7OBrSTfsSVT15D2YipplHOHSUGft-_UIHM5F5tpy0ZYLJDUSNis7NMugbDmGMq0UwimIAAyTAUJc5vDzNuhZ26Jnznw6tTtKOAYmQp3nQ5mpWzSw"/>
+<span class="absolute bottom-2 left-2 bg-black/80 text-white text-[10px] font-bold px-2 py-0.5 rounded">0:42 duration</span>
+</div>
+<h2 class="font-headline-sm text-headline-sm text-text-primary" id="reelDrawerTitle">How to open SBI CSP in Gorakhpur</h2>
+<span class="text-xs text-text-tertiary">Posted Oct 4, 2024 • Attribution ID: #REEL-4402</span>
+<!-- Metrics Matrix -->
+<div class="grid grid-cols-3 gap-2 my-4 text-center text-xs">
+<div class="p-2.5 rounded bg-surface-canvas border border-border-strong">
+<span class="text-text-tertiary text-[10px] block">Views</span>
+<span class="font-bold text-text-primary">412,400</span>
+</div>
+<div class="p-2.5 rounded bg-surface-canvas border border-border-strong">
+<span class="text-text-tertiary text-[10px] block">Non-Followers</span>
+<span class="font-bold text-status-active">81%</span>
+</div>
+<div class="p-2.5 rounded bg-amber-50 border border-amber-200">
+<span class="text-on-primary-container text-[10px] font-bold block">Leads</span>
+<span class="font-bold text-text-primary">94</span>
+</div>
+</div>
+<!-- Retention Curve -->
+<div class="p-3.5 rounded bg-surface-canvas border border-border-strong mb-4">
+<div class="flex justify-between items-center text-xs mb-2">
+<span class="font-bold text-text-primary">Viewer Retention (0 - 42s)</span>
+<span class="text-status-active font-bold">91% Peak Hook</span>
+</div>
+<div class="h-24 w-full">
+<svg class="w-full h-full" fill="none" viewbox="0 0 200 60">
+<polyline fill="none" points="0,10 40,15 80,22 120,30 160,38 200,45" stroke="#F5A623" stroke-width="2"></polyline>
+</svg>
+</div>
+<p class="text-[11px] text-text-secondary mt-1">Hook rating: <strong>9.2/10</strong> [AI-INFERRED]. Strongest retention occurs between 0:04 and 0:18.</p>
+</div>
+<!-- Attributed Comments Snippet -->
+<div>
+<h4 class="font-bold text-xs text-text-primary mb-2">Top Attributed Comments (18)</h4>
+<div class="space-y-2 text-xs">
+<div class="p-2.5 rounded bg-surface-canvas border border-border-subtle">
+<span class="font-bold text-text-primary">@ramesh_m_up:</span>
+<span class="text-text-secondary"> "Sir Gorakhpur me kitna investment lagega..."</span>
+<span class="block mt-1 text-[10px] text-primary font-bold">Converted to Lead #882</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="pt-4 border-t border-border-strong">
+<button class="w-full py-2 bg-primary-container hover:bg-brand-primary-hover text-text-primary font-bold rounded text-xs transition-colors" onclick="closeDrawer('reelDrawer'); switchView('leads')">
+          View All Attributed Leads
+        </button>
+</div>
+</div>
+</div>
+<!-- ==================================================== -->
+<!-- SLIDE-OVER DRAWER 2: COMMENT / AI INTENT DETAIL     -->
+<!-- ==================================================== -->
+<div class="fixed inset-0 z-50 bg-slate-900/30 backdrop-blur-xs hidden flex justify-end" id="commentDrawer">
+<div class="w-full max-w-md bg-surface-card h-full shadow-2xl flex flex-col justify-between overflow-y-auto border-l border-border-strong animate-slide-left p-6">
+<div>
+<div class="flex items-center justify-between pb-4 border-b border-border-strong">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-ai-accent">psychology</span>
+<h3 class="font-headline-sm text-headline-sm text-text-primary">Comment AI Diagnosis</h3>
+</div>
+<button class="p-1 text-text-secondary hover:text-text-primary" onclick="closeDrawer('commentDrawer')">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="mt-4 space-y-4 text-xs">
+<div>
+<span class="text-text-tertiary text-[11px] block">Comment Author</span>
+<h2 class="font-bold text-text-primary text-sm" id="commentDrawerAuthor">Ramesh Maurya</h2>
+<span class="text-text-secondary" id="commentDrawerHandle">@ramesh_m_up</span>
+</div>
+<div class="p-3 rounded bg-surface-canvas border border-border-strong">
+<span class="text-text-tertiary text-[10px] block mb-1">Full Comment Text</span>
+<p class="text-text-primary font-medium italic" id="commentDrawerText">"Sir hum Gorakhpur Badhalganj se hain..."</p>
+</div>
+<div class="grid grid-cols-2 gap-3 text-center">
+<div class="p-2.5 rounded bg-surface-canvas border border-border-strong">
+<span class="text-text-tertiary text-[10px] block">AI Lead Score</span>
+<span class="font-bold text-primary text-sm" id="commentDrawerScore">94/100</span>
+</div>
+<div class="p-2.5 rounded bg-surface-canvas border border-border-strong">
+<span class="text-text-tertiary text-[10px] block">Detected Intent</span>
+<span class="font-bold text-status-active text-xs">CSP Onboarding</span>
+</div>
+</div>
+<!-- Suggested AI Reply Snippet -->
+<div class="p-3 rounded bg-ai-subtle border border-ai-border">
+<div class="flex items-center justify-between mb-1">
+<span class="font-bold text-ai-accent text-[11px] flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">auto_awesome</span> Suggested Quick Reply
+              </span>
+<button class="text-xs text-ai-accent hover:underline font-bold" onclick="copyReplySnippet()">Copy</button>
+</div>
+<p class="text-text-primary text-xs bg-white p-2.5 rounded border border-indigo-100" id="suggestedReplyText">
+              "नमस्ते रमेश जी! गोरखपुर में SBI CSP खोलने के लिए न्यूनतम 10वीं पास और दुकान स्थान चाहिए। हमारी टीम से तुरंत बात करने के लिए DM में अपना नंबर शेयर करें।"
+            </p>
+</div>
+</div>
+</div>
+<div class="pt-4 border-t border-border-strong flex items-center gap-2">
+<button class="flex-1 py-2 bg-primary-container hover:bg-brand-primary-hover text-text-primary font-bold rounded text-xs transition-colors" onclick="convertCurrentToLead()">
+          Convert to Lead
+        </button>
+<button class="px-3 py-2 border border-border-strong rounded text-xs font-semibold" onclick="closeDrawer('commentDrawer')">
+          Dismiss
+        </button>
+</div>
+</div>
+</div>
+<!-- ==================================================== -->
+<!-- SLIDE-OVER DRAWER 3: LEAD DETAIL DRAWER             -->
+<!-- ==================================================== -->
+<div class="fixed inset-0 z-50 bg-slate-900/30 backdrop-blur-xs hidden flex justify-end" id="leadDrawer">
+<div class="w-full max-w-md bg-surface-card h-full shadow-2xl flex flex-col justify-between overflow-y-auto border-l border-border-strong animate-slide-left p-6">
+<div>
+<div class="flex items-center justify-between pb-4 border-b border-border-strong">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container">contact_page</span>
+<h3 class="font-headline-sm text-headline-sm text-text-primary">Lead Detail</h3>
+</div>
+<button class="p-1 text-text-secondary hover:text-text-primary" onclick="closeDrawer('leadDrawer')">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="mt-4 space-y-4 text-xs">
+<div>
+<h2 class="font-bold text-text-primary text-base" id="leadDrawerName">Ramesh Maurya</h2>
+<span class="text-text-secondary" id="leadDrawerLocation">@ramesh_m_up • Gorakhpur, UP</span>
+</div>
+<div class="p-3 rounded bg-surface-canvas border border-border-strong space-y-2">
+<div class="flex justify-between">
+<span class="text-text-secondary">Pipeline Status:</span>
+<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-status-completed" id="leadDrawerStatus">New</span>
+</div>
+<div class="flex justify-between">
+<span class="text-text-secondary">Attributed Campaign:</span>
+<span class="font-bold text-text-primary" id="leadDrawerCampaign">SBI CSP October Campaign</span>
+</div>
+<div class="flex justify-between">
+<span class="text-text-secondary">Attributed Source:</span>
+<span class="font-medium text-text-primary">Reel: How to open SBI CSP</span>
+</div>
+<div class="flex justify-between">
+<span class="text-text-secondary">AI Lead Score:</span>
+<span class="font-bold text-primary">94/100</span>
+</div>
+</div>
+<div>
+<h4 class="font-bold text-text-primary mb-2">Internal Outreach Notes</h4>
+<textarea class="w-full h-24 p-2.5 bg-surface-canvas border border-border-strong rounded text-xs text-text-primary" placeholder="Add agent notes (e.g. called via WhatsApp, document requirements shared)..."></textarea>
+</div>
+<div>
+<h4 class="font-bold text-text-primary mb-2">Update Pipeline Status</h4>
+<div class="grid grid-cols-3 gap-2">
+<button class="p-2 rounded bg-surface-canvas hover:bg-slate-200 border border-border-strong text-center font-semibold" onclick="updateStatusPill('Contacted')">Contacted</button>
+<button class="p-2 rounded bg-surface-canvas hover:bg-slate-200 border border-border-strong text-center font-semibold text-status-active" onclick="updateStatusPill('Qualified')">Qualified</button>
+<button class="p-2 rounded bg-amber-50 hover:bg-amber-100 border border-amber-200 text-center font-bold text-on-primary-container" onclick="updateStatusPill('Converted')">Converted</button>
+</div>
+</div>
+</div>
+</div>
+<div class="pt-4 border-t border-border-strong">
+<button class="w-full py-2 bg-text-primary hover:bg-slate-800 text-white font-bold rounded text-xs transition-colors" onclick="closeDrawer('leadDrawer')">
+          Save & Close
+        </button>
+</div>
+</div>
+</div>
+<!-- ==================================================== -->
+<!-- MODAL: CONNECT INSTAGRAM GRAPH API                  -->
+<!-- ==================================================== -->
+<div class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs hidden flex items-center justify-center p-4" id="connectModal">
+<div class="bg-surface-card border border-border-strong rounded-xl w-full max-w-md overflow-hidden shadow-2xl p-6 text-xs text-center space-y-4">
+<div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-primary">
+<span class="material-symbols-outlined text-[28px]">link</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-text-primary">Connect Meta Business Account</h3>
+<p class="text-text-secondary mt-1">Authenticate via Facebook Login for Meta Graph API permissions to track Instagram Reels attribution.</p>
+</div>
+<div class="p-3 rounded bg-surface-canvas border border-border-strong text-left space-y-1.5 text-[11px] text-text-secondary">
+<div>✓ Read Instagram Insights (Views, Reach, Saves)</div>
+<div>✓ Read Public Comments for Intent Classification</div>
+<div>✓ Zero bank operational or customer balance access</div>
+</div>
+<div class="pt-2 flex items-center gap-2">
+<button class="flex-1 py-2 bg-primary-container hover:bg-brand-primary-hover text-text-primary font-bold rounded transition-colors" onclick="simulateConnect()">
+          Authenticate with Meta
+        </button>
+<button class="px-4 py-2 border border-border-strong rounded font-semibold" onclick="closeConnectModal()">
+          Cancel
+        </button>
+</div>
+</div>
+</div>
+<!-- TOAST NOTIFICATION CONTAINER -->
+<div class="fixed bottom-5 right-5 z-50 pointer-events-none space-y-2" id="toastContainer"></div>
+<!-- ==================================================== -->
+<!-- JAVASCRIPT: INTERACTION ENGINE                      -->
+<!-- ==================================================== -->
+<script>
+    // Global Navigation Controller
+    function switchView(viewId) {
+      // Hide all views
+      document.querySelectorAll('.view-panel').forEach(panel => {
+        panel.classList.add('hidden');
+      });
+
+      // Show target view
+      const target = document.getElementById(`view-${viewId}`);
+      if (target) {
+        target.classList.remove('hidden');
+      }
+
+      // Update sidebar active classes
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.className = "nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary font-medium hover:bg-surface-canvas hover:text-text-primary transition-colors duration-150";
+        // remove left border and background
+      });
+
+      // Map tab name to highlight correct item
+      const tabMap = {
+        'dashboard': 'Dashboard',
+        'campaigns': 'Campaigns',
+        'campaign-detail': 'Campaigns',
+        'content': 'Content',
+        'audience': 'Audience',
+        'comments': 'Comments',
+        'leads': 'Leads',
+        'ai-insights': 'AI Insights',
+        'reports': 'Reports',
+        'instagram-accounts': 'Instagram Accounts',
+        'notifications': 'Notifications',
+        'settings': 'Settings'
+      };
+
+      const activeTabLabel = tabMap[viewId];
+      if (activeTabLabel) {
+        const activeNavBtn = document.querySelector(`.nav-item[data-tab="${activeTabLabel}"]`);
+        if (activeNavBtn) {
+          activeNavBtn.className = "nav-item flex items-center gap-3 px-3 py-2 rounded-lg bg-surface-container-low text-text-primary font-semibold border-l-2 border-primary-container transition-colors duration-150";
+        }
+      }
+
+      // Scroll to top of main
+      document.getElementById('mainContainer').scrollTop = 0;
+    }
+
+    // Campaign Detail opener
+    function openCampaignDetail(campName) {
+      switchView('campaign-detail');
+    }
+
+    // Chart metric switcher
+    function switchChartMetric(metric) {
+      document.querySelectorAll('.chart-pill').forEach(btn => {
+        btn.className = "chart-pill px-3 py-1 rounded text-text-secondary hover:text-text-primary";
+      });
+      event.target.className = "chart-pill px-3 py-1 rounded bg-white text-text-primary font-bold shadow-xs";
+      showToast(`Trend Chart switched to: ${metric.toUpperCase()}`);
+    }
+
+    // App state switcher for testing
+    function setAppState(state) {
+      const normalContainer = document.getElementById('viewsContentWrapper');
+      const skeletonContainer = document.getElementById('skeletonContainer');
+      const errorContainer = document.getElementById('errorStateContainer');
+      const emptyContainer = document.getElementById('emptyStateContainer');
+
+      // Reset
+      skeletonContainer.classList.add('hidden');
+      errorContainer.classList.add('hidden');
+      emptyContainer.classList.add('hidden');
+      normalContainer.classList.remove('hidden');
+
+      if (state === 'skeleton') {
+        normalContainer.classList.add('hidden');
+        skeletonContainer.classList.remove('hidden');
+        showToast('Simulating skeleton loading shimmer');
+      } else if (state === 'error') {
+        errorContainer.classList.remove('hidden');
+        showToast('Simulating Instagram Graph API rate-limit alert');
+      } else if (state === 'empty') {
+        normalContainer.classList.add('hidden');
+        emptyContainer.classList.remove('hidden');
+        showToast('Simulating empty search results');
+      } else {
+        showToast('Restored normal loaded data state');
+      }
+    }
+
+    // Live Sync Trigger
+    function triggerDataSync() {
+      const syncIcon = document.getElementById('syncIcon');
+      const syncLabel = document.getElementById('syncStatusLabel');
+      syncIcon.classList.add('animate-spin');
+      syncLabel.innerText = "Syncing with Meta...";
+
+      setTimeout(() => {
+        syncIcon.classList.remove('animate-spin');
+        syncLabel.innerText = "Synced Just Now";
+        showToast('Data Synced: 34 Reels & 142 Comments updated from Meta Graph API');
+      }, 1200);
+    }
+
+    // Drawer Helpers
+    function openDrawer(id) {
+      const drawer = document.getElementById(id);
+      drawer.classList.remove('hidden');
+    }
+
+    function closeDrawer(id) {
+      const drawer = document.getElementById(id);
+      drawer.classList.add('hidden');
+    }
+
+    function openReelDrawer(title) {
+      document.getElementById('reelDrawerTitle').innerText = title;
+      openDrawer('reelDrawer');
+    }
+
+    function openCommentDrawer(name, handle, text, intent, score) {
+      document.getElementById('commentDrawerAuthor').innerText = name;
+      document.getElementById('commentDrawerHandle').innerText = handle;
+      document.getElementById('commentDrawerText').innerText = `"${text}"`;
+      document.getElementById('commentDrawerScore').innerText = `${score}/100`;
+      openDrawer('commentDrawer');
+    }
+
+    function openLeadDrawer(name, handle, loc, camp, reel, status, score) {
+      document.getElementById('leadDrawerName').innerText = name;
+      document.getElementById('leadDrawerLocation').innerText = `${handle} • ${loc}`;
+      document.getElementById('leadDrawerCampaign').innerText = camp;
+      document.getElementById('leadDrawerStatus').innerText = status;
+      openDrawer('leadDrawer');
+    }
+
+    function convertCurrentToLead() {
+      closeDrawer('commentDrawer');
+      showToast('Comment converted to high-intent Lead in Pipeline');
+      switchView('leads');
+    }
+
+    function updateStatusPill(newStatus) {
+      document.getElementById('leadDrawerStatus').innerText = newStatus;
+      showToast(`Lead status updated to: ${newStatus}`);
+    }
+
+    function copyReplySnippet() {
+      showToast('AI Reply copied to clipboard');
+    }
+
+    // 5-Step Campaign Wizard Controller
+    let currentStep = 1;
+    function openCreateModal() {
+      currentStep = 1;
+      updateWizardUI();
+      document.getElementById('campaignModal').classList.remove('hidden');
+    }
+
+    function closeCreateModal() {
+      document.getElementById('campaignModal').classList.add('hidden');
+    }
+
+    function wizardStep(delta) {
+      currentStep += delta;
+      if (currentStep < 1) currentStep = 1;
+      if (currentStep > 5) {
+        closeCreateModal();
+        showToast('Campaign successfully launched!');
+        switchView('campaigns');
+        return;
+      }
+      updateWizardUI();
+    }
+
+    function updateWizardUI() {
+      // Hide all contents
+      for (let i = 1; i <= 5; i++) {
+        document.getElementById(`wizard-content-${i}`).classList.add('hidden');
+        const tab = document.getElementById(`step-tab-${i}`);
+        if (i < currentStep) {
+          tab.className = "py-2 bg-emerald-50 text-status-active font-bold border-b-2 border-emerald-500";
+        } else if (i === currentStep) {
+          tab.className = "py-2 bg-amber-50 text-text-primary font-bold border-b-2 border-primary-container";
+        } else {
+          tab.className = "py-2 text-text-tertiary";
+        }
+      }
+
+      document.getElementById(`wizard-content-${currentStep}`).classList.remove('hidden');
+      document.getElementById('wizardStepNumber').innerText = currentStep;
+
+      const titles = ["Campaign Basics", "Select Content", "Audience Targeting", "Review & Validate", "Launch"];
+      document.getElementById('wizardStepTitle').innerText = titles[currentStep - 1];
+
+      const prevBtn = document.getElementById('wizardPrevBtn');
+      const nextBtn = document.getElementById('wizardNextBtn');
+
+      prevBtn.disabled = currentStep === 1;
+      if (currentStep === 4) {
+        nextBtn.innerText = "Confirm & Launch Campaign 🚀";
+      } else if (currentStep === 5) {
+        nextBtn.innerText = "Done";
+      } else {
+        nextBtn.innerText = "Next Step →";
+      }
+    }
+
+    // Accounts Modal
+    function openConnectModal() {
+      document.getElementById('connectModal').classList.remove('hidden');
+    }
+
+    function closeConnectModal() {
+      document.getElementById('connectModal').classList.add('hidden');
+    }
+
+    function simulateConnect() {
+      closeConnectModal();
+      showToast('Meta Graph API Connected successfully for @ekoindia');
+    }
+
+    function simulateExport(type) {
+      showToast(`Generating ${type} Export... Download starting momentarily.`);
+    }
+
+    // Toast Messenger
+    function showToast(message) {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = "bg-text-primary text-white text-xs px-4 py-2.5 rounded-lg shadow-lg flex items-center gap-2 border border-slate-700 pointer-events-auto transform translate-y-2 transition-all duration-200";
+      toast.innerHTML = `<span class="material-symbols-outlined text-[16px] text-primary-container">info</span><span>${message}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-4');
+        setTimeout(() => toast.remove(), 250);
+      }, 3200);
+    }
+
+    // Global Search Interactive Filter
+    document.getElementById('globalSearchInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        showToast(`Searching across campaigns and reels for: "${this.value}"`);
+      }
+    });
+  </script>
+</body></html>

@@ -1,0 +1,38 @@
+# ---------------------------------------------------------------- secrets / local config
+# Real credentials live in .env files — only the placeholder .env.example files are committed.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Local tooling (Claude Code launch configs, editor settings)
+.claude/
+.vscode/
+.idea/
+
+# ---------------------------------------------------------------- frontend (Node / Vite)
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+*.local
+
+# ---------------------------------------------------------------- backend (Python)
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Private PostgreSQL cluster created by `python -m scripts.local_postgres` (contains the database itself)
+backend/.pgdata/
+backend/.pgdata.log
+
+# ---------------------------------------------------------------- misc
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
