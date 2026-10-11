@@ -1,6 +1,7 @@
-# Local PostgreSQL for InstaBoard development (optional — see backend/README.md for the Docker-free helper).
+# Local services for InstaBoard development.
 #
-#   docker compose --env-file backend/.env up -d db
+#   docker compose --env-file backend/.env up -d db          # PostgreSQL (or use the Docker-free helper, see backend/README.md)
+#   docker compose --env-file backend/.env up -d redis       # Redis: Celery broker for background syncs (Phase 6)
 #
 # Reads LOCAL_PG_USER / LOCAL_PG_PASSWORD / LOCAL_PG_PORT from backend/.env (copy backend/.env.example);
 # pass it with --env-file so Compose can interpolate them.
@@ -26,5 +27,22 @@ services:
       retries: 10
     restart: unless-stopped
 
+  redis:
+    image: redis:7.4-alpine
+    container_name: instaboard-redis
+    # Append-only persistence so queued messages survive a restart (job state itself lives in PostgreSQL).
+    command: ["redis-server", "--appendonly", "yes", "--save", ""]
+    ports:
+      - "127.0.0.1:${LOCAL_REDIS_PORT:-6379}:6379"   # bound to localhost only; no password in local development
+    volumes:
+      - instaboard-redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
 volumes:
   instaboard-pgdata:
+  instaboard-redisdata:

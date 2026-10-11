@@ -15,7 +15,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import BigInteger, Boolean, CheckConstraint, DateTime, ForeignKey, Index, Integer, String, Text, UniqueConstraint, func
+from sqlalchemy import BigInteger, Boolean, CheckConstraint, DateTime, ForeignKey, Index, Integer, String, Text, UniqueConstraint, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base, TimestampMixin, WorkspaceOwned, str_enum
@@ -59,6 +59,13 @@ class InstagramConnection(WorkspaceOwned, TimestampMixin, Base):
     last_error_code: Mapped[str | None] = mapped_column(String(64))
     last_error_message: Mapped[str | None] = mapped_column(Text)
     disconnected_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Incremental sync state (Phase 6). The backfill cursor is Meta's opaque paging cursor (not a secret);
+    # a full pass that reaches the end of the media list is what allows deleted media to be detected.
+    media_backfill_cursor: Mapped[str | None] = mapped_column(Text)
+    media_full_pass_started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    media_backfill_completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Account metrics Instagram rejected outright for this account (error #100) — not requested again.
+    unsupported_account_metrics: Mapped[list[Any]] = mapped_column(server_default=text("'[]'::jsonb"))
 
 
 class InstagramToken(WorkspaceOwned, Base):
@@ -114,11 +121,15 @@ class InstagramMedia(WorkspaceOwned, TimestampMixin, Base):
     last_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     # Set when the API reports the media no longer exists (deleted on Instagram).
     removed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Last insight request for this media (drives refresh prioritisation) and metrics Instagram rejected for it.
+    insights_checked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    unsupported_metrics: Mapped[list[Any]] = mapped_column(server_default=text("'[]'::jsonb"))
 
 
 class InstagramMediaInsight(WorkspaceOwned, Base):
-    """One metric snapshot for one media object. ``value`` is NULL with ``status='unavailable'`` when the
-    metric was requested but not returned — it is never stored as a fabricated zero."""
+    """One metric observation for one media object. ``captured_at`` is the job's fixed observation time, so a
+    retried or redelivered job cannot add a second observation. ``value`` is NULL with ``status='unavailable'``
+    when the metric was requested but not returned — it is never stored as a fabricated zero."""
 
     __tablename__ = "instagram_media_insights"
     __table_args__ = (
@@ -135,11 +146,16 @@ class InstagramMediaInsight(WorkspaceOwned, Base):
     status: Mapped[str] = mapped_column(String(16))
     captured_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     api_version: Mapped[str] = mapped_column(String(16))
+    unit: Mapped[str] = mapped_column(String(16), server_default="count")
+    source: Mapped[str] = mapped_column(String(32), server_default="instagram_api")
 
 
 class InstagramAccountInsight(WorkspaceOwned, Base):
     """Account-level metric for a time range. Re-fetching the same range updates the value (Meta may revise
-    data for up to 48 hours); a new range is a new row, so history is preserved."""
+    data for up to 48 hours); a new range is a new row, so history is preserved.
+
+    metric_type: ``total_value`` (sum over [range_start, range_end]), ``time_series`` (one day) or ``snapshot``
+    (a profile count such as followers_count observed at range_end, de-duplicated per hour)."""
 
     __tablename__ = "instagram_account_insights"
     __table_args__ = (
@@ -160,6 +176,8 @@ class InstagramAccountInsight(WorkspaceOwned, Base):
     status: Mapped[str] = mapped_column(String(16))
     captured_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     api_version: Mapped[str] = mapped_column(String(16))
+    unit: Mapped[str] = mapped_column(String(16), server_default="count")
+    source: Mapped[str] = mapped_column(String(32), server_default="instagram_api")
 
 
 class InstagramComment(WorkspaceOwned, TimestampMixin, Base):
@@ -183,26 +201,61 @@ class InstagramComment(WorkspaceOwned, TimestampMixin, Base):
 
 
 class InstagramSyncRun(WorkspaceOwned, Base):
-    """Audit of each bounded manual sync (kept after disconnect; holds counts, never provider payloads)."""
+    """Durable sync job (Phase 6) — also the sync audit, kept after disconnect. Holds counts, progress and a
+    sanitized error category/message; never tokens or provider payloads.
+
+    At most one *active* job (queued / running / retrying) per account is enforced by a partial unique index,
+    so neither the scheduler nor repeated clicks can queue duplicates. A worker claims a job atomically and
+    holds a lease it renews while working; an expired lease means the worker died and the job is recovered."""
 
     __tablename__ = "instagram_sync_runs"
-    __table_args__ = (Index("ix_instagram_sync_runs_connection_started", "connection_id", "started_at"),)
+    __table_args__ = (
+        Index("ix_instagram_sync_runs_connection_started", "connection_id", "started_at"),
+        Index("uq_instagram_sync_runs_one_active", "connection_id", unique=True,
+              postgresql_where=text("status IN ('queued', 'running', 'retrying')")),
+        Index("ix_instagram_sync_runs_status_due", "status", "next_retry_at"),
+        CheckConstraint("progress BETWEEN 0 AND 100", name="progress_range"),
+        CheckConstraint("trigger IN ('connect', 'manual', 'scheduled')", name="trigger_values"),
+    )
 
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
     connection_id: Mapped[str] = mapped_column(ForeignKey("instagram_connections.id", ondelete="CASCADE"))
-    trigger: Mapped[str] = mapped_column(String(16))  # connect | manual
+    trigger: Mapped[str] = mapped_column(String(16))  # connect | manual | scheduled
     triggered_by_member_id: Mapped[str | None] = mapped_column(ForeignKey("team_members.id", ondelete="SET NULL"))
-    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    queued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    # Fixed observation timestamp for every snapshot this job writes (same value across retries).
+    observation_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     status: Mapped[IgSyncStatus] = mapped_column(str_enum(IgSyncStatus, "ig_sync_status"))
+    progress: Mapped[int] = mapped_column(Integer, server_default="0")
+    progress_stage: Mapped[str | None] = mapped_column(String(32))
+    records_processed: Mapped[int] = mapped_column(Integer, server_default="0")
     media_fetched: Mapped[int] = mapped_column(Integer, server_default="0")
     media_insights_fetched: Mapped[int] = mapped_column(Integer, server_default="0")
     account_insights_fetched: Mapped[int] = mapped_column(Integer, server_default="0")
     comments_fetched: Mapped[int] = mapped_column(Integer, server_default="0")
     warnings: Mapped[list[Any]] = mapped_column()
-    error_code: Mapped[str | None] = mapped_column(String(64))
+    retry_count: Mapped[int] = mapped_column(Integer, server_default="0")
+    max_retries: Mapped[int] = mapped_column(Integer, server_default="3")
+    next_retry_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    lease_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    heartbeat_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    cancel_requested: Mapped[bool] = mapped_column(Boolean, server_default="false")
+    error_category: Mapped[str | None] = mapped_column(String(64))
     error_message: Mapped[str | None] = mapped_column(Text)
     api_version: Mapped[str] = mapped_column(String(16))
+
+
+class WorkerHeartbeat(Base):
+    """Liveness of the background pipeline (global, not tenant data): written by the worker on start-up and
+    by the beat-scheduled maintenance/scheduler tasks, read by ``/ready``."""
+
+    __tablename__ = "worker_heartbeats"
+
+    name: Mapped[str] = mapped_column(String(64), primary_key=True)
+    last_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    detail: Mapped[dict[str, Any]] = mapped_column()
 
 
 class InstagramDataDeletionRequest(Base):

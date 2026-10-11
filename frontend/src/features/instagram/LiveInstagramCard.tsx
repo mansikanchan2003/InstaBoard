@@ -6,7 +6,9 @@ import { formatNumber } from '@/lib/format';
 import { instagramService } from '@/services/instagram';
 import type { InstagramConnection } from '@/types/instagram';
 import { LiveSourceBadge, LiveStateBadge } from './LiveConnectionsSection';
-import { connectionUiState, formatDateTime, metricLabels } from './liveMeta';
+import { connectionUiState, metricLabels } from './liveMeta';
+import { SyncSummary } from './SyncWidgets';
+import { useSyncState } from './useSyncState';
 
 function LiveTotals({ c }: { c: InstagramConnection }) {
   const insights = useQuery(`instagram:insights:${c.id}`, () => instagramService.insights(c.id), { enabled: c.insightsAvailable, isEmpty: () => false });
@@ -25,6 +27,11 @@ function LiveTotals({ c }: { c: InstagramConnection }) {
       ))}
     </span>
   );
+}
+
+function RowSync({ id }: { id: string }) {
+  const sync = useSyncState(id, { notify: false });
+  return <SyncSummary sync={sync} />;
 }
 
 /**
@@ -63,10 +70,13 @@ export function LiveInstagramCard() {
                 <Link to={`/accounts/live/${c.id}`} className="font-semibold text-text-primary hover:underline">@{c.username}</Link>
                 <LiveStateBadge state={connectionUiState(c)} />
                 <span className="text-[12px] text-text-secondary">
-                  {c.followersCount === null ? 'followers not returned' : `${formatNumber(c.followersCount)} followers`} · synced {c.lastSyncedAt ? formatDateTime(c.lastSyncedAt) : 'never'}
+                  {c.followersCount === null ? 'followers not returned' : `${formatNumber(c.followersCount)} followers`}
                 </span>
               </span>
-              <LiveTotals c={c} />
+              <span className="flex flex-col gap-1 md:items-end">
+                <LiveTotals c={c} />
+                <span className="md:max-w-md w-full"><RowSync id={c.id} /></span>
+              </span>
             </li>
           ))}
         </ul>

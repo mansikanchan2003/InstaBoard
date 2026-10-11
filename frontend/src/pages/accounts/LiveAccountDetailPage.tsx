@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Breadcrumbs } from '@/components/layout/PageHeader';
 import { Badge } from '@/components/ui/Badge';
@@ -7,7 +8,10 @@ import { Avatar, ImageWithFallback, Notice } from '@/components/ui/Misc';
 import { EmptyState, ErrorState, PageSkeleton, QueryState, Skeleton } from '@/components/ui/States';
 import { LiveSourceBadge, LiveStateBadge } from '@/features/instagram/LiveConnectionsSection';
 import { connectionUiState, daysUntil, formatDateTime, metricLabels } from '@/features/instagram/liveMeta';
+import { HistoryChart, HistoryEmpty, JobBadge, JobProgress, SyncNowButton } from '@/features/instagram/SyncWidgets';
 import { useInstagramActions } from '@/features/instagram/useInstagramActions';
+import { useSyncState } from '@/features/instagram/useSyncState';
+import { Drawer } from '@/components/ui/Overlay';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useQuery } from '@/hooks/useQuery';
 import { ApiNotFoundError } from '@/lib/api/errors';
@@ -71,7 +75,7 @@ function InsightsPanel({ insights, connection }: { insights: AccountInsights; co
   );
 }
 
-function MediaTable({ media, connection }: { media: InstagramMedia[]; connection: InstagramConnection }) {
+function MediaTable({ media, connection, onHistory }: { media: InstagramMedia[]; connection: InstagramConnection; onHistory: (m: InstagramMedia) => void }) {
   if (media.length === 0) return <EmptyState icon="photo_library" title="No media synced yet" description="Run a sync to fetch recent posts and reels." />;
   return (
     <div className="overflow-x-auto custom-scrollbar">
@@ -105,7 +109,10 @@ function MediaTable({ media, connection }: { media: InstagramMedia[]; connection
                     </div>
                   </div>
                 </td>
-                <td className="py-2.5 px-3 whitespace-nowrap">{formatDateTime(m.postedAt)}</td>
+                <td className="py-2.5 px-3 whitespace-nowrap">
+                  {formatDateTime(m.postedAt)}
+                  <button type="button" className="block text-[11px] text-primary hover:underline mt-0.5" onClick={() => onHistory(m)}>Insight history</button>
+                </td>
                 {MEDIA_COLUMNS.map((c) => {
                   const fallback = c === 'likes' ? m.likeCount : c === 'comments' ? m.commentsCount : null;
                   const value = metrics[c]?.value ?? (connection.insightsAvailable ? null : fallback);
@@ -123,6 +130,41 @@ function MediaTable({ media, connection }: { media: InstagramMedia[]; connection
   );
 }
 
+function MediaHistoryDrawer({ accountId, media, onClose }: { accountId: string; media: InstagramMedia | null; onClose: () => void }) {
+  const history = useQuery(`instagram:media-history:${media?.id ?? 'none'}`, () => instagramService.mediaHistory(accountId, media!.id), {
+    enabled: !!media, isEmpty: () => false,
+  });
+  return (
+    <Drawer open={!!media} onClose={onClose} title="Insight history" subtitle={media?.permalink ?? media?.igMediaId}>
+      <QueryState query={history} loading={<Skeleton className="h-40" />}>
+        {(h) => h.series.length === 0 ? (
+          <p className="text-body-sm text-text-secondary">No insight observations stored for this media yet.</p>
+        ) : (
+          <div className="space-y-4 text-body-sm">
+            {h.unsupportedMetrics.length > 0 && (
+              <p className="text-[12px] text-text-tertiary">Not supported by Instagram for this media (not requested again): {h.unsupportedMetrics.join(', ')}</p>
+            )}
+            {h.series.map((sr) => (
+              <div key={sr.metric}>
+                <p className="font-semibold text-text-primary">{metricLabels[sr.metric] ?? sr.metric}</p>
+                <ul className="mt-1 space-y-0.5">
+                  {sr.points.map((pt) => (
+                    <li key={pt.observedAt} className="flex justify-between text-[12px]">
+                      <span className="text-text-secondary">{formatDateTime(pt.observedAt)}</span>
+                      <span className="tnum font-medium">{pt.value === null ? <Unavailable /> : formatNumber(pt.value)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+            <p className="text-[11px] text-text-tertiary">Each row is one observation taken during a sync (lifetime totals as reported at that moment).</p>
+          </div>
+        )}
+      </QueryState>
+    </Drawer>
+  );
+}
+
 /** Live account detail (api mode): data fetched from the Instagram API for one connected account. */
 export default function LiveAccountDetailPage() {
   const { connectionId = '' } = useParams();
@@ -131,7 +173,10 @@ export default function LiveAccountDetailPage() {
   const enabled = account.status === 'success';
   const insights = useQuery(`instagram:insights:${connectionId}`, () => instagramService.insights(connectionId), { enabled, isEmpty: () => false });
   const media = useQuery(`instagram:media:${connectionId}`, () => instagramService.media(connectionId), { enabled, isEmpty: () => false });
-  const runs = useQuery(`instagram:runs:${connectionId}`, () => instagramService.syncRuns(connectionId), { enabled, isEmpty: () => false });
+  const runs = useQuery(`instagram:runs:${connectionId}`, () => instagramService.syncHistory(connectionId), { enabled, isEmpty: () => false });
+  const history = useQuery(`instagram:history:${connectionId}`, () => instagramService.history(connectionId, 90), { enabled, isEmpty: () => false });
+  const sync = useSyncState(connectionId);
+  const [historyMedia, setHistoryMedia] = useState<InstagramMedia | null>(null);
   const comments = useQuery(`instagram:comments:${connectionId}`, () => instagramService.comments(connectionId), {
     enabled: enabled && !!account.data?.commentsAvailable, isEmpty: () => false,
   });
@@ -179,7 +224,7 @@ export default function LiveAccountDetailPage() {
                 {state === 'needs_reauth' ? (
                   <Button variant="primary" icon="key" onClick={() => void actions.connect()} loading={actions.connecting}>Reconnect</Button>
                 ) : (
-                  <Button variant="primary" icon="sync" onClick={() => void actions.sync.mutate(c.id)} loading={actions.sync.isPending}>Sync now</Button>
+                  <SyncNowButton sync={sync} />
                 )}
                 <Button icon="link_off" onClick={() => actions.requestDisconnect(c)}>Disconnect</Button>
               </div>
@@ -189,11 +234,44 @@ export default function LiveAccountDetailPage() {
               <Notice tone="warning" title={state === 'needs_reauth' ? 'Reauthorization needed' : 'Last sync failed'}>{c.lastErrorMessage}</Notice>
             )}
 
+            <section className="bg-surface-card border border-border-strong rounded-lg p-5" aria-label="Sync status">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div className="text-body-sm space-y-0.5">
+                  <p><span className="text-text-secondary">Last successful sync:</span> <span className="font-semibold text-text-primary">{sync.status.data?.lastSuccessAt ? formatDateTime(sync.status.data.lastSuccessAt) : 'never'}</span></p>
+                  <p className="text-[12px] text-text-secondary">
+                    {sync.status.data?.nextScheduledAt
+                      ? `Next scheduled sync: ${formatDateTime(sync.status.data.nextScheduledAt)} (every ${Math.round((sync.status.data.intervalMinutes ?? 0) / 60 * 10) / 10} h)`
+                      : sync.status.data?.backgroundAvailable === false ? 'Background sync is not configured on this server (no scheduled syncs).' : 'No scheduled sync (account needs attention or a sync is in progress).'}
+                  </p>
+                  {sync.lastJob && !sync.active && <p className="text-[12px] flex items-center gap-1.5"><span className="text-text-secondary">Last run:</span> <JobBadge job={sync.lastJob} /> <span className="text-text-tertiary">{sync.lastJob.errorMessage ?? ''}</span></p>}
+                </div>
+                {sync.active && (
+                  <div className="md:w-80 flex items-center gap-2">
+                    <JobProgress job={sync.active} />
+                    {!sync.active.cancelRequested && <Button size="xs" variant="ghost" onClick={() => void sync.cancel()}>Cancel</Button>}
+                  </div>
+                )}
+              </div>
+            </section>
+
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Stat label="Followers" value={c.followersCount} hint="As returned by /me" />
               <Stat label="Following" value={c.followsCount} />
               <Stat label="Media" value={c.mediaCount} />
             </div>
+
+            <section className="bg-surface-card border border-border-strong rounded-lg p-5">
+              <h2 className="font-headline-sm text-headline-sm font-bold text-text-primary mb-1">History · last 90 days</h2>
+              <p className="text-[12px] text-text-tertiary mb-3">From observations stored at each sync. Days without an observation are left empty — values are never carried forward or invented.</p>
+              <QueryState query={history} loading={<Skeleton className="h-48" />}>
+                {(h) => h.series.filter((x) => x.observedDays > 0).length === 0 ? <HistoryEmpty /> : (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {h.series.filter((x) => x.observedDays > 0 && ['followers_count:daily_snapshot', 'reach:daily', 'views:rolling_28d', 'media_count:daily_snapshot'].includes(`${x.metric}:${x.kind}`))
+                      .map((x) => <HistoryChart key={`${x.metric}:${x.kind}`} series={x} />)}
+                  </div>
+                )}
+              </QueryState>
+            </section>
 
             <section className="bg-surface-card border border-border-strong rounded-lg p-5">
               <h2 className="font-headline-sm text-headline-sm font-bold text-text-primary mb-3">Account insights · last 28 days</h2>
@@ -202,7 +280,7 @@ export default function LiveAccountDetailPage() {
 
             <section className="bg-surface-card border border-border-strong rounded-lg p-5">
               <h2 className="font-headline-sm text-headline-sm font-bold text-text-primary mb-3">Recent media</h2>
-              <QueryState query={media} loading={<Skeleton className="h-48" />}>{(rows) => <MediaTable media={rows} connection={c} />}</QueryState>
+              <QueryState query={media} loading={<Skeleton className="h-48" />}>{(rows) => <MediaTable media={rows} connection={c} onHistory={setHistoryMedia} />}</QueryState>
             </section>
 
             <section className="bg-surface-card border border-border-strong rounded-lg p-5">
@@ -238,9 +316,9 @@ export default function LiveAccountDetailPage() {
                     {rows.map((r) => (
                       <li key={r.id} className="py-2 flex flex-col md:flex-row md:items-center justify-between gap-1">
                         <span className="flex items-center gap-2">
-                          <Badge tone={r.status === 'success' ? 'active' : r.status === 'partial' ? 'amber' : r.status === 'running' ? 'scheduled' : 'error'}>{r.status}</Badge>
-                          <span className="text-text-primary">{formatDateTime(r.startedAt)}</span>
-                          <span className="text-text-tertiary">({r.trigger})</span>
+                          <JobBadge job={r} />
+                          <span className="text-text-primary">{formatDateTime(r.startedAt ?? r.queuedAt)}</span>
+                          <span className="text-text-tertiary">({r.trigger}{r.retryCount ? `, ${r.retryCount} retr${r.retryCount === 1 ? 'y' : 'ies'}` : ''})</span>
                         </span>
                         <span className="text-[12px] text-text-secondary">
                           {r.errorMessage ?? `${r.mediaFetched} media · ${r.mediaInsightsFetched} media metrics · ${r.accountInsightsFetched} account metrics · ${r.commentsFetched} comments`}
@@ -251,9 +329,10 @@ export default function LiveAccountDetailPage() {
                 )}
               </QueryState>
               <p className="text-[11px] text-text-tertiary mt-3 flex items-center gap-1">
-                <Icon name="info" className="text-[14px]" /> Manual, bounded syncs only (no background scheduler in this phase).
+                <Icon name="info" className="text-[14px]" /> Syncs run in a background worker: scheduled automatically when configured, or on demand with “Sync now”.
               </p>
             </section>
+            <MediaHistoryDrawer accountId={c.id} media={historyMedia} onClose={() => setHistoryMedia(null)} />
             {actions.overlays}
           </div>
         );

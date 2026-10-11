@@ -23,7 +23,7 @@ from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.main import create_app
-from app.models import (
+from app.models import (  # noqa: I001
     InstagramAccountInsight, InstagramComment, InstagramConnection, InstagramMedia, InstagramMediaInsight, InstagramOAuthState,
     InstagramSyncRun, InstagramToken,
 )
@@ -60,6 +60,7 @@ class FakeMeta:
 
     def __init__(self) -> None:
         self.calls: list[httpx.Request] = []
+        self.page_size = 2
         self.fail: dict[str, list] = {}
         self.permissions = ALL_SCOPES
         self.profile = {"id": SCOPED_ID, "user_id": IG_ID, "username": "eko_live_test", "name": "Eko Live (test)",
@@ -104,9 +105,13 @@ class FakeMeta:
         if path == "/v26.0/me":
             return httpx.Response(200, json=self.profile)
         if path == f"/v26.0/{IG_ID}/media":
-            if params.get("after") == "c1":
-                return httpx.Response(200, json={"data": self.media[2:], "paging": {"cursors": {"before": "c1b"}}})
-            return httpx.Response(200, json={"data": self.media[:2], "paging": {"cursors": {"after": "c1"}, "next": "https://graph.instagram.com/next"}})
+            start = int(params["after"][1:]) if params.get("after") else 0
+            size = min(int(params.get("limit", 25)), self.page_size)
+            page = self.media[start:start + size]
+            body: dict = {"data": page, "paging": {"cursors": {"before": f"c{start}"}}}
+            if start + size < len(self.media):
+                body["paging"] = {"cursors": {"after": f"c{start + size}"}, "next": "https://graph.instagram.com/next"}
+            return httpx.Response(200, json=body)
         if path == f"/v26.0/{IG_ID}/insights":
             if params["metric_type"] == "time_series":
                 return httpx.Response(200, json={"data": [{"name": "reach", "period": "day", "values": [
@@ -117,7 +122,7 @@ class FakeMeta:
         if path.endswith("/insights"):
             media_id = path.split("/")[2]
             values = {"m1": {"views": 800, "reach": 500, "likes": 40, "comments": 2, "shares": 3, "saved": 4, "total_interactions": 49},
-                      "m2": {"views": 90, "reach": 70}, "m3": {"reach": 20}}[media_id]
+                      "m2": {"views": 90, "reach": 70}, "m3": {"reach": 20}}.get(media_id, {})
             requested = params["metric"].split(",")
             return httpx.Response(200, json={"data": [{"name": k, "period": "lifetime", "values": [{"value": v}]}
                                                        for k, v in values.items() if k in requested]})
@@ -145,6 +150,8 @@ def ig_app(connection, db_url, meta):
         app.state.session_factory = sessionmaker(bind=connection, join_transaction_mode="create_savepoint", expire_on_commit=False)
         app.state.instagram_transport = meta.transport
         app.state.instagram_sleep = lambda _seconds: None
+        app.state.dispatched = []
+        app.state.job_dispatcher = lambda job_id, countdown=0.0: app.state.dispatched.append((job_id, countdown))
         return app
     return _make
 
@@ -192,10 +199,33 @@ def connect(client: TestClient) -> str:
     return result["account"]
 
 
+def run_job(app, job_id: str) -> str:
+    """What the Celery task does: execute one delivery of a job against the mocked Meta."""
+    from app.services.instagram import jobs
+    from app.services.instagram.provider import InstagramClient
+
+    settings = app.state.settings
+    return jobs.execute_job(
+        app.state.session_factory, settings,
+        client_factory=lambda: InstagramClient(settings, transport=app.state.instagram_transport, sleep=lambda _s: None),
+        cipher_factory=lambda: TokenCipher.from_settings(settings), dispatcher=app.state.job_dispatcher, job_id=job_id,
+    )
+
+
+def make_due(connection) -> None:
+    """Skip the backoff wait of retrying jobs (tests do not sleep)."""
+    with Session(bind=connection, join_transaction_mode="create_savepoint") as s:
+        s.execute(update(InstagramSyncRun).where(InstagramSyncRun.status == "retrying").values(next_retry_at=utcnow() - timedelta(seconds=1)))
+        s.commit()
+
+
 def sync(client: TestClient, account_id: str) -> dict:
+    """Queue a sync (202, returns at once) and let the worker run it; returns the job as GET /sync-jobs/{id} reports it."""
     response = client.post(api(f"/integrations/instagram/accounts/{account_id}/sync"))
-    assert response.status_code == 200, response.text
-    return response.json()
+    assert response.status_code == 202, response.text
+    job = response.json()["job"]
+    run_job(client.app, job["id"])
+    return client.get(api(f"/sync-jobs/{job['id']}")).json()
 
 
 # ------------------------------------------------------------------------------- configuration
@@ -351,7 +381,7 @@ def test_reconnecting_updates_the_same_connection(owner, connection):
 def test_sync_ingests_profile_media_insights_and_comments_idempotently(owner, connection, meta):
     account = connect(owner)
     run = sync(owner, account)
-    assert run["status"] == "partial" or run["status"] == "success"
+    assert run["status"] in ("partially_succeeded", "succeeded") and run["terminal"] and run["progress"] == 100
     assert run["mediaFetched"] == 3 and run["commentsFetched"] == 3
     assert meta.count(f"/{IG_ID}/media") == 2  # followed the cursor to page 2
 
@@ -373,14 +403,20 @@ def test_sync_ingests_profile_media_insights_and_comments_idempotently(owner, co
     assert {c["igCommentId"] for c in comments} == {"c1", "c1r", "c2"}
     assert next(c for c in comments if c["igCommentId"] == "c1r")["parentIgCommentId"] == "c1"
 
-    sync(owner, account)  # second run: no duplicates, new insight snapshot (history kept)
+    before = meta.count("/insights")
+    sync(owner, account)  # immediately again: insights are not due yet (refresh policy), nothing is re-requested
+    assert meta.count("/insights") - before == 2  # only the account totals + daily reach, no media insights
+    with Session(bind=connection, join_transaction_mode="create_savepoint") as s:  # 25 h later …
+        s.execute(update(InstagramMedia).values(insights_checked_at=utcnow() - timedelta(hours=25)))
+        s.commit()
+    sync(owner, account)  # … a new insight snapshot is taken (history kept), still no duplicate media/comments
     with Session(bind=connection) as s:
         assert s.scalar(select(func.count()).select_from(InstagramMedia)) == 3
         assert s.scalar(select(func.count()).select_from(InstagramComment)) == 3
         snapshots = s.scalar(select(func.count(func.distinct(InstagramMediaInsight.captured_at))))
         assert snapshots == 2
         assert s.scalar(select(func.count()).select_from(InstagramAccountInsight).where(InstagramAccountInsight.metric_type == "time_series")) == 2
-        assert s.scalar(select(func.count()).select_from(InstagramSyncRun)) == 2
+        assert s.scalar(select(func.count()).select_from(InstagramSyncRun)) == 3
     assert owner.get(api(f"/integrations/instagram/accounts/{account}")).json()["lastSyncedAt"] is not None
 
 
@@ -397,20 +433,29 @@ def test_insights_and_comments_need_their_permissions(owner, meta):
     meta.permissions = "instagram_business_basic"
     account = connect(owner)
     run = sync(owner, account)
-    assert run["status"] == "success" and run["mediaInsightsFetched"] == 0 and run["commentsFetched"] == 0
+    assert run["status"] == "succeeded" and run["mediaInsightsFetched"] == 0 and run["commentsFetched"] == 0
     assert any(w["code"] == "insights_not_granted" for w in run["warnings"])
     assert meta.count("/insights") == 0 and meta.count("/comments") == 0
 
 
-def test_transient_errors_are_retried_with_a_bound(owner, meta):
+def test_transient_errors_are_retried_with_a_bound(owner, meta, connection):
     account = connect(owner)
     meta.fail["/me"] = [httpx.Response(500, json={"error": {"message": "x", "code": 2, "is_transient": True}}), httpx.ConnectTimeout("t")]
-    assert sync(owner, account)["status"] in ("success", "partial")
-    assert meta.count("/me") == 4  # 1 at connect + 3 attempts (1 + 2 retries)
+    assert sync(owner, account)["status"] in ("succeeded", "partially_succeeded")
+    assert meta.count("/me") == 4  # 1 at connect + 3 attempts (1 + 2 in-request retries)
 
-    meta.fail["/me"] = [httpx.ReadTimeout("t")] * 5
+    meta.fail["/me"] = [httpx.ReadTimeout("t")] * 50
     run = sync(owner, account)
-    assert run["status"] == "failed" and run["errorCode"] == "provider_error"
+    assert run["status"] == "retrying" and run["retryCount"] == 1 and run["errorCategory"] == "provider_unavailable"
+    assert run["nextRetryAt"] is not None
+    for expected in (2, 3):  # job-level retries (INSTAGRAM_JOB_MAX_RETRIES=3), each after its backoff
+        make_due(connection)
+        run_job(owner.app, run["id"])
+        assert owner.get(api(f"/sync-jobs/{run['id']}")).json()["retryCount"] == expected
+    make_due(connection)
+    run_job(owner.app, run["id"])
+    final = owner.get(api(f"/sync-jobs/{run['id']}")).json()
+    assert final["status"] == "failed" and final["terminal"] and final["errorCategory"] == "provider_unavailable"
     account_row = owner.get(api(f"/integrations/instagram/accounts/{account}")).json()
     assert account_row["status"] == "error" and "temporarily unavailable" in account_row["lastErrorMessage"]
 
@@ -420,7 +465,7 @@ def test_rate_limits_are_not_retried(owner, meta):
     calls = meta.count("/me")
     meta.fail["/me"] = [httpx.Response(400, json={"error": {"message": "Application request limit reached", "code": 4}})]
     run = sync(owner, account)
-    assert run["status"] == "failed" and run["errorCode"] == "rate_limited"
+    assert run["status"] == "retrying" and run["errorCategory"] == "rate_limited"  # retried later, never hammered
     assert meta.count("/me") == calls + 1
 
 
@@ -437,7 +482,7 @@ def test_revoked_token_marks_the_account_for_reauthorization(owner, meta):
     account = connect(owner)
     meta.fail["/me"] = [httpx.Response(400, json={"error": {"message": "Error validating access token", "type": "OAuthException", "code": 190, "error_subcode": 460}})]
     run = sync(owner, account)
-    assert run["status"] == "failed" and run["errorCode"] == "token_invalid"
+    assert run["status"] == "failed" and run["errorCategory"] == "token_invalid" and run["retryCount"] == 0
     assert owner.get(api(f"/integrations/instagram/accounts/{account}")).json()["status"] == "needs_reauth"
 
 
@@ -448,7 +493,7 @@ def test_expired_token_is_never_used(owner, connection, meta):
         s.commit()
     before = len(meta.calls)
     run = sync(owner, account)
-    assert run["errorCode"] == "token_expired" and len(meta.calls) == before
+    assert run["errorCategory"] == "token_expired" and len(meta.calls) == before
     assert owner.get(api(f"/integrations/instagram/accounts/{account}")).json()["status"] == "needs_reauth"
 
 
@@ -536,12 +581,13 @@ def test_same_instagram_account_in_two_workspaces_stays_separate(owner, other_te
 
 
 # ------------------------------------------------------------------------------- logs & secrets
-def test_tokens_and_secrets_never_reach_logs(owner, meta, caplog):
+def test_tokens_and_secrets_never_reach_logs(owner, meta, caplog, connection):
     caplog.set_level(logging.DEBUG)
     account = connect(owner)
     meta.fail["/me"] = [httpx.Response(500, json={"error": {"message": f"boom {LONG}", "code": 1}})] * 3
-    sync(owner, account)
-    sync(owner, account)
+    run = sync(owner, account)
+    make_due(connection)
+    run_job(owner.app, run["id"])
     text = caplog.text
     for secret in (SHORT, LONG, APP_SECRET, "good-code", FERNET_KEY):
         assert secret not in text

@@ -56,6 +56,16 @@ npm run dev:api                                                  # http://localh
 
 Later sessions only need `python -m scripts.local_postgres start` (or the Docker container), the uvicorn command, and `npm run dev:api`.
 
+**Background sync (optional, Phase 6).** Live Instagram syncs need Redis, a worker and one scheduler:
+
+```bash
+docker compose --env-file backend/.env up -d redis                                         # repo root; set REDIS_URL in backend/.env
+cd backend && .venv/Scripts/celery -A app.worker.celery_app worker --loglevel=INFO --pool=threads   # third terminal
+cd backend && .venv/Scripts/celery -A app.worker.celery_app beat --loglevel=INFO --schedule=.celerybeat/schedule   # fourth terminal
+```
+
+Details: [backend/README.md → Background sync](backend/README.md#background-sync--historical-analytics-phase-6).
+
 Sign in at http://localhost:5173/login with the account you created. Then use Settings → Workspace & Team → **Invite Team Member** to create one-time invitation links for colleagues; no email is sent, so copy the link to them. For stable sessions across backend restarts, set `SECRET_KEY` in `backend/.env` (see `backend/.env.example`).
 
 ### Frontend scripts (run from `frontend/`)
@@ -229,7 +239,11 @@ behave alike. Endpoints and example bodies: [backend/README.md](backend/README.m
 - **Instagram (Phase 5):**
   - In API mode, **Accounts → Live Instagram connections** connects real professional accounts through Meta's official Instagram Login, and bounded *Sync now* reads profile, media, insights and comments (if granted).
   - Live data is shown only in clearly labelled "Live · Instagram API" areas (accounts, live account detail, the dashboard card). The sample dashboards, campaigns and reports remain demo data and never include live numbers.
-  - Not built: background syncing, publishing, DMs, replies, Ads.
+  - **Background sync (Phase 6):**
+    - A Celery worker and beat scheduler (Redis broker) keep connected accounts updated every 6 h by default.
+    - *Sync now* queues a job and the UI follows its progress.
+    - Historical charts (followers, daily reach, rolling totals, per-media insight history) are drawn only from stored observations, with gaps where nothing was observed.
+  - Not built: publishing, DMs, replies, Ads.
   - Setup is in [backend/README.md](backend/README.md#instagram-integration-phase-5).
 - **No AI provider:** insights, briefs and narratives are stored demo output. `POST /insights/regenerate` returns `501`.
 - **Authentication (Phase 4):** email and password with server-side sessions, plus invitations by link. There is no email delivery, password reset, MFA or SSO yet. See [backend/README.md](backend/README.md#authentication--authorization-phase-4) for the role matrix and remaining risks.
@@ -256,7 +270,6 @@ The automated tests use a mocked Meta API. To try a real connection:
 
 1. **Meta integration, continued:**
    - App Review / Advanced Access.
-   - Scheduled syncs with rate-limit budgeting.
    - Mapping live media to campaigns, so the sample dashboards can switch to live data.
 2. **Production hardening:**
    - HTTPS deployment, with a shared rate-limit store.

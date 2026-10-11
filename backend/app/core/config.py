@@ -97,7 +97,31 @@ class Settings(BaseSettings):
     instagram_sync_max_comment_media: int = Field(default=10, ge=0, le=100)
     instagram_sync_cooldown_seconds: int = Field(default=60, ge=0, le=3600)
 
-    @field_validator("secret_key", "cookie_domain", "instagram_app_id", "instagram_app_secret", "instagram_redirect_uri",
+    # --- Background synchronization (Phase 6) ------------------------------------------------
+    # Redis is only the Celery broker ("doorbell"); PostgreSQL job rows are the source of truth.
+    # Without REDIS_URL manual syncs cannot be queued (the API answers 503) and nothing is scheduled.
+    redis_url: str | None = None
+    sync_scheduler_enabled: bool = True
+    # Conservative default: each connected account is synced at most every 6 hours (see README on Meta limits).
+    instagram_sync_interval_minutes: int = Field(default=360, ge=15, le=7 * 24 * 60)
+    instagram_scheduler_tick_seconds: int = Field(default=300, ge=30, le=3600)
+    instagram_scheduler_batch_size: int = Field(default=20, ge=1, le=500)
+    instagram_job_max_retries: int = Field(default=3, ge=0, le=10)
+    instagram_job_retry_base_seconds: int = Field(default=60, ge=1, le=3600)
+    instagram_job_retry_max_seconds: int = Field(default=3600, ge=1, le=24 * 3600)
+    # A running job whose lease expires (worker crashed / was killed) is recovered by the maintenance task.
+    instagram_job_lease_seconds: int = Field(default=900, ge=60, le=6 * 3600)
+    instagram_worker_concurrency: int = Field(default=2, ge=1, le=32)
+    # Incremental sync shape (per job).
+    instagram_backfill_batch_size: int = Field(default=100, ge=0, le=1000)
+    instagram_recent_media_days: int = Field(default=30, ge=1, le=365)
+    instagram_recent_insights_refresh_hours: int = Field(default=24, ge=1, le=24 * 30)
+    instagram_older_insights_refresh_days: int = Field(default=7, ge=1, le=365)
+    # Meta keeps media insights for up to 2 years; older media are not queried.
+    instagram_insights_max_age_days: int = Field(default=730, ge=1, le=730)
+    instagram_comment_pages_per_media: int = Field(default=2, ge=1, le=20)
+
+    @field_validator("secret_key", "cookie_domain", "redis_url", "instagram_app_id", "instagram_app_secret", "instagram_redirect_uri",
                      "instagram_graph_api_version", "instagram_token_encryption_key", "instagram_token_previous_keys", mode="before")
     @classmethod
     def _blank_is_unset(cls, value: object) -> object:

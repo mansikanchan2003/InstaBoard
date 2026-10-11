@@ -19,6 +19,7 @@ from app.core.config import Settings, get_settings
 from app.core.database import build_engine, build_session_factory, check_connection
 from app.core.errors import register_error_handlers
 from app.core.security import RateLimiter
+from app.worker.queue import make_dispatcher
 
 logger = logging.getLogger("instaboard.api")
 
@@ -69,6 +70,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.engine = build_engine(settings)
     app.state.session_factory = build_session_factory(app.state.engine)
     app.state.rate_limiter = RateLimiter()
+    # Publishes "job ready" messages to Redis for the Celery worker (None without REDIS_URL → manual sync answers 503).
+    app.state.job_dispatcher = make_dispatcher(settings.redis_url)
 
     app.add_middleware(
         CORSMiddleware,
@@ -94,7 +97,33 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 content={"status": "unavailable", "checks": {"database": "unreachable"}},
             )
-        return JSONResponse(content={"status": "ready", "checks": {"database": "ok"}})
+        checks: dict = {"database": "ok"}
+        if settings.redis_url:  # only reported when background sync is configured (unchanged response otherwise)
+            checks["background"] = _background_status(app)
+        return JSONResponse(content={"status": "ready", "checks": checks})
+
+    def _background_status(app_: FastAPI) -> dict:
+        """Informational (does not fail readiness): when the worker / scheduler last reported in."""
+        from sqlalchemy import select
+
+        from app.models import WorkerHeartbeat
+        from app.services.common import utcnow
+
+        try:
+            with app_.state.session_factory() as db:
+                rows = {r.name: r.last_seen_at for r in db.scalars(select(WorkerHeartbeat))}
+        except Exception:  # noqa: BLE001
+            return {"configured": True, "worker": "unknown", "scheduler": "unknown"}
+        now = utcnow()
+
+        def age(name: str, stale_after: int) -> str:
+            seen = rows.get(name)
+            if seen is None:
+                return "never"
+            return "ok" if (now - seen).total_seconds() <= stale_after else "stale"
+
+        return {"configured": True, "worker": age("worker", 180),
+                "scheduler": age("scheduler", settings.instagram_scheduler_tick_seconds * 2 + 60)}
 
     app.include_router(api_router, prefix=settings.api_prefix)
     return app

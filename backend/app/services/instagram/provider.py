@@ -17,7 +17,9 @@ never reach logs, exceptions shown to users or API responses.
 
 from __future__ import annotations
 
+import json
 import logging
+import random
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -95,8 +97,7 @@ def _classify(response: httpx.Response) -> ProviderError:
     else:
         code, subcode, transient = None, None, False
     code = code if isinstance(code, int) else None
-    retry_after = response.headers.get("retry-after")
-    retry = int(retry_after) if retry_after and retry_after.isdigit() else None
+    retry = _retry_after_seconds(response)
     common = {"provider_code": code, "subcode": subcode, "http_status": response.status_code}
     if code == 190:
         return ProviderError("token_invalid", **common)
@@ -111,6 +112,29 @@ def _classify(response: httpx.Response) -> ProviderError:
     if response.status_code == 404:
         return ProviderError("not_found", **common)
     return ProviderError("invalid_request", **common)
+
+
+def _retry_after_seconds(response: httpx.Response) -> int | None:
+    """Wait hint from ``Retry-After`` or Meta's usage headers (``estimated_time_to_regain_access`` is in minutes)."""
+    header = response.headers.get("retry-after")
+    if header and header.isdigit():
+        return int(header)
+    for name in ("x-business-use-case-usage", "x-app-usage"):
+        raw = response.headers.get(name)
+        if not raw:
+            continue
+        try:
+            usage = json.loads(raw)
+        except ValueError:
+            continue
+        entries = [e for v in usage.values() if isinstance(v, list) for e in v] if isinstance(usage, dict) else []
+        if isinstance(usage, dict) and "estimated_time_to_regain_access" in usage:
+            entries.append(usage)
+        minutes = [e.get("estimated_time_to_regain_access") for e in entries if isinstance(e, dict)]
+        minutes = [m for m in minutes if isinstance(m, int | float) and m > 0]
+        if minutes:
+            return int(max(minutes) * 60)
+    return None
 
 
 class InstagramClient:
@@ -179,24 +203,26 @@ class InstagramClient:
             body = body["data"][0]
         return body
 
-    def list_media(self, token: str, ig_user_id: str, fields: list[str], *, max_items: int, page_size: int = 25) -> tuple[list[dict], bool]:
-        """Newest-first media, following cursors until ``max_items``. Returns (items, reached_end)."""
+    def list_media(self, token: str, ig_user_id: str, fields: list[str], *, max_items: int, page_size: int = 25,
+                   after: str | None = None) -> tuple[list[dict], str | None]:
+        """Newest-first media from ``after`` (or the start), following cursors until ``max_items``.
+        Returns (items, next_cursor); ``next_cursor`` is None when the end of the list was reached."""
         items: list[dict] = []
-        after: str | None = None
         while len(items) < max_items:
             params = {"fields": ",".join(fields), "limit": str(min(page_size, max_items - len(items)))}
             if after:
                 params["after"] = after
-            body = self._graph("GET", f"{ig_user_id}/media", token, params)
-            page = body.get("data")
-            if not isinstance(page, list):
-                raise ProviderError("bad_response")
-            items.extend(row for row in page if isinstance(row, dict) and row.get("id"))
-            paging = body.get("paging") or {}
-            after = (paging.get("cursors") or {}).get("after")
-            if not paging.get("next") or not after or not page:
-                return items, True
-        return items[:max_items], False
+            page, after = self._page(self._graph("GET", f"{ig_user_id}/media", token, params))
+            items.extend(page)
+            if after is None:
+                return items, None
+        return items[:max_items], after
+
+    def comments_page(self, token: str, media_id: str, fields: str, *, limit: int = 50, after: str | None = None) -> tuple[list[dict], str | None]:
+        params = {"fields": fields, "limit": str(limit)}
+        if after:
+            params["after"] = after
+        return self._page(self._graph("GET", f"{media_id}/comments", token, params))
 
     def media_insights(self, token: str, media_id: str, metrics: list[str]) -> list[dict]:
         body = self._graph("GET", f"{media_id}/insights", token, {"metric": ",".join(metrics)})
@@ -216,6 +242,16 @@ class InstagramClient:
     def _secret(self) -> str:
         assert self._settings.instagram_app_secret is not None
         return self._settings.instagram_app_secret.get_secret_value()
+
+    @staticmethod
+    def _page(body: dict) -> tuple[list[dict], str | None]:
+        page = body.get("data")
+        if not isinstance(page, list):
+            raise ProviderError("bad_response")
+        rows = [row for row in page if isinstance(row, dict) and row.get("id")]
+        paging = body.get("paging") or {}
+        after = (paging.get("cursors") or {}).get("after")
+        return rows, (after if paging.get("next") and after and page else None)
 
     @staticmethod
     def _data(body: dict) -> list[dict]:
@@ -240,8 +276,9 @@ class InstagramClient:
         endpoint = url.split("?")[0].replace(GRAPH_HOST, "").replace(f"/{self._version}/", "/")  # for logs: no ids/tokens
         last: ProviderError | None = None
         for attempt in range(attempts):
-            if attempt:
-                self._sleep(self._settings.instagram_retry_backoff_seconds * (2 ** (attempt - 1)))
+            if attempt:  # exponential backoff with jitter (in-request retries; job-level retries come on top)
+                base = self._settings.instagram_retry_backoff_seconds * (2 ** (attempt - 1))
+                self._sleep(base + random.uniform(0, base))
             try:
                 response = self._http.request(method, url, params=params, data=data)
             except httpx.TimeoutException:

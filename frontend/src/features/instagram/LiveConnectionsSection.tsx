@@ -10,8 +10,10 @@ import { invalidateQueries, useQuery } from '@/hooks/useQuery';
 import { formatNumber } from '@/lib/format';
 import { instagramService } from '@/services/instagram';
 import type { InstagramConnection, IntegrationStatus } from '@/types/instagram';
-import { callbackReasons, connectionUiState, daysUntil, formatDateTime, liveStateMeta, type LiveUiState } from './liveMeta';
-import { describeRun, INSTAGRAM_QUERY_KEYS, useInstagramActions } from './useInstagramActions';
+import { callbackReasons, connectionUiState, daysUntil, liveStateMeta, type LiveUiState } from './liveMeta';
+import { SyncNowButton, SyncSummary } from './SyncWidgets';
+import { INSTAGRAM_QUERY_KEYS, useInstagramActions } from './useInstagramActions';
+import { useSyncState } from './useSyncState';
 
 export function LiveStateBadge({ state }: { state: LiveUiState }) {
   const meta = liveStateMeta[state];
@@ -46,7 +48,7 @@ function useCallbackResult(onConnected: (id: string) => void) {
     ['instagram', 'reason', 'account'].forEach((k) => next.delete(k));
     setParams(next, { replace: true });
     if (outcome === 'connected' && account && /^igc_[a-f0-9]+$/.test(account)) {
-      toast({ title: 'Instagram account connected', description: 'Running the first sync now…' });
+      toast({ title: 'Instagram account connected', description: 'The first sync was queued and runs in the background.' });
       onConnected(account);
     } else {
       setError(callbackReasons[reason] ?? callbackReasons.authorization_failed);
@@ -64,8 +66,9 @@ function DisabledNotice({ status }: { status: IntegrationStatus }) {
   );
 }
 
-function LiveAccountRow({ c, actions }: { c: InstagramConnection; actions: ReturnType<typeof useInstagramActions> }) {
+function LiveAccountRow({ c, actions, canManage }: { c: InstagramConnection; actions: ReturnType<typeof useInstagramActions>; canManage: boolean }) {
   const state = connectionUiState(c);
+  const sync = useSyncState(c.id);
   const expiresIn = daysUntil(c.tokenExpiresAt);
   return (
     <li className="p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -83,10 +86,10 @@ function LiveAccountRow({ c, actions }: { c: InstagramConnection; actions: Retur
             <span>{c.accountType === 'MEDIA_CREATOR' ? 'Creator' : c.accountType === 'BUSINESS' ? 'Business' : 'Professional'} account</span>
             <span>Followers: {c.followersCount === null ? 'not returned' : formatNumber(c.followersCount)}</span>
             <span>Media: {c.mediaCount === null ? 'not returned' : formatNumber(c.mediaCount)}</span>
-            <span>Last successful sync: {c.lastSyncedAt ? formatDateTime(c.lastSyncedAt) : 'never'}</span>
             {expiresIn !== null && <span className={expiresIn < 7 ? 'text-error font-medium' : undefined}>Token expires in {Math.max(expiresIn, 0)} days</span>}
           </div>
-          {c.lastErrorMessage && <p className="text-[12px] text-error mt-1">{c.lastErrorMessage}</p>}
+          <div className="mt-1.5 max-w-xl"><SyncSummary sync={sync} /></div>
+          {c.lastErrorMessage && !sync.active && <p className="text-[12px] text-error mt-1">{c.lastErrorMessage}</p>}
         </div>
       </div>
       <div className="flex items-center gap-2 flex-wrap shrink-0">
@@ -95,9 +98,7 @@ function LiveAccountRow({ c, actions }: { c: InstagramConnection; actions: Retur
             Reconnect
           </Button>
         ) : (
-          <Button icon="sync" onClick={() => void actions.sync.mutate(c.id)} loading={actions.sync.isPending}>
-            Sync now
-          </Button>
+          <SyncNowButton sync={sync} disabled={!canManage} />
         )}
         <Link to={`/accounts/live/${c.id}`} className="h-8 px-3 inline-flex items-center rounded border border-border-strong text-label-sm font-semibold text-text-primary hover:bg-surface-canvas">
           View data
@@ -118,17 +119,13 @@ export function LiveConnectionsSection() {
   const status = useQuery('instagram:status', instagramService.status);
   const accounts = useQuery('instagram:accounts', instagramService.accounts, { enabled: status.data?.enabled === true, isEmpty: () => false });
   const actions = useInstagramActions();
-  const toast = useToast();
   const firstSync = useRef<string | null>(null);
 
+  // The server queues the first sync when the connection is created; each row then follows its job.
   const onConnected = (id: string) => {
     if (firstSync.current === id) return;
     firstSync.current = id;
     INSTAGRAM_QUERY_KEYS.forEach(invalidateQueries);
-    instagramService.sync(id).then(
-      (run) => toast(describeRun(run)),
-      (err: Error) => toast({ tone: 'error', title: 'First sync did not run', description: `${err.message} Use “Sync now” to retry.` }),
-    ).finally(() => INSTAGRAM_QUERY_KEYS.forEach(invalidateQueries));
   };
   const callback = useCallbackResult(onConnected);
 
@@ -187,7 +184,7 @@ export function LiveConnectionsSection() {
         ) : (
           <ul className="divide-y divide-border-subtle border border-border-strong rounded-lg">
             {rows.map((c) => (
-              <LiveAccountRow key={c.id} c={c} actions={actions} />
+              <LiveAccountRow key={c.id} c={c} actions={actions} canManage={canManage} />
             ))}
           </ul>
         )}

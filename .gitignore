@@ -36,3 +36,7 @@ backend/.pgdata.log
 npm-debug.log*
 .DS_Store
 Thumbs.db
+
+# Celery beat schedule state (local)
+backend/.celerybeat/
+celerybeat-schedule*

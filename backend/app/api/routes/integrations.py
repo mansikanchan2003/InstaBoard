@@ -8,9 +8,14 @@ Authenticated (mounted with ``require_auth``; tenant-scoped):
     GET  /integrations/instagram/accounts/{id}/media
     GET  /integrations/instagram/accounts/{id}/insights
     GET  /integrations/instagram/accounts/{id}/comments
-    GET  /integrations/instagram/accounts/{id}/sync-runs
-    POST /integrations/instagram/accounts/{id}/sync              accounts:manage, CSRF, bounded
+    GET  /integrations/instagram/accounts/{id}/sync-history      recent background jobs
+    GET  /integrations/instagram/accounts/{id}/sync-status       last success, current job, next scheduled run
+    GET  /integrations/instagram/accounts/{id}/history           daily series from stored observations (gaps = null)
+    GET  /integrations/instagram/accounts/{id}/media/{media_id}/history
+    POST /integrations/instagram/accounts/{id}/sync              accounts:manage, CSRF → 202 + queued job (deduplicated)
     POST /integrations/instagram/accounts/{id}/disconnect        accounts:manage, CSRF
+    GET  /sync-jobs/{job_id}                                     job status (own workspace only)
+    POST /sync-jobs/{job_id}/cancel                              accounts:manage, CSRF
 
 Public (called by Instagram / Meta, not by the web app):
     GET  /integrations/instagram/callback        OAuth redirect; needs the initiating session cookie + single-use state
@@ -36,9 +41,10 @@ from app.services.instagram import connections as conn
 from app.services.instagram import queries as q
 from app.services.instagram.crypto import TokenCipher
 from app.services.instagram.provider import InstagramClient
-from app.services.instagram.sync import run_sync
+from app.services.instagram import jobs
 
 router = APIRouter(prefix="/integrations/instagram", tags=["instagram integration"])
+sync_jobs = APIRouter(prefix="/sync-jobs", tags=["instagram integration"])
 public = APIRouter(prefix="/integrations/instagram", tags=["instagram integration"])
 
 
@@ -114,20 +120,56 @@ def get_comments(db: DB, account_id: str = AccountId(), limit: int = Query(50, g
     return q.comments(db, account_id, limit=limit, offset=offset)
 
 
-@router.get("/accounts/{account_id}/sync-runs", response_model=list[s.SyncRunOut])
-def get_sync_runs(db: DB, account_id: str = AccountId()):
-    return q.sync_runs(db, account_id)
+@router.get("/accounts/{account_id}/sync-history", response_model=list[s.SyncJobOut], summary="Recent sync jobs (newest first)")
+def get_sync_history(db: DB, account_id: str = AccountId(), limit: int = Query(20, ge=1, le=100)):
+    return q.sync_history(db, account_id, limit=limit)
 
 
-@router.post("/accounts/{account_id}/sync", response_model=s.SyncRunOut, summary="Run a bounded manual sync now")
+@router.get("/accounts/{account_id}/sync-status", response_model=s.SyncStatusOut, summary="Last success, current job and next scheduled sync")
+def get_sync_status(request: Request, db: DB, account_id: str = AccountId()):
+    return q.sync_status_out(db, request.app.state.settings, account_id)
+
+
+@router.get("/accounts/{account_id}/history", response_model=s.AccountHistoryOut, summary="Daily historical series from stored observations")
+def get_history(db: DB, account_id: str = AccountId(), days: int = Query(90, ge=7, le=365)):
+    return q.account_history(db, account_id, days=days)
+
+
+@router.get("/accounts/{account_id}/media/{media_id}/history", response_model=s.MediaHistoryOut, summary="Insight observations for one media item")
+def get_media_history(db: DB, account_id: str = AccountId(), media_id: str = Path(min_length=4, max_length=64, pattern=r"^igm_[a-f0-9]+$")):
+    return q.media_history(db, account_id, media_id)
+
+
+def _dispatcher(request: Request):
+    dispatcher = getattr(request.app.state, "job_dispatcher", None)
+    if dispatcher is None:
+        raise jobs.SyncUnavailableError()
+    return dispatcher
+
+
+@router.post("/accounts/{account_id}/sync", response_model=s.EnqueuedJobOut, status_code=202,
+             summary="Queue a background sync (returns immediately; an already queued/running job is returned instead)")
 def sync_now(request: Request, db: DB, ctx: Ctx, account_id: str = AccountId(), _perm=require("accounts:manage")):
     settings = request.app.state.settings
-    client = make_client(request)
-    try:
-        run = run_sync(db, settings, client, make_cipher(request), ctx, account_id)
-    finally:
-        client.close()
-    return q.sync_run_out(run)
+    conn.ensure_enabled(settings)
+    dispatcher = _dispatcher(request)
+    connection = conn.get_connection(db, account_id, include_disconnected=True)  # disconnected -> 409 from enqueue
+    result = jobs.enqueue(db, settings, connection, trigger="manual", member_id=ctx.member_id, enforce_cooldown=True)
+    db.commit()
+    if result.created:
+        dispatcher(result.job.id, 0.0)
+    return s.EnqueuedJobOut(job=q.job_out(result.job), deduplicated=not result.created)
+
+
+@sync_jobs.get("/{job_id}", response_model=s.SyncJobOut, summary="Sync job status (another workspace's job is 404)")
+def get_sync_job(db: DB, job_id: str = Path(min_length=4, max_length=64, pattern=r"^igr_[a-f0-9]+$")):
+    return q.job_out(jobs.get_job(db, job_id))
+
+
+@sync_jobs.post("/{job_id}/cancel", response_model=s.SyncJobOut, summary="Cancel a queued/retrying job, or ask a running one to stop")
+def cancel_sync_job(db: DB, job_id: str = Path(min_length=4, max_length=64, pattern=r"^igr_[a-f0-9]+$"), _perm=require("accounts:manage")):
+    job = jobs.cancel(db, jobs.get_job(db, job_id))
+    return commit(db, q.job_out(job))
 
 
 @router.post("/accounts/{account_id}/disconnect", response_model=s.InstagramConnectionOut,
@@ -146,6 +188,12 @@ def oauth_callback(request: Request, db: DB, state: str | None = Query(None, max
         db, settings, lambda: make_client(request), lambda: make_cipher(request),
         state=state, code=code, error=error, session_token=request.cookies.get(settings.session_cookie_name),
     )
+    if result.connection_id and (dispatcher := getattr(request.app.state, "job_dispatcher", None)):
+        # First sync runs in the background right away (deduplicated if one is already queued).
+        initial = jobs.enqueue(db, settings, conn.get_connection(db, result.connection_id), trigger="connect", member_id=None)
+        db.commit()
+        if initial.created:
+            dispatcher(initial.job.id, 0.0)
     params = {"instagram": "connected" if result.outcome == "connected" else "error"}
     if result.outcome != "connected":
         params["reason"] = result.outcome if result.outcome in conn.CALLBACK_REASONS else "authorization_failed"

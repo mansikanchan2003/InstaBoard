@@ -4,7 +4,7 @@ import { ConfirmModal } from '@/features/settings/settingsUi';
 import { useMutation } from '@/hooks/useMutation';
 import { ApiError } from '@/lib/api/client';
 import { instagramService } from '@/services/instagram';
-import type { InstagramConnection, SyncRun } from '@/types/instagram';
+import type { InstagramConnection } from '@/types/instagram';
 
 /** Every query that shows live Instagram data (accounts, media, insights, dashboard card). */
 export const INSTAGRAM_QUERY_KEYS = ['instagram', 'dashboard'];
@@ -19,21 +19,7 @@ function describeError(err: Error): { title: string; description: string } {
   return { title: 'Instagram request failed', description: err.message };
 }
 
-export function describeRun(run: SyncRun): { tone: 'success' | 'error'; title: string; description: string } {
-  if (run.status === 'failed') {
-    const title = run.errorCode === 'rate_limited' ? 'Instagram rate limit reached'
-      : run.errorCode?.startsWith('token') || run.errorCode === 'permission_denied' ? 'Reauthorization needed' : 'Sync failed';
-    return { tone: 'error', title, description: run.errorMessage ?? 'The sync did not complete.' };
-  }
-  const counts = `${run.mediaFetched} media, ${run.mediaInsightsFetched} media metrics, ${run.accountInsightsFetched} account metrics, ${run.commentsFetched} comments`;
-  return {
-    tone: 'success',
-    title: run.status === 'partial' ? 'Sync finished with gaps' : 'Sync complete',
-    description: run.status === 'partial' ? `${counts}. Some data was unavailable from Instagram.` : `${counts} fetched from Instagram.`,
-  };
-}
-
-/** Connect (redirects to Instagram), Sync now and Disconnect (with confirmation) for live accounts. */
+/** Connect (redirects to Instagram) and Disconnect (with confirmation). Syncing: see ``useSyncState``. */
 export function useInstagramActions(opts: { onDisconnected?: () => void } = {}) {
   const toast = useToast();
   const [connecting, setConnecting] = useState(false);
@@ -52,12 +38,6 @@ export function useInstagramActions(opts: { onDisconnected?: () => void } = {}) 
       toast({ tone: 'error', ...describeError(err instanceof Error ? err : new Error(String(err))) });
     }
   };
-
-  const sync = useMutation(instagramService.sync, {
-    invalidate: INSTAGRAM_QUERY_KEYS,
-    onSuccess: (run) => toast(describeRun(run)),
-    onError: (err) => toast({ tone: 'error', ...describeError(err) }),
-  });
 
   const disconnect = useMutation(instagramService.disconnect, {
     invalidate: INSTAGRAM_QUERY_KEYS,
@@ -84,5 +64,5 @@ export function useInstagramActions(opts: { onDisconnected?: () => void } = {}) 
     </ConfirmModal>
   );
 
-  return { connect, connecting, sync, requestDisconnect: setDisconnecting, overlays };
+  return { connect, connecting, requestDisconnect: setDisconnecting, overlays };
 }

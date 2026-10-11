@@ -1,4 +1,4 @@
-# InstaBoard backend (Phases 2–5)
+# InstaBoard backend (Phases 2–6)
 
 FastAPI + PostgreSQL backend for the existing InstaBoard frontend.
 
@@ -426,10 +426,7 @@ These were checked on developers.facebook.com/docs/instagram-platform on 2026-10
   - 10 s timeouts.
   - Bounded retries (2) for timeouts, network errors, HTTP 5xx and Graph codes 1/2 or `is_transient`.
   - No retry on rate limits (codes 4/17/32/613, HTTP 429) or on token errors. Code 190 marks the account **Needs reauthorization**.
-- **Manual sync:**
-  - Bounded to 50 media, 25 media-insight lookups and 10 comment pages.
-  - One run at a time per account, with a 60 s cooldown.
-  - No background scheduler.
+- **Syncs** run as durable background jobs (Celery + Redis, PostgreSQL job rows): scheduled every `INSTAGRAM_SYNC_INTERVAL_MINUTES` or on demand. They are bounded per job, one active job per account, with a 60 s manual cooldown. See [Background sync](#background-sync--historical-analytics-phase-6).
 
 ### Data provenance and retention
 
@@ -447,8 +444,9 @@ These were checked on developers.facebook.com/docs/instagram-platform on 2026-10
 | `GET /integrations/instagram/status` | any member |
 | `POST /integrations/instagram/connect` | Owner/Admin (`accounts:manage`), CSRF |
 | `GET /integrations/instagram/callback` | the initiating session + single-use state (called by Instagram's redirect) |
-| `GET /integrations/instagram/accounts`, `/accounts/{id}`, `/media`, `/insights`, `/comments`, `/sync-runs` | any member (own workspace only) |
-| `POST /integrations/instagram/accounts/{id}/sync` | Owner/Admin, CSRF |
+| `GET /integrations/instagram/accounts`, `/accounts/{id}`, `/media`, `/insights`, `/comments`, `/sync-history`, `/sync-status`, `/history`, `/media/{media_id}/history` | any member (own workspace only) |
+| `POST /integrations/instagram/accounts/{id}/sync` | Owner/Admin, CSRF → **202** queued job (deduplicated) |
+| `GET /sync-jobs/{job_id}` · `POST /sync-jobs/{job_id}/cancel` | any member (own workspace) · Owner/Admin |
 | `POST /integrations/instagram/accounts/{id}/disconnect` | Owner/Admin, CSRF |
 | `POST /integrations/instagram/deauthorize`, `POST /data-deletion`, `GET /data-deletion/{code}` | Meta's `signed_request` (HMAC-SHA256 with the app secret) |
 
@@ -476,6 +474,129 @@ These were checked on developers.facebook.com/docs/instagram-platform on 2026-10
 - the deauthorize and data-deletion callbacks.
 
 **No live Meta connection has been tested.** See *Testing with a real account* in the root README.
+
+## Background sync & historical analytics (Phase 6)
+
+### Architecture
+
+| Piece | What it does |
+| --- | --- |
+| **PostgreSQL `instagram_sync_runs`** | The durable job record and source of truth. States: `queued`, `running`, `succeeded`, `partially_succeeded`, `retrying`, `failed`, `cancelled`. Each job stores the account and workspace, trigger (`connect` / `manual` / `scheduled`), queued/started/finished times, progress % and stage, records processed, per-kind counts, retry count and limit, next retry time, a sanitized error category and message, and warnings. **Never** tokens or provider payloads. |
+| **Redis** | Celery broker only. Messages say "job X is ready"; losing them loses nothing, because the maintenance task re-sends queued and due jobs from PostgreSQL. |
+| **Celery worker** (`app.worker.tasks`) | Claims a job with one atomic `UPDATE … RETURNING`, holds a lease it renews at every stage (heartbeat), runs the incremental sync, and records the outcome. |
+| **Celery beat** | Every `INSTAGRAM_SCHEDULER_TICK_SECONDS` (default 300 s) it queues accounts that are due, and every 60 s it runs maintenance: recovers expired leases and re-sends lost or due jobs. |
+
+**Why Celery + Redis:** it is the maintained, standard choice for FastAPI/SQLAlchemy stacks, with redelivery semantics (`acks_late`, `reject_on_worker_lost`) and a built-in scheduler (beat). There was no existing queue to reuse. All real logic lives in `app/services/instagram/jobs.py` and `sync.py`, so it is fully testable without a broker.
+
+**Safety guarantees:**
+
+- **One active job per account:** a partial unique index (`uq_instagram_sync_runs_one_active`) on `connection_id` for `queued`, `running` and `retrying`. "Sync now" clicks and overlapping scheduler ticks return the existing job (`deduplicated: true`) instead of queuing another.
+- **Duplicate delivery or a second worker:** the atomic claim succeeds once; every other delivery is a no-op (`skipped`).
+- **Worker crash, kill or restart:** an expired lease (`INSTAGRAM_JOB_LEASE_SECONDS`, default 900 s) is recovered by maintenance and on worker start-up. The job goes to `retrying`, or to `failed` (`worker_lost`) once retries are exhausted. Jobs never stay `running` forever.
+- **One effective scheduler:** a scheduler tick takes a PostgreSQL advisory lock, and the unique index rejects duplicates anyway. Run **one** beat process.
+- **Idempotent ingestion:** every observation of a job uses the job's fixed `observation_at`. Media and comments are upserted on provider IDs, insight snapshots are keyed by `(media, metric, observation)`, and account metrics by `(account, metric, type, period, range)`. A retried or redelivered job cannot duplicate anything.
+
+### Retry policy
+
+| Failure | Handling |
+| --- | --- |
+| Timeout, network error, HTTP 5xx, Graph `is_transient` / codes 1, 2 | 2 quick in-request retries (exponential backoff + jitter), then a job retry: `base × 2^n` ±20 % jitter, capped at `INSTAGRAM_JOB_RETRY_MAX_SECONDS`, up to `INSTAGRAM_JOB_MAX_RETRIES` (3). Then `failed` (`provider_unavailable`). |
+| Rate limit (codes 4/17/32/613, HTTP 429) | Not retried inline. Job retry no sooner than `Retry-After`, or Meta's `estimated_time_to_regain_access` from `X-Business-Use-Case-Usage` / `X-App-Usage`, or at least 5 × base. **Code 4 (app-level)** pauses all Instagram calls app-wide until then: the scheduler stops queuing, and due jobs are deferred without spending a retry. |
+| Token invalid/revoked (190), permission removed (10/200–299), token expired, missing or undecryptable | **Terminal, no retry.** The account becomes *Needs reauthorization* and is not scheduled again until reconnected. |
+| A metric rejected for one media/account (#100 on a single-metric request) | Remembered in `unsupported_metrics` and not requested again. Metrics that merely return nothing are stored as `unavailable` and re-tried at the next refresh. |
+| Unexpected exception | `internal_error` job retry. Only the exception class is logged, never payloads. |
+
+### Incremental sync (per job, bounded)
+
+1. **Profile:** `/me` fields, plus follower/following/media counts stored as hourly `snapshot` observations.
+2. **Media:** the newest `INSTAGRAM_SYNC_MAX_MEDIA` (50) items every run, updating mutable counts. A rolling **backfill** continues from a saved paging cursor by `INSTAGRAM_BACKFILL_BATCH_SIZE` (100) older items per run. An expired cursor restarts the pass with a warning. Media are marked deleted only after a pass that read the whole list without seeing them.
+3. **Media insights:** prioritised in this order, and media older than 730 days are skipped (Meta keeps insights for up to 2 years):
+   - never-checked media;
+   - recent media (posted within 30 days) every 24 h;
+   - older media every 7 days.
+4. **Account insights:** 28-day totals and daily reach.
+5. **Comments:** up to 2 pages per media, only with `instagram_business_manage_comments`.
+
+### Historical data model and limitations
+
+- **What a stored observation carries:** the internal account/media reference, the metric name, the value (or `NULL` with `status=unavailable`), the observation time (`captured_at` or `range_end`), the period, the unit (`count`), `source=instagram_api` and the API version. Unique constraints prevent duplicate observations.
+- **History endpoint:** `GET …/accounts/{id}/history?days=90` builds daily series **only from stored observations**:
+  - followers / following / media count: the last observation of each day;
+  - daily reach: `time_series`;
+  - rolling 28-day totals: as observed on each day.
+
+  **Days without an observation are `null` (gaps).** Nothing is carried forward, interpolated or backfilled with invented values. The charts draw gaps.
+- **Follower history** starts with the first sync, because this API does not return past follower counts. Daily reach covers what the API returns for the requested range.
+- **Raw provider responses are not stored.** There is nothing to redact or expire. Observations are retained until the account is disconnected (which purges them) or a data-deletion request arrives.
+
+### Running it locally
+
+```bash
+docker compose --env-file backend/.env up -d db redis           # from the repo root
+cd backend
+.venv/Scripts/alembic upgrade head
+.venv/Scripts/python -m uvicorn app.main:app --reload --port 8100                          # API
+.venv/Scripts/celery -A app.worker.celery_app worker --loglevel=INFO --pool=threads --concurrency=2   # worker (Windows)
+.venv/Scripts/celery -A app.worker.celery_app beat --loglevel=INFO --schedule=.celerybeat/schedule     # scheduler: ONE process
+```
+
+- **On Linux/macOS:** drop `--pool=threads` to use the default prefork pool.
+- **Health:** `GET /ready` → `checks.background` reports `worker` / `scheduler` as `ok`, `stale` or `never`, from the heartbeats the tasks write.
+
+**Trigger and inspect a sync:**
+
+- **In the UI:** **Accounts → Live Instagram connections → Sync now**. The row shows progress, then the result, the last success and the next scheduled run.
+- **Over the API:**
+  - `POST /api/v1/integrations/instagram/accounts/{id}/sync` returns **202** with `{job, deduplicated}`.
+  - `GET /api/v1/sync-jobs/{job_id}` returns the status (another workspace's job is 404). The UI polls it every 3 s while a job is active, and stops at a terminal state.
+  - `GET …/accounts/{id}/sync-history` and `GET …/accounts/{id}/sync-status` give the history and the current state.
+  - `POST /api/v1/sync-jobs/{job_id}/cancel` cancels a job (Owner/Admin).
+
+### Sync frequency, Meta limits and costs
+
+- **API cost per job:** each job costs roughly 1 (profile) + 2 (newest media pages) + 4 (backfill pages) + up to 25 (media insights) + 2 (account insights) + up to 20 (comment pages) calls. With the defaults that is up to about 55 calls per account per run, more when a per-metric fallback is needed (the first time a metric is rejected).
+- **Meta's limits:** Instagram Platform calls are rate-limited per app and per account over rolling windows, and the exact limits depend on Meta's current policy and your app's usage. Watch the `X-App-Usage` / `X-Business-Use-Case-Usage` headers, which the worker honours.
+- **Defaults:** the default interval of **360 minutes** with batches of 20 accounts per 5-minute tick is deliberately conservative. Lower the interval only after observing real usage. Shorter intervals multiply API calls, database rows (one snapshot per media/metric per insight refresh) and worker time.
+- **Redis load:** small. It only carries job messages.
+
+### Troubleshooting
+
+| Symptom | Check |
+| --- | --- |
+| "Sync now" → 503 `background_sync_unavailable` | `REDIS_URL` is not set in `backend/.env`. |
+| Job stays `queued` | The worker isn't running, or it can't reach Redis. `/ready` shows `worker: never/stale`. Queued jobs are re-sent automatically once a worker runs. |
+| No scheduled syncs | Beat isn't running (`scheduler: never/stale`), `SYNC_SCHEDULER_ENABLED=false`, the account *Needs reauthorization*, or an app-wide rate-limit pause is active. |
+| Job `retrying` with `rate_limited` | Meta throttled the app or account. It waits until the hinted time; don't trigger more syncs. |
+| Job `failed` with `token_*` / `permission_denied` | Reconnect the account (Accounts → Reconnect). |
+| Windows: worker exits or hangs at start | Use `--pool=threads` (or `--pool=solo`). |
+
+### Production considerations
+
+- **Processes:** run API, worker(s) and **exactly one** beat as separate processes or containers with the same environment. Scale workers horizontally; the per-account guarantees hold across workers.
+- **Redis:** use a managed or persistent Redis with authentication (`rediss://` with a password) on a private network.
+- **Health and logs:** monitor `/ready`, job failure rates (`instagram_sync_runs.status`, `error_category`) and Meta usage headers. Logs are structured key/value lines with IDs and categories only.
+- **Shutdown:** stop workers with a warm shutdown (SIGTERM). An in-flight job is recovered by its lease if the process is killed.
+- **Timezones:** all timestamps and schedules are UTC (`enable_utc`, `timezone=UTC`, `timestamptz`).
+
+### Tests
+
+- **`tests/test_sync_jobs.py` (29 tests):**
+  - enqueue, deduplication and the database uniqueness guarantee;
+  - 503 without a broker;
+  - permissions and cross-workspace job reads;
+  - duplicate delivery and concurrent claims;
+  - crash recovery, terminal failure after repeated crashes, re-sending unclaimed jobs, cancellation;
+  - backoff and jitter bounds, rate-limit hints (including Meta usage headers), the app-wide pause;
+  - no retry on authorization errors;
+  - scheduler eligibility, deduplication and the disabled flag;
+  - sync status;
+  - backfill across jobs with deleted-media detection, expired cursors, unsupported-metric memory, idempotent reprocessing;
+  - disconnect while queued and while running;
+  - history aggregation with gaps, history from real syncs, empty history;
+  - `/ready` background status.
+- **`tests/test_celery_wiring.py`:** Celery configuration and task registration.
+- **Mocked Meta and no Redis:** all of the above use mocked Meta responses and no Redis.
+- **Real worker run:** a real worker + beat + Redis run was verified manually; see the Phase 6 report.
 
 ## Security boundaries
 

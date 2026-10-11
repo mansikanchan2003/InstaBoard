@@ -15,9 +15,10 @@ import { withProviders } from '@/App';
 import { routes } from '@/app/routes';
 import { clearQueryCache } from '@/hooks/useQuery';
 import { setCsrfToken } from '@/lib/api/client';
-import type { IntegrationStatus } from '@/types/instagram';
+import { pollDelay } from '@/features/instagram/useSyncState';
+import type { AccountHistory, IntegrationStatus, SyncJob, SyncStatus } from '@/types/instagram';
 
-configure({ asyncUtilTimeout: 5000 }); // lazy route chunks load on first render
+configure({ asyncUtilTimeout: 12000 }); // lazy route chunks load on first render
 
 const ME = {
   user: { id: 'usr_1', name: 'Test Owner', email: 'owner@example.test', isPlatformAdmin: false },
@@ -59,6 +60,25 @@ const INSIGHTS = {
   reachDaily: [], unavailableMetrics: ['accounts_engaged'], note: 'Live data.',
 };
 
+function makeJob(over: Partial<SyncJob> = {}): SyncJob {
+  return {
+    id: 'igr_aa11', accountId: 'igc_abc123', trigger: 'manual', status: 'running', terminal: false, queuedAt: '2026-10-11T09:00:00Z',
+    startedAt: '2026-10-11T09:00:01Z', finishedAt: null, progress: 40, progressStage: 'media_insights', recordsProcessed: 12, mediaFetched: 3,
+    mediaInsightsFetched: 7, accountInsightsFetched: 0, commentsFetched: 0, retryCount: 0, maxRetries: 3, nextRetryAt: null,
+    cancelRequested: false, warnings: [], errorCategory: null, errorMessage: null, apiVersion: 'v26.0', ...over,
+  };
+}
+const DONE_JOB = makeJob({ status: 'succeeded', terminal: true, progress: 100, progressStage: 'done', finishedAt: '2026-10-11T09:00:09Z', accountInsightsFetched: 8 });
+
+function syncStatus(over: Partial<SyncStatus> = {}): SyncStatus {
+  return {
+    accountId: 'igc_abc123', connectionStatus: 'connected', lastSuccessAt: '2026-10-11T09:00:00Z', lastSyncStatus: 'succeeded', currentJob: null,
+    lastJob: null, nextScheduledAt: '2026-10-11T15:00:00Z', schedulingEnabled: true, intervalMinutes: 360, backgroundAvailable: true, ...over,
+  };
+}
+
+const EMPTY_HISTORY: AccountHistory = { source: 'instagram_api', days: 90, firstObservationAt: null, series: [], note: '' };
+
 const json = (status: number, body?: unknown) => new Response(body === undefined ? null : JSON.stringify(body), { status });
 const err = (status: number, code: string, message: string) => json(status, { error: { code, message, details: {} } });
 
@@ -73,7 +93,9 @@ function stubApi(overrides: Record<string, () => Response> = {}, status = STATUS
     if (path === `/integrations/instagram/accounts/${CONNECTION.id}`) return Promise.resolve(json(200, CONNECTION));
     if (path.endsWith('/media')) return Promise.resolve(json(200, MEDIA));
     if (path.endsWith('/insights')) return Promise.resolve(json(200, INSIGHTS));
-    if (path.endsWith('/sync-runs')) return Promise.resolve(json(200, []));
+    if (path.endsWith('/sync-history')) return Promise.resolve(json(200, []));
+    if (path.endsWith('/sync-status')) return Promise.resolve(json(200, syncStatus()));
+    if (path.endsWith('/history')) return Promise.resolve(json(200, EMPTY_HISTORY));
     return Promise.resolve(err(503, 'unavailable', 'not under test'));
   });
   vi.stubGlobal('fetch', fn);
@@ -126,15 +148,54 @@ describe('live Instagram integration (api mode)', () => {
     expect(screen.queryByText(/script/)).not.toBeInTheDocument();
   });
 
-  it('runs the first sync automatically after a successful connection', async () => {
+  it('follows the server-queued first sync after connecting, then stops polling', async () => {
+    const connectJob = makeJob({ trigger: 'connect', status: 'queued', progress: 0, progressStage: null, startedAt: null });
     const fetchMock = stubApi({
-      'POST /integrations/instagram/accounts/igc_abc123/sync': () => json(200, { id: 'igr_1', trigger: 'manual', status: 'success', startedAt: 'x', finishedAt: 'y', mediaFetched: 3, mediaInsightsFetched: 7, accountInsightsFetched: 8, commentsFetched: 0, warnings: [], errorCode: null, errorMessage: null, apiVersion: 'v26.0' }),
+      'GET /integrations/instagram/accounts/igc_abc123/sync-status': () => json(200, syncStatus({ currentJob: connectJob, lastSuccessAt: null })),
+      'GET /sync-jobs/igr_aa11': () => json(200, DONE_JOB),
     });
     renderAt('/accounts?instagram=connected&account=igc_abc123');
-    expect(await screen.findByText('Sync complete')).toBeInTheDocument();
-    const syncCalls = fetchMock.mock.calls.filter(([u, i]) => String(u).endsWith('/sync') && i.method === 'POST');
-    expect(syncCalls).toHaveLength(1);
-    expect((syncCalls[0][1].headers as Record<string, string>)['X-CSRF-Token']).toBe('csrf-test-token');
+    expect(await screen.findByText(/queued — waiting for a worker/i)).toBeInTheDocument();
+    expect(await screen.findByText('Sync complete', undefined, { timeout: 8000 })).toBeInTheDocument();
+    // The UI never POSTs a sync itself here: the server queued it with the connection.
+    expect(fetchMock.mock.calls.filter(([u, i]) => String(u).endsWith('/sync') && i.method === 'POST')).toHaveLength(0);
+    const polls = () => fetchMock.mock.calls.filter(([u]) => String(u).includes('/sync-jobs/igr_aa11')).length;
+    const after = polls();
+    await new Promise((r) => setTimeout(r, 3500));
+    expect(polls()).toBe(after); // terminal → polling stopped
+  }, 20000);
+
+  it('Sync now queues a background job, shows progress and the result', async () => {
+    const fetchMock = stubApi({
+      'POST /integrations/instagram/accounts/igc_abc123/sync': () => json(202, { job: makeJob({ status: 'queued', progress: 0, progressStage: null }), deduplicated: false }),
+      'GET /sync-jobs/igr_aa11': () => json(200, DONE_JOB),
+    });
+    renderAt('/accounts');
+    const section = (await screen.findByRole('heading', { name: /live instagram connections/i })).closest('section')!;
+    fireEvent.click(await within(section).findByRole('button', { name: /sync now/i }));
+    expect(await screen.findByText('Sync queued')).toBeInTheDocument();
+    expect(within(section).getByRole('button', { name: /syncing/i })).toBeDisabled();
+    expect(await screen.findByText('Sync complete', undefined, { timeout: 8000 })).toBeInTheDocument();
+    const post = fetchMock.mock.calls.find(([u, i]) => String(u).endsWith('/sync') && i.method === 'POST')!;
+    expect((post[1].headers as Record<string, string>)['X-CSRF-Token']).toBe('csrf-test-token');
+  }, 20000);
+
+  it('explains authorization failures from a finished job', async () => {
+    stubApi({
+      'POST /integrations/instagram/accounts/igc_abc123/sync': () => json(202, { job: makeJob(), deduplicated: false }),
+      'GET /sync-jobs/igr_aa11': () => json(200, makeJob({ status: 'failed', terminal: true, errorCategory: 'token_invalid', errorMessage: 'Instagram rejected the access token. Reconnect the account.' })),
+    });
+    renderAt('/accounts');
+    const section = (await screen.findByRole('heading', { name: /live instagram connections/i })).closest('section')!;
+    fireEvent.click(await within(section).findByRole('button', { name: /sync now/i }));
+    expect(await screen.findByText('Reauthorization needed', undefined, { timeout: 8000 })).toBeInTheDocument();
+  }, 20000);
+
+  it('polls quickly while running and slowly while waiting for a distant retry', () => {
+    const now = Date.parse('2026-10-11T09:00:00Z');
+    expect(pollDelay(makeJob(), now)).toBe(3000);
+    expect(pollDelay(makeJob({ status: 'retrying', nextRetryAt: '2026-10-11T09:30:00Z' }), now)).toBe(60_000);
+    expect(pollDelay(makeJob({ status: 'retrying', nextRetryAt: '2026-10-11T09:00:05Z' }), now)).toBe(7000);
   });
 
   function withAssign(run: (assign: ReturnType<typeof vi.fn>) => Promise<void>) {
@@ -172,6 +233,31 @@ describe('live Instagram integration (api mode)', () => {
     const section = (await screen.findByRole('heading', { name: /live instagram connections/i })).closest('section')!;
     fireEvent.click(await within(section).findByRole('button', { name: /sync now/i }));
     expect(await screen.findByText('Please wait')).toBeInTheDocument();
+  });
+
+  it('history charts show an honest empty state, then observed days with gaps', async () => {
+    stubApi();
+    renderAt(`/accounts/live/${CONNECTION.id}`);
+    expect(await screen.findByText('No history yet')).toBeInTheDocument();
+    clearQueryCache();
+    const days = ['2026-10-05', '2026-10-06', '2026-10-07', '2026-10-08', '2026-10-09', '2026-10-10', '2026-10-11'];
+    const history: AccountHistory = {
+      ...EMPTY_HISTORY, days: 7, firstObservationAt: '2026-10-08T09:00:00Z',
+      series: [{ metric: 'followers_count', kind: 'daily_snapshot', unit: 'count', observedDays: 2,
+        points: days.map((d, i) => ({ date: `${d}T00:00:00Z`, value: i === 3 ? 1190 : i === 6 ? 1200 : null })) }],
+    };
+    stubApi({ 'GET /integrations/instagram/accounts/igc_abc123/history': () => json(200, history) });
+    renderAt(`/accounts/live/${CONNECTION.id}`);
+    expect(await screen.findByText('Followers (observed at each sync)')).toBeInTheDocument();
+    expect(screen.getByText('2 of 7 days observed')).toBeInTheDocument();
+  });
+
+  it('shows last success and the next scheduled sync', async () => {
+    stubApi();
+    renderAt(`/accounts/live/${CONNECTION.id}`);
+    const panel = await screen.findByRole('region', { name: /sync status/i });
+    expect(within(panel).getByText(/next scheduled sync/i)).toBeInTheDocument();
+    expect(within(panel).getByText(/every 6 h/i)).toBeInTheDocument();
   });
 
   it('live account detail renders unavailable metrics as unavailable, never 0', async () => {

@@ -243,6 +243,7 @@ def purge_provider_data(db: Session, connection: InstagramConnection) -> None:
 
 def disconnect(db: Session, ctx: AuthContext, connection_id: str) -> InstagramConnection:
     connection = get_connection(db, connection_id)
+    cancel_active_jobs(db, connection)
     purge_provider_data(db, connection)
     connection.status = IgConnectionStatus.disconnected
     connection.disconnected_at = utcnow()
@@ -258,6 +259,21 @@ def disconnect(db: Session, ctx: AuthContext, connection_id: str) -> InstagramCo
         payload={"type": "INSTAGRAM_DISCONNECTED", "connection_id": connection.id},
     )
     return connection
+
+
+def cancel_active_jobs(db: Session, connection: InstagramConnection) -> None:
+    """Queued/retrying jobs are cancelled now; a running job stops at its next checkpoint (it re-checks the
+    connection and finds it disconnected) and never writes data after the purge."""
+    from app.models import InstagramSyncRun
+
+    now = utcnow()
+    db.execute(update(InstagramSyncRun).where(InstagramSyncRun.connection_id == connection.id,
+                                              InstagramSyncRun.status.in_(("queued", "retrying")))
+               .values(status="cancelled", finished_at=now, error_category="connection_disconnected",
+                       error_message="The account was disconnected.", next_retry_at=None)
+               .execution_options(synchronize_session=False))
+    db.execute(update(InstagramSyncRun).where(InstagramSyncRun.connection_id == connection.id, InstagramSyncRun.status == "running")
+               .values(cancel_requested=True).execution_options(synchronize_session=False))
 
 
 def mark_needs_reauth(connection: InstagramConnection, code: str, message: str) -> None:
@@ -306,6 +322,7 @@ def handle_deauthorize(db: Session, settings: Settings, signed_request: str | No
     data = parse_signed_request(signed_request, settings.instagram_app_secret.get_secret_value())  # type: ignore[union-attr]
     affected = 0
     for connection in _connections_for_provider_user(db, str(data["user_id"])):
+        cancel_active_jobs(db, connection)
         db.execute(delete(InstagramToken).where(InstagramToken.connection_id == connection.id))
         if connection.status != IgConnectionStatus.disconnected:
             mark_needs_reauth(connection, "app_removed", "InstaBoard was removed from this Instagram account's apps. Reconnect to resume.")
@@ -320,6 +337,7 @@ def handle_data_deletion(db: Session, settings: Settings, signed_request: str | 
     provider_user_id = str(data["user_id"])
     connections = _connections_for_provider_user(db, provider_user_id)
     for connection in connections:
+        cancel_active_jobs(db, connection)
         purge_provider_data(db, connection)
         connection.status = IgConnectionStatus.disconnected
         connection.disconnected_at = utcnow()
@@ -331,8 +349,3 @@ def handle_data_deletion(db: Session, settings: Settings, signed_request: str | 
                                            requested_at=utcnow(), completed_at=utcnow(), connections_affected=len(connections))
     db.add(receipt)
     return receipt
-
-
-def require_open_connection(connection: InstagramConnection) -> None:
-    if connection.status == IgConnectionStatus.disconnected:
-        raise ConflictError("This Instagram account is disconnected.")

@@ -1,35 +1,40 @@
-"""Bounded manual sync: profile, recent media, insights and (if permitted) comments for one connection.
+"""Incremental Instagram sync engine — one execution of one durable job (see ``jobs.py`` for the lifecycle).
 
-* Bounded: at most ``INSTAGRAM_SYNC_MAX_MEDIA`` media, insights for the newest
-  ``INSTAGRAM_SYNC_MAX_MEDIA_INSIGHTS`` of them and comments (one page of up to 50) for the newest
-  ``INSTAGRAM_SYNC_MAX_COMMENT_MEDIA``. No background scheduler exists in this phase.
-* Idempotent: media/comments are upserted on their provider IDs; insight snapshots are keyed by capture time
-  (media) or by range (account), so repeating a sync never duplicates records.
-* Honest: metrics that were requested but not returned are stored as ``unavailable`` with a NULL value.
-* Safe: a disconnected or expired connection is never called; token errors flip the connection to
-  ``needs_reauth`` and stop the run.
+Stages (progress %): token 5 → profile 15 → media 40 → media insights 70 → account insights 85 → comments 95.
+
+* **Profile**: supported /me fields are updated and followers/follows/media counts are recorded as hourly
+  ``snapshot`` observations, so follower history accumulates instead of being overwritten.
+* **Media**: the newest ``INSTAGRAM_SYNC_MAX_MEDIA`` items are refreshed every run (mutable counts), and a
+  rolling backfill continues from a saved Meta paging cursor by ``INSTAGRAM_BACKFILL_BATCH_SIZE`` older items per
+  run. Only a pass that reaches the end of the list marks media missing from it as removed.
+* **Media insights**: never-checked media first, then recent media (``INSTAGRAM_RECENT_MEDIA_DAYS``) every
+  ``INSTAGRAM_RECENT_INSIGHTS_REFRESH_HOURS``, then older media every ``INSTAGRAM_OLDER_INSIGHTS_REFRESH_DAYS``,
+  skipping media older than Meta's 2-year insight retention. Metrics Instagram rejects for a media object (#100)
+  are remembered and not requested again; metrics merely not returned are stored as ``unavailable``.
+* **Account insights**: 28-day ``total_value`` totals and daily ``reach`` (``time_series``).
+* **Comments**: only with ``instagram_business_manage_comments``; up to ``INSTAGRAM_COMMENT_PAGES_PER_MEDIA``
+  pages for the newest commented media.
+
+Every observation carries the job's fixed ``observation_at``, so a retried or redelivered job writes the same
+keys again (no-ops) — retries cannot duplicate media, comments or historical observations.
 """
 
 from __future__ import annotations
 
 import secrets
+from collections.abc import Callable
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import select, update
+from sqlalchemy import or_, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
 from app.core.config import Settings
-from app.core.errors import ConflictError
-from app.models import (
-    InstagramAccountInsight, InstagramComment, InstagramConnection, InstagramMedia, InstagramMediaInsight, InstagramSyncRun,
-    InstagramToken,
-)
-from app.models.enums import IgConnectionStatus, IgSyncStatus
-from app.services.auth import AuthContext, RateLimitedError
+from app.models import InstagramAccountInsight, InstagramComment, InstagramConnection, InstagramMedia, InstagramMediaInsight, InstagramSyncRun, InstagramToken
+from app.models.enums import IgSyncStatus
 from app.services.common import utcnow
 
-from .connections import PROFILE_FIELDS, apply_profile, mark_needs_reauth, require_open_connection, store_token
+from .connections import PROFILE_FIELDS, apply_profile, store_token
 from .crypto import TokenCipher, TokenDecryptError
 from .provider import InstagramClient, ProviderError
 
@@ -42,129 +47,86 @@ MEDIA_METRICS = ["views", "reach", "likes", "comments", "shares", "saved", "tota
 # Account insights, metric_type=total_value, period=day over the last 28 days.
 ACCOUNT_TOTAL_METRICS = ["reach", "views", "accounts_engaged", "total_interactions", "likes", "comments", "shares", "saves"]
 ACCOUNT_SERIES_METRICS = ["reach"]  # metric_type=time_series, one value per day
+PROFILE_SNAPSHOT_METRICS = ["followers_count", "follows_count", "media_count"]
 ACCOUNT_RANGE_DAYS = 28
 COMMENT_FIELDS = "id,text,timestamp,username,like_count,hidden,parent_id,replies{id,text,timestamp,username,like_count,hidden,parent_id}"
 INSIGHTS_SCOPE = "instagram_business_manage_insights"
 COMMENTS_SCOPE = "instagram_business_manage_comments"
 REFRESH_WINDOW = timedelta(days=15)
-STALE_RUN = timedelta(minutes=10)
+FATAL_KINDS = ("token_invalid", "rate_limited", "unavailable", "bad_response")
 
 
-def run_sync(db: Session, settings: Settings, client: InstagramClient, cipher: TokenCipher, ctx: AuthContext,
-             connection_id: str, *, trigger: str = "manual") -> InstagramSyncRun:
-    now = utcnow()
-    connection = db.scalar(select(InstagramConnection).where(InstagramConnection.id == connection_id).with_for_update())
-    if connection is None:
-        from app.core.errors import NotFoundError
+class StopSync(Exception):
+    """Terminal, non-provider stop (token missing/expired/unreadable): the job fails and needs reauthorization."""
 
-        raise NotFoundError("Instagram account", connection_id)
-    require_open_connection(connection)
-    running = db.scalar(select(InstagramSyncRun).where(
-        InstagramSyncRun.connection_id == connection.id, InstagramSyncRun.status == IgSyncStatus.running,
-        InstagramSyncRun.started_at > now - STALE_RUN))
-    if running is not None:
-        raise ConflictError("A sync for this account is already running.")
-    if connection.last_sync_attempt_at and settings.instagram_sync_cooldown_seconds:
-        wait = connection.last_sync_attempt_at + timedelta(seconds=settings.instagram_sync_cooldown_seconds) - now
-        if wait.total_seconds() > 0:
-            raise RateLimitedError(int(wait.total_seconds()) + 1)
-
-    run = InstagramSyncRun(id=f"igr_{secrets.token_hex(8)}", workspace_id=connection.workspace_id, connection_id=connection.id,
-                           trigger=trigger, triggered_by_member_id=ctx.member_id, started_at=now, status=IgSyncStatus.running,
-                           warnings=[], api_version=client.api_version)
-    db.add(run)
-    connection.last_sync_attempt_at = now
-    connection.last_sync_status = IgSyncStatus.running.value
-    db.commit()  # visible "running" state + releases the row lock
-
-    job = _SyncJob(db, settings, client, cipher, connection, run)
-    try:
-        job.execute()
-    except ProviderError as exc:
-        job.fail(exc)
-    except _StopSync:
-        pass
-    db.commit()
-    return run
+    def __init__(self, category: str, message: str) -> None:
+        super().__init__(message)
+        self.category, self.message = category, message
 
 
-class _StopSync(Exception):
+class JobCancelled(Exception):
     pass
 
 
-class _SyncJob:
+class SyncEngine:
     def __init__(self, db: Session, settings: Settings, client: InstagramClient, cipher: TokenCipher,
-                 connection: InstagramConnection, run: InstagramSyncRun) -> None:
+                 connection: InstagramConnection, job: InstagramSyncRun, checkpoint: Callable[[str, int], None]) -> None:
         self.db, self.settings, self.client, self.cipher = db, settings, client, cipher
-        self.connection, self.run = connection, run
-        self.captured_at = run.started_at
+        self.connection, self.job = connection, job
+        self.observed = job.observation_at
+        self.checkpoint = checkpoint  # commits progress, renews the lease, raises JobCancelled if requested
         self.warnings: list[dict] = []
         self.token = ""
 
     # ---------------------------------------------------------------- orchestration
-    def execute(self) -> None:
+    def run(self) -> IgSyncStatus:
+        self.checkpoint("token", 5)
         self.token = self._usable_token()
-        profile = self.client.me(self.token, PROFILE_FIELDS)
-        apply_profile(self.connection, profile, self.captured_at)
-        self.db.commit()
-
-        media = self._sync_media()
+        self._sync_profile()
+        self.checkpoint("media", 15)
+        self._sync_media()
         scopes = set(self.connection.granted_scopes or [])
+        self.checkpoint("media_insights", 40)
         if INSIGHTS_SCOPE in scopes:
-            self._sync_media_insights(media[: self.settings.instagram_sync_max_media_insights])
+            self._sync_media_insights()
+            self.checkpoint("account_insights", 70)
             self._sync_account_insights()
         else:
             self._warn("insights_not_granted", "Insights were not fetched: the instagram_business_manage_insights permission was not granted.")
+        self.checkpoint("comments", 85)
         if COMMENTS_SCOPE in scopes:
-            self._sync_comments(media[: self.settings.instagram_sync_max_comment_media])
-        self._finish(IgSyncStatus.partial if any(w.get("degraded") for w in self.warnings) else IgSyncStatus.success)
-
-    def fail(self, exc: ProviderError) -> None:
-        self.db.rollback()
-        self.db.add_all([self.connection, self.run])
-        code = {"token_invalid": "token_invalid", "permission_denied": "permission_denied", "rate_limited": "rate_limited"}.get(exc.kind, "provider_error")
-        if exc.kind == "token_invalid":
-            mark_needs_reauth(self.connection, "token_invalid", exc.safe_message)
-        elif exc.kind == "permission_denied":
-            mark_needs_reauth(self.connection, "permission_denied", exc.safe_message)
-        else:
-            self.connection.status = IgConnectionStatus.error
-            self.connection.last_error_code, self.connection.last_error_message = code, exc.safe_message
-        self.run.error_code, self.run.error_message = code, exc.safe_message
-        self._finish(IgSyncStatus.failed, success=False)
-
-    def _finish(self, status: IgSyncStatus, *, success: bool = True) -> None:
-        now = utcnow()
-        self.run.status, self.run.finished_at, self.run.warnings = status, now, self.warnings
-        self.connection.last_sync_status = status.value
-        if success:
-            self.connection.last_synced_at = now
-            self.connection.status = IgConnectionStatus.connected
-            self.connection.last_error_code = self.connection.last_error_message = None
+            self._sync_comments()
+        self.checkpoint("finishing", 95)
+        self.job.warnings = self.warnings
+        return IgSyncStatus.partially_succeeded if any(w.get("degraded") for w in self.warnings) else IgSyncStatus.succeeded
 
     def _warn(self, code: str, message: str, *, degraded: bool = False) -> None:
-        self.warnings.append({"code": code, "message": message, "degraded": degraded})
+        if not any(w["code"] == code for w in self.warnings):
+            self.warnings.append({"code": code, "message": message, "degraded": degraded})
+
+    def _count(self, field: str, n: int) -> None:
+        setattr(self.job, field, getattr(self.job, field) + n)
+        self.job.records_processed += n
 
     # ---------------------------------------------------------------- token lifecycle
     def _usable_token(self) -> str:
         row = self.db.get(InstagramToken, self.connection.id)
         now = utcnow()
         if row is None:
-            self._stop_reauth("token_missing", "No access token is stored for this account. Reconnect it.")
-        assert row is not None
+            raise StopSync("token_missing", "No access token is stored for this account. Reconnect it.")
         if row.expires_at and row.expires_at <= now:
-            self._stop_reauth("token_expired", "The Instagram access token expired (long-lived tokens last 60 days unless refreshed). Reconnect the account.")
+            raise StopSync("token_expired", "The Instagram access token expired (long-lived tokens last 60 days unless refreshed). Reconnect the account.")
         try:
             token = self.cipher.decrypt(row.ciphertext, row.key_version)
         except TokenDecryptError:
-            self._stop_reauth("token_unreadable", "The stored token cannot be decrypted with the configured key. Reconnect the account.")
+            raise StopSync("token_unreadable", "The stored token cannot be decrypted with the configured key. Reconnect the account.") from None
         # Refresh rules (Meta): token must be ≥24 h old and unexpired; refresh when within the window.
         last_issue = row.refreshed_at or row.issued_at
         if row.expires_at and row.expires_at - now < REFRESH_WINDOW and now - last_issue >= timedelta(hours=24):
             try:
                 fresh = self.client.refresh(token)
             except ProviderError as exc:
-                if exc.kind == "token_invalid":
+                if exc.kind in ("token_invalid", "rate_limited"):
                     raise
                 self._warn("token_refresh_failed", "Token refresh failed; the current token is still used until it expires.")
             else:
@@ -172,28 +134,73 @@ class _SyncJob:
                 store_token(self.db, self.cipher, self.connection, fresh.access_token, issued_at=now, expires_at=expires, refreshed=True)
                 self.connection.token_expires_at = expires
                 token = fresh.access_token
+                self.db.commit()
         elif row.key_version != self.cipher.current_version:  # opportunistic re-encryption after key rotation
             store_token(self.db, self.cipher, self.connection, token, issued_at=row.issued_at, expires_at=row.expires_at)
+            self.db.commit()
         return token
 
-    def _stop_reauth(self, code: str, message: str) -> None:
-        mark_needs_reauth(self.connection, code, message)
-        self.run.error_code, self.run.error_message = code, message
-        self._finish(IgSyncStatus.failed, success=False)
-        raise _StopSync()
+    # ---------------------------------------------------------------- profile
+    def _sync_profile(self) -> None:
+        profile = self.client.me(self.token, PROFILE_FIELDS)
+        apply_profile(self.connection, profile, self.observed)
+        hour = self.observed.replace(minute=0, second=0, microsecond=0)
+        for metric in PROFILE_SNAPSHOT_METRICS:
+            value = getattr(self.connection, metric)
+            self._upsert_account(metric, "snapshot", "lifetime", hour, hour, value)
+        self.db.commit()
 
     # ---------------------------------------------------------------- media
-    def _sync_media(self) -> list[InstagramMedia]:
-        limit = self.settings.instagram_sync_max_media
+    def _fetch_media(self, *, max_items: int, after: str | None) -> tuple[list[dict], str | None]:
+        fields = MEDIA_CORE_FIELDS + MEDIA_OPTIONAL_FIELDS
+        if any(w["code"] == "media_fields_unavailable" for w in self.warnings):
+            fields = MEDIA_CORE_FIELDS
         try:
-            items, reached_end = self.client.list_media(self.token, self.connection.ig_user_id, MEDIA_CORE_FIELDS + MEDIA_OPTIONAL_FIELDS, max_items=limit)
+            return self.client.list_media(self.token, self.connection.ig_user_id, fields, max_items=max_items, after=after)
         except ProviderError as exc:
-            if exc.kind != "invalid_request":
+            if exc.kind != "invalid_request" or fields == MEDIA_CORE_FIELDS:
                 raise
             self._warn("media_fields_unavailable", "Caption and surface type are not available for this account through Instagram Login.")
-            items, reached_end = self.client.list_media(self.token, self.connection.ig_user_id, MEDIA_CORE_FIELDS, max_items=limit)
+            return self.client.list_media(self.token, self.connection.ig_user_id, MEDIA_CORE_FIELDS, max_items=max_items, after=after)
 
-        rows: list[InstagramMedia] = []
+    def _sync_media(self) -> None:
+        c = self.connection
+        head, head_next = self._fetch_media(max_items=self.settings.instagram_sync_max_media, after=None)
+        self._upsert_media(head)
+        if c.media_backfill_cursor is None or c.media_full_pass_started_at is None:
+            # Start a new full pass: everything seen from here until the end of the list counts as "still exists".
+            c.media_full_pass_started_at = self.observed
+            c.media_backfill_cursor = head_next
+            reached_end = head_next is None
+        else:
+            reached_end = False
+        if not reached_end and self.settings.instagram_backfill_batch_size and c.media_backfill_cursor:
+            try:
+                older, nxt = self._fetch_media(max_items=self.settings.instagram_backfill_batch_size, after=c.media_backfill_cursor)
+            except ProviderError as exc:
+                if exc.kind != "invalid_request":
+                    raise
+                # Paging cursors can expire; restart the pass next time instead of failing the job.
+                self._warn("backfill_restarted", "The saved media paging position expired; the backfill restarts on the next sync.")
+                c.media_backfill_cursor = c.media_full_pass_started_at = None
+                older, nxt = [], "restart"
+            self._upsert_media(older)
+            if nxt != "restart":
+                c.media_backfill_cursor = nxt
+                reached_end = nxt is None
+        if reached_end and c.media_full_pass_started_at is not None:
+            # The whole list was read since the pass started: media not seen during it were deleted on Instagram.
+            self.db.execute(update(InstagramMedia).where(
+                InstagramMedia.connection_id == c.id, InstagramMedia.removed_at.is_(None),
+                InstagramMedia.last_seen_at < c.media_full_pass_started_at,
+            ).values(removed_at=self.observed).execution_options(synchronize_session=False))
+            c.media_backfill_completed_at = self.observed
+            c.media_backfill_cursor = c.media_full_pass_started_at = None
+        elif c.media_backfill_cursor:
+            self._warn("media_backfill_in_progress", "Older media are still being backfilled in batches; history fills in over the next syncs.")
+        self.db.commit()
+
+    def _upsert_media(self, items: list[dict]) -> None:
         seen: set[str] = set()
         for item in items:
             ig_media_id = str(item["id"])
@@ -211,81 +218,100 @@ class _SyncJob:
                 "posted_at": _ts(item.get("timestamp")),
                 "like_count": _count(item.get("like_count")),
                 "comments_count": _count(item.get("comments_count")),
-                "last_seen_at": self.captured_at,
+                "last_seen_at": self.observed,
                 "removed_at": None,
             }
-            stmt = insert(InstagramMedia).values(
+            self.db.execute(insert(InstagramMedia).values(
                 id=f"igm_{secrets.token_hex(8)}", workspace_id=self.connection.workspace_id, connection_id=self.connection.id,
-                ig_media_id=ig_media_id, first_seen_at=self.captured_at, **values,
-            ).on_conflict_do_update(index_elements=["connection_id", "ig_media_id"], set_=values)
-            self.db.execute(stmt)
-        self.db.flush()
-        if seen:
-            rows = list(self.db.scalars(select(InstagramMedia).where(
-                InstagramMedia.connection_id == self.connection.id, InstagramMedia.ig_media_id.in_(seen))
-                .order_by(InstagramMedia.posted_at.desc().nulls_last())))
-        if reached_end:
-            # The full media list was read: anything we stored but Instagram no longer returns was deleted there.
-            self.db.execute(update(InstagramMedia).where(
-                InstagramMedia.connection_id == self.connection.id, InstagramMedia.ig_media_id.not_in(seen or {""}),
-                InstagramMedia.removed_at.is_(None)).values(removed_at=self.captured_at).execution_options(synchronize_session=False))
-        else:
-            self._warn("media_truncated", f"Only the {limit} most recent media were synced (bounded manual sync).")
-        self.run.media_fetched = len(rows)
-        self.db.commit()
-        return rows
+                ig_media_id=ig_media_id, first_seen_at=self.observed, **values,
+            ).on_conflict_do_update(index_elements=["connection_id", "ig_media_id"], set_=values))
+        self._count("media_fetched", len(seen))
 
-    def _sync_media_insights(self, media: list[InstagramMedia]) -> None:
-        stored = 0
-        for item in media:  # /media returns top-level objects only (album children have no insights)
-            values, error = self._media_metric_values(item)
-            if error == "not_found":
-                item.removed_at = self.captured_at
+    # ---------------------------------------------------------------- media insights
+    def _insight_candidates(self) -> list[InstagramMedia]:
+        now = utcnow()
+        s = self.settings
+        recent_cutoff = now - timedelta(days=s.instagram_recent_media_days)
+        due = or_(
+            InstagramMedia.insights_checked_at.is_(None),
+            (InstagramMedia.posted_at >= recent_cutoff) & (InstagramMedia.insights_checked_at < now - timedelta(hours=s.instagram_recent_insights_refresh_hours)),
+            InstagramMedia.insights_checked_at < now - timedelta(days=s.instagram_older_insights_refresh_days),
+        )
+        return list(self.db.scalars(
+            select(InstagramMedia).where(
+                InstagramMedia.connection_id == self.connection.id, InstagramMedia.removed_at.is_(None),
+                or_(InstagramMedia.posted_at.is_(None), InstagramMedia.posted_at >= now - timedelta(days=s.instagram_insights_max_age_days)),
+                due,
+            ).order_by(InstagramMedia.insights_checked_at.asc().nulls_first(), InstagramMedia.posted_at.desc().nulls_last())
+            .limit(s.instagram_sync_max_media_insights)
+        ))
+
+    def _sync_media_insights(self) -> None:
+        candidates = self._insight_candidates()
+        for index, item in enumerate(candidates, 1):
+            metrics = [m for m in MEDIA_METRICS if m not in (item.unsupported_metrics or [])]
+            values, gone = self._media_metric_values(item, metrics)
+            item.insights_checked_at = self.observed
+            if gone:
+                item.removed_at = self.observed
                 continue
-            for metric in MEDIA_METRICS:
+            stored = 0
+            for metric in metrics:
                 value = values.get(metric)
-                self.db.execute(insert(InstagramMediaInsight).values(
-                    workspace_id=self.connection.workspace_id, media_id=item.id, metric=metric, period="lifetime",
-                    value=value, status="ok" if value is not None else "unavailable", captured_at=self.captured_at,
-                    api_version=self.client.api_version,
+                result = self.db.execute(insert(InstagramMediaInsight).values(
+                    workspace_id=self.connection.workspace_id, media_id=item.id, metric=metric, period="lifetime", value=value,
+                    status="ok" if value is not None else "unavailable", captured_at=self.observed, api_version=self.client.api_version,
+                    unit="count", source="instagram_api",
                 ).on_conflict_do_nothing(index_elements=["media_id", "metric", "captured_at"]))
-                stored += value is not None
-        self.run.media_insights_fetched = stored
+                stored += int(value is not None and result.rowcount > 0)
+            self._count("media_insights_fetched", stored)
+            if index % 5 == 0:
+                self.checkpoint("media_insights", 40 + int(30 * index / len(candidates)))
+        if len(candidates) == self.settings.instagram_sync_max_media_insights:
+            self._warn("media_insights_queued", "More media are due for an insights refresh; they are handled by the next syncs.")
         self.db.commit()
 
-    def _media_metric_values(self, item: InstagramMedia) -> tuple[dict[str, int], str | None]:
-        """All metrics in one call; if Instagram rejects the set (unsupported metric for this media type),
-        fall back to one call per metric so the supported ones are still collected."""
+    def _media_metric_values(self, item: InstagramMedia, metrics: list[str]) -> tuple[dict[str, int], bool]:
+        """All metrics in one call; if Instagram rejects the set, one call per metric so the supported ones are
+        still collected and permanently unsupported ones (#100 for that single metric) are remembered."""
+        if not metrics:
+            return {}, False
         try:
-            return _metric_values(self.client.media_insights(self.token, item.ig_media_id, MEDIA_METRICS)), None
+            return _metric_values(self.client.media_insights(self.token, item.ig_media_id, metrics)), False
         except ProviderError as exc:
             if exc.kind == "not_found":
-                return {}, "not_found"
+                return {}, True
             if exc.kind not in ("invalid_request", "permission_denied"):
                 raise
         values: dict[str, int] = {}
-        for metric in MEDIA_METRICS:
+        unsupported = list(item.unsupported_metrics or [])
+        for metric in metrics:
             try:
                 values.update(_metric_values(self.client.media_insights(self.token, item.ig_media_id, [metric])))
             except ProviderError as exc:
-                if exc.kind in ("token_invalid", "rate_limited", "unavailable"):
+                if exc.kind in FATAL_KINDS:
                     raise
-        if len(values) < len(MEDIA_METRICS):
+                if exc.kind == "invalid_request" and exc.provider_code == 100:
+                    unsupported.append(metric)
+        if unsupported != list(item.unsupported_metrics or []):
+            item.unsupported_metrics = sorted(set(unsupported))
+        if len(values) < len(metrics):
             self._warn("media_metrics_partial", "Some media metrics are not available for every media type; they are shown as unavailable.")
-        return values, None
+        return values, False
 
+    # ---------------------------------------------------------------- account insights
     def _sync_account_insights(self) -> None:
-        until = self.captured_at.replace(minute=0, second=0, microsecond=0)
+        until = self.observed.replace(minute=0, second=0, microsecond=0)
         since = until - timedelta(days=ACCOUNT_RANGE_DAYS)
-        stored = 0
-        totals = self._account_totals(since, until)
-        for metric in ACCOUNT_TOTAL_METRICS:
-            stored += self._upsert_account(metric, "total_value", since, until, totals.get(metric))
+        skip = set(self.connection.unsupported_account_metrics or [])
+        metrics = [m for m in ACCOUNT_TOTAL_METRICS if m not in skip]
+        totals = self._account_totals(metrics, since, until)
+        stored = sum(self._upsert_account(m, "total_value", "day", since, until, totals.get(m)) for m in metrics)
         try:
             series = self.client.account_insights(self.token, self.connection.ig_user_id, ACCOUNT_SERIES_METRICS, metric_type="time_series",
                                                   period="day", since=int(since.timestamp()), until=int(until.timestamp()))
         except ProviderError as exc:
-            if exc.kind in ("token_invalid", "rate_limited", "unavailable"):
+            if exc.kind in FATAL_KINDS:
                 raise
             self._warn("account_series_unavailable", "Daily reach is not available for this account.", degraded=True)
             series = []
@@ -295,70 +321,79 @@ class _SyncJob:
                 continue
             for point in entry.get("values") or []:
                 end = _ts(point.get("end_time"))
-                value = _count(point.get("value"))
                 if end is not None:
-                    stored += self._upsert_account(metric, "time_series", end - timedelta(days=1), end, value)
-        self.run.account_insights_fetched = stored
+                    stored += self._upsert_account(metric, "time_series", "day", end - timedelta(days=1), end, _count(point.get("value")))
+        self._count("account_insights_fetched", stored)
         self.db.commit()
 
-    def _account_totals(self, since: datetime, until: datetime) -> dict[str, int]:
-        def fetch(metrics: list[str]) -> dict[str, int]:
-            data = self.client.account_insights(self.token, self.connection.ig_user_id, metrics, metric_type="total_value", period="day",
+    def _account_totals(self, metrics: list[str], since: datetime, until: datetime) -> dict[str, int]:
+        def fetch(names: list[str]) -> dict[str, int]:
+            data = self.client.account_insights(self.token, self.connection.ig_user_id, names, metric_type="total_value", period="day",
                                                 since=int(since.timestamp()), until=int(until.timestamp()))
             return _metric_values(data)
 
+        if not metrics:
+            return {}
         try:
-            return fetch(ACCOUNT_TOTAL_METRICS)
+            return fetch(metrics)
         except ProviderError as exc:
-            if exc.kind in ("token_invalid", "rate_limited", "unavailable"):
+            if exc.kind in FATAL_KINDS:
                 raise
         values: dict[str, int] = {}
-        for metric in ACCOUNT_TOTAL_METRICS:
+        unsupported = list(self.connection.unsupported_account_metrics or [])
+        for metric in metrics:
             try:
                 values.update(fetch([metric]))
             except ProviderError as exc:
-                if exc.kind in ("token_invalid", "rate_limited", "unavailable"):
+                if exc.kind in FATAL_KINDS:
                     raise
+                if exc.kind == "invalid_request" and exc.provider_code == 100:
+                    unsupported.append(metric)
+        self.connection.unsupported_account_metrics = sorted(set(unsupported))
         self._warn("account_metrics_partial", "Some account metrics are not available (e.g. too few followers or permission); they are shown as unavailable.",
                    degraded=not values)
         return values
 
-    def _upsert_account(self, metric: str, metric_type: str, start: datetime, end: datetime, value: int | None) -> int:
+    def _upsert_account(self, metric: str, metric_type: str, period: str, start: datetime, end: datetime, value: int | None) -> int:
         status = "ok" if value is not None else "unavailable"
         self.db.execute(insert(InstagramAccountInsight).values(
             workspace_id=self.connection.workspace_id, connection_id=self.connection.id, metric=metric, metric_type=metric_type,
-            period="day", range_start=start, range_end=end, value=value, status=status, captured_at=self.captured_at,
-            api_version=self.client.api_version,
+            period=period, range_start=start, range_end=end, value=value, status=status, captured_at=self.observed,
+            api_version=self.client.api_version, unit="count", source="instagram_api",
         ).on_conflict_do_update(
-            index_elements=["connection_id", "metric", "metric_type", "period", "range_start", "range_end"],
-            set_={"value": value, "status": status, "captured_at": self.captured_at, "api_version": self.client.api_version},
+            constraint="uq_instagram_account_insights_range",
+            set_={"value": value, "status": status, "captured_at": self.observed, "api_version": self.client.api_version},
         ))
         return int(value is not None)
 
     # ---------------------------------------------------------------- comments
-    def _sync_comments(self, media: list[InstagramMedia]) -> None:
-        fetched = 0
+    def _sync_comments(self) -> None:
+        media = list(self.db.scalars(select(InstagramMedia).where(
+            InstagramMedia.connection_id == self.connection.id, InstagramMedia.removed_at.is_(None),
+            or_(InstagramMedia.comments_count.is_(None), InstagramMedia.comments_count > 0),
+        ).order_by(InstagramMedia.posted_at.desc().nulls_last()).limit(self.settings.instagram_sync_max_comment_media)))
         for item in media:
-            if item.removed_at is not None or item.comments_count == 0:
-                continue
-            try:
-                rows = self.client.comments(self.token, item.ig_media_id, COMMENT_FIELDS, limit=50)
-            except ProviderError as exc:
-                if exc.kind in ("token_invalid", "rate_limited", "unavailable"):
-                    raise
-                self._warn("comments_unavailable", "Comments could not be read for some media.", degraded=True)
-                continue
-            for row in rows:
-                fetched += self._upsert_comment(item, row, None)
-                for reply in ((row.get("replies") or {}).get("data") or []):
-                    if isinstance(reply, dict):
-                        fetched += self._upsert_comment(item, reply, str(row.get("id")))
-        self.run.comments_fetched = fetched
+            after: str | None = None
+            for _page in range(self.settings.instagram_comment_pages_per_media):
+                try:
+                    rows, after = self.client.comments_page(self.token, item.ig_media_id, COMMENT_FIELDS, limit=50, after=after)
+                except ProviderError as exc:
+                    if exc.kind in FATAL_KINDS:
+                        raise
+                    self._warn("comments_unavailable", "Comments could not be read for some media.", degraded=True)
+                    break
+                for row in rows:
+                    self._upsert_comment(item, row, None)
+                    for reply in ((row.get("replies") or {}).get("data") or []):
+                        if isinstance(reply, dict):
+                            self._upsert_comment(item, reply, str(row.get("id")))
+                if after is None:
+                    break
         self.db.commit()
 
-    def _upsert_comment(self, media: InstagramMedia, row: dict, parent_id: str | None) -> int:
+    def _upsert_comment(self, media: InstagramMedia, row: dict, parent_id: str | None) -> None:
         if not row.get("id"):
-            return 0
+            return
         values = {
             "media_id": media.id,
             "parent_ig_comment_id": _str(row.get("parent_id"), 64) or parent_id,
@@ -367,13 +402,13 @@ class _SyncJob:
             "like_count": _count(row.get("like_count")),
             "hidden": row.get("hidden") if isinstance(row.get("hidden"), bool) else None,
             "commented_at": _ts(row.get("timestamp")),
-            "last_seen_at": self.captured_at,
+            "last_seen_at": self.observed,
         }
         self.db.execute(insert(InstagramComment).values(
             id=f"igcm_{secrets.token_hex(8)}", workspace_id=self.connection.workspace_id, connection_id=self.connection.id,
-            ig_comment_id=str(row["id"]), first_seen_at=self.captured_at, **values,
+            ig_comment_id=str(row["id"]), first_seen_at=self.observed, **values,
         ).on_conflict_do_update(index_elements=["connection_id", "ig_comment_id"], set_=values))
-        return 1
+        self._count("comments_fetched", 1)
 
 
 # -------------------------------------------------------------------------------- parsing

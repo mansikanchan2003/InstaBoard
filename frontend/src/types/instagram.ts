@@ -91,18 +91,74 @@ export interface InstagramComment {
   commentedAt: string | null;
 }
 
-export interface SyncRun {
+export type SyncJobStatus = 'queued' | 'running' | 'succeeded' | 'partially_succeeded' | 'retrying' | 'failed' | 'cancelled';
+
+/** Durable background sync job (GET /sync-jobs/{id}). */
+export interface SyncJob {
   id: string;
-  trigger: string;
-  status: 'running' | 'success' | 'partial' | 'failed';
-  startedAt: string;
+  accountId: string;
+  trigger: 'connect' | 'manual' | 'scheduled';
+  status: SyncJobStatus;
+  terminal: boolean;
+  queuedAt: string;
+  startedAt: string | null;
   finishedAt: string | null;
+  progress: number;
+  progressStage: string | null;
+  recordsProcessed: number;
   mediaFetched: number;
   mediaInsightsFetched: number;
   accountInsightsFetched: number;
   commentsFetched: number;
+  retryCount: number;
+  maxRetries: number;
+  nextRetryAt: string | null;
+  cancelRequested: boolean;
   warnings: Array<{ code: string; message: string }>;
-  errorCode: string | null;
+  errorCategory: string | null;
   errorMessage: string | null;
   apiVersion: string;
+}
+
+export interface EnqueuedJob {
+  job: SyncJob;
+  /** An identical job was already queued/running; no new job was created. */
+  deduplicated: boolean;
+}
+
+export interface SyncStatus {
+  accountId: string;
+  connectionStatus: LiveConnectionStatus;
+  lastSuccessAt: string | null;
+  lastSyncStatus: string | null;
+  currentJob: SyncJob | null;
+  lastJob: SyncJob | null;
+  nextScheduledAt: string | null;
+  schedulingEnabled: boolean;
+  intervalMinutes: number;
+  backgroundAvailable: boolean;
+}
+
+export interface HistorySeries {
+  metric: string;
+  kind: 'daily_snapshot' | 'daily' | 'rolling_28d';
+  unit: string;
+  /** value null = no observation that day (a gap — never interpolated). */
+  points: Array<{ date: string; value: number | null }>;
+  observedDays: number;
+}
+
+export interface AccountHistory {
+  source: 'instagram_api';
+  days: number;
+  firstObservationAt: string | null;
+  series: HistorySeries[];
+  note: string;
+}
+
+export interface MediaHistory {
+  mediaId: string;
+  igMediaId: string;
+  unsupportedMetrics: string[];
+  series: Array<{ metric: string; unit: string; points: Array<{ observedAt: string; value: number | null }> }>;
 }

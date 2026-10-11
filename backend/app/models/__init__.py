@@ -8,7 +8,7 @@ from .content import ContentAnalytics, ContentItem
 from .engagement import Comment, CommentPeriodSummary, CommentSentimentDaily, Lead
 from .instagram import (
     InstagramAccountInsight, InstagramComment, InstagramConnection, InstagramDataDeletionRequest, InstagramMedia,
-    InstagramMediaInsight, InstagramOAuthState, InstagramSyncRun, InstagramToken,
+    InstagramMediaInsight, InstagramOAuthState, InstagramSyncRun, InstagramToken, WorkerHeartbeat,
 )
 from .intelligence import ActivityActor, ActivityEvent, Insight, Notification, RecommendedAction, Report, ReportCampaign, ReportContentItem
 from .workspace import ReferenceDocument, TeamMember, Workspace, WorkspaceDocument, WorkspaceSettings
@@ -16,7 +16,7 @@ from .workspace import ReferenceDocument, TeamMember, Workspace, WorkspaceDocume
 __all__ = [
     "AuthSession", "Invitation", "User", "WorkspaceDocument",
     "InstagramAccountInsight", "InstagramComment", "InstagramConnection", "InstagramDataDeletionRequest", "InstagramMedia",
-    "InstagramMediaInsight", "InstagramOAuthState", "InstagramSyncRun", "InstagramToken",
+    "InstagramMediaInsight", "InstagramOAuthState", "InstagramSyncRun", "InstagramToken", "WorkerHeartbeat",
     "AccountDailyMetric", "AccountKpi", "AccountReportingPeriod", "AccountTelemetry", "ActivityActor", "ActivityEvent",
     "AudienceBreakdown", "AudienceSnapshot", "Base", "Campaign", "CampaignDetailExtras", "CampaignLeadChannel",
     "CampaignLeadFunnelStage", "CampaignMetrics", "Comment", "CommentPeriodSummary", "CommentSentimentDaily",

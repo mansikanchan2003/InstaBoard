@@ -13,5 +13,5 @@ api_router.include_router(integrations.public)
 
 # Every workspace route requires a valid session. Mounting the dependency here (not per route) means a
 # newly added route cannot accidentally be served anonymously; per-route ``require(...)`` adds role checks.
-for router in [*core.routers, *engagement.routers, integrations.router]:
+for router in [*core.routers, *engagement.routers, integrations.router, integrations.sync_jobs]:
     api_router.include_router(router, dependencies=[Depends(require_auth)])

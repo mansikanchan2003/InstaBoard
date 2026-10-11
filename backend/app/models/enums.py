@@ -294,7 +294,16 @@ class IgConnectionStatus(StrEnum):
 
 
 class IgSyncStatus(StrEnum):
+    """Durable sync-job lifecycle (Phase 6). queued/running/retrying are *active*: at most one per account."""
+
+    queued = "queued"
     running = "running"
-    success = "success"
-    partial = "partial"
+    succeeded = "succeeded"
+    partially_succeeded = "partially_succeeded"
+    retrying = "retrying"
     failed = "failed"
+    cancelled = "cancelled"
+
+
+ACTIVE_JOB_STATES = ("queued", "running", "retrying")
+TERMINAL_JOB_STATES = ("succeeded", "partially_succeeded", "failed", "cancelled")
