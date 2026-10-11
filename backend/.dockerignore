@@ -1,0 +1,20 @@
+# Never send local secrets, environments or data into the build context.
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+.pgdata/
+.pgdata.log
+.celerybeat/
+celerybeat-schedule*
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+evaluation/results/
+tests/
+*.log
+*.pem
+*.key

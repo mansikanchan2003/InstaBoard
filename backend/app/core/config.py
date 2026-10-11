@@ -38,10 +38,17 @@ class Settings(BaseSettings):
     # Required — there is deliberately no default connection string.
     database_url: PostgresDsn
     database_echo: bool = False
+    # Per-process pool; total connections ≈ processes × (pool_size + max_overflow). Keep below Postgres max_connections.
+    db_pool_size: int = Field(default=5, ge=1, le=50)
+    db_max_overflow: int = Field(default=5, ge=0, le=50)
 
     api_prefix: str = "/api/v1"
     cors_origins: Annotated[list[str], NoDecode] = Field(default_factory=lambda: ["http://localhost:5173", "http://127.0.0.1:5173"])
     enable_docs: bool = True
+    # Phase 8 operational settings.
+    max_request_bytes: int = Field(default=1_048_576, ge=1024, le=50 * 1_048_576)  # 413 above this
+    log_format: Literal["text", "json"] = "text"  # use json in production (one JSON object per line)
+    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
 
     # --- authentication / sessions ---------------------------------------------------------
     # HMAC key for CSRF tokens and invitation tokens. REQUIRED in production (>= 32 random chars).
@@ -278,6 +285,14 @@ class Settings(BaseSettings):
             problems.append("CORS_ORIGINS must use https:// origins in production")
         if any("localhost" in o or "127.0.0.1" in o for o in self.cors_origins):
             problems.append("CORS_ORIGINS must not include localhost in production")
+        if self.enable_docs:
+            problems.append("ENABLE_DOCS must be false in production (the OpenAPI schema and docs UI are for development)")
+        if not self.frontend_url.startswith("https://"):
+            problems.append("FRONTEND_URL must be the https:// address of the web app in production (invitation links, OAuth return)")
+        if self.database_echo:
+            problems.append("DATABASE_ECHO must be false in production (it logs SQL with parameters)")
+        if self.log_level == "DEBUG":
+            problems.append("LOG_LEVEL=DEBUG is not allowed in production")
         if problems:
             raise ValueError("Unsafe production configuration: " + "; ".join(problems))
         return self

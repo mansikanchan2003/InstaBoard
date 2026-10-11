@@ -15,6 +15,11 @@ def build_engine(settings: Settings) -> Engine:
         str(settings.database_url),
         echo=settings.database_echo,
         pool_pre_ping=True,
+        # Never put bound parameters (password hashes, encrypted tokens, comment text…) into exception messages/logs.
+        hide_parameters=True,
+        pool_size=settings.db_pool_size,
+        max_overflow=settings.db_max_overflow,
+        pool_recycle=1800,
         # Fail fast when the database is down so /ready answers quickly.
         connect_args={"connect_timeout": 3},
     )

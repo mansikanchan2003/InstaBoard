@@ -214,7 +214,8 @@ def test_expired_or_unknown_invitations_look_the_same(client, anon_client, db_se
 
 # ---------------------------------------------------------------------------------- configuration
 def test_production_refuses_missing_or_weak_secrets():
-    base = dict(database_url=UNREACHABLE_DB, cors_origins="https://app.eko.example", cookie_secure=True)
+    base = dict(database_url=UNREACHABLE_DB, cors_origins="https://app.eko.example", cookie_secure=True, enable_docs=False,
+                frontend_url="https://app.eko.example")  # Phase 8: docs off + https frontend are also required
     with pytest.raises(ValidationError, match="SECRET_KEY must be set"):
         _prod(**base)
     with pytest.raises(ValidationError, match="placeholder"):

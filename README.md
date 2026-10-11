@@ -88,8 +88,43 @@ endpoints, the database model and the service-to-endpoint contract map are docum
 ```bash
 cd frontend && npm test && npm run build
 cd backend && .venv/Scripts/python -m pytest -q      # DB tests skip (with a reason) when TEST_DATABASE_URL is unreachable
+cd backend && .venv/Scripts/ruff check .             # lint gate used in CI
 cd backend && .venv/Scripts/alembic upgrade head && .venv/Scripts/alembic check   # apply migrations, then check model ↔ migration drift
 ```
+
+## Production deployment (Phase 8)
+
+The deployment is container-based: `docker-compose.prod.yml` runs these services:
+
+- `web`: nginx serving the React build and reverse-proxying `/api`;
+- `api`: uvicorn;
+- `worker` and `beat`: Celery;
+- `db`: PostgreSQL 17;
+- `redis`;
+- `migrate`: a one-shot migration job.
+
+Only `web` publishes a port. Put TLS in front of it.
+
+```bash
+cp deploy/env.production.example deploy/.env.production      # fill in real values; never commit
+docker compose -f docker-compose.prod.yml --env-file deploy/.env.production build
+docker compose -f docker-compose.prod.yml --env-file deploy/.env.production up -d
+```
+
+| Document | Contents |
+| --- | --- |
+| [docs/OPERATIONS.md](docs/OPERATIONS.md) | Architecture, deploy and rollback, backups and restore, health checks, logs and metrics, worker and scheduler, secret rotation, Meta and AI operations, troubleshooting |
+| [docs/SECURITY.md](docs/SECURITY.md) | Controls in place and how each was verified, known limitations, residual risks |
+| [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md) | Every environment variable with its default |
+
+**CI** ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs on every push and pull request:
+
+- **Backend:** ruff, migrations from an empty database, `alembic check`, a downgrade/upgrade round trip, and pytest against a Postgres service.
+- **Frontend:** typecheck, Vitest, and both builds.
+- **Docker:** both images built, Compose validated, and a check that images run as non-root.
+- **Security:** pip-audit, npm audit (high and above) and gitleaks.
+
+Meta and AI are mocked, so no production secrets are needed. CI does not deploy anything.
 
 ## Stack
 

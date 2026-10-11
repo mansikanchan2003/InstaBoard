@@ -15,6 +15,7 @@ import hashlib
 import hmac
 import secrets
 import threading
+import logging
 import time
 from collections import deque
 
@@ -77,6 +78,9 @@ def password_problems(password: str, *, min_length: int, email: str | None = Non
     return problems
 
 
+_rl_logger = logging.getLogger("instaboard.ratelimit")
+
+
 class RateLimiter:
     """In-process sliding-window limiter (per key). Suitable for a single API instance; a multi-instance
     deployment must back this with a shared store (e.g. Redis) or rate-limit at the reverse proxy."""
@@ -109,3 +113,69 @@ class RateLimiter:
                 self._events.clear()
             else:
                 self._events.pop(key, None)
+
+
+class RedisRateLimiter:
+    """Sliding-window limiter shared by every API process/replica (Redis sorted sets). Same interface as
+    ``RateLimiter``. If Redis is unreachable it falls back to a per-process limiter (logged) rather than failing
+    every login — limits then apply per process until Redis is back."""
+
+    def __init__(self, client, *, prefix: str = "instaboard:rl:") -> None:
+        self._redis = client
+        self._prefix = prefix
+        self._fallback = RateLimiter()
+
+    def _key(self, key: str) -> str:
+        return self._prefix + key
+
+    def hit(self, key: str, *, limit: int, window_seconds: float) -> tuple[bool, int]:
+        try:
+            now = time.time()
+            k = self._key(key)
+            pipe = self._redis.pipeline()
+            pipe.zremrangebyscore(k, 0, now - window_seconds)
+            pipe.zcard(k)
+            pipe.zrange(k, 0, 0, withscores=True)
+            _, count, oldest = pipe.execute()
+            if count >= limit:
+                first = oldest[0][1] if oldest else now
+                return False, max(1, int(first + window_seconds - now) + 1)
+            pipe = self._redis.pipeline()
+            pipe.zadd(k, {f"{now}:{secrets.token_hex(4)}": now})
+            pipe.expire(k, int(window_seconds) + 1)
+            pipe.execute()
+            return True, 0
+        except Exception as exc:  # noqa: BLE001
+            _rl_logger.warning("Redis rate limiter unavailable (%s); using per-process limits", exc.__class__.__name__)
+            return self._fallback.hit(key, limit=limit, window_seconds=window_seconds)
+
+    def count(self, key: str, *, window_seconds: float) -> int:
+        try:
+            now = time.time()
+            k = self._key(key)
+            self._redis.zremrangebyscore(k, 0, now - window_seconds)
+            return int(self._redis.zcard(k))
+        except Exception as exc:  # noqa: BLE001
+            _rl_logger.warning("Redis rate limiter unavailable (%s); using per-process limits", exc.__class__.__name__)
+            return self._fallback.count(key, window_seconds=window_seconds)
+
+    def reset(self, key: str | None = None) -> None:
+        try:
+            if key is None:
+                for k in self._redis.scan_iter(match=self._prefix + "*"):
+                    self._redis.delete(k)
+            else:
+                self._redis.delete(self._key(key))
+        except Exception:  # noqa: BLE001
+            pass
+        self._fallback.reset(key)
+
+
+def build_rate_limiter(redis_url: str | None):
+    """Shared Redis limiter when REDIS_URL is configured, else the in-process limiter."""
+    if not redis_url:
+        return RateLimiter()
+    import redis
+
+    client = redis.Redis.from_url(redis_url, socket_timeout=0.5, socket_connect_timeout=0.5)
+    return RedisRateLimiter(client)

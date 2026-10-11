@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 
 from app.api.deps import require_auth
-from app.api.routes import ai, auth, core, engagement, integrations
+from app.api.routes import ai, auth, core, engagement, integrations, ops
 
 api_router = APIRouter()
 
@@ -13,5 +13,5 @@ api_router.include_router(integrations.public)
 
 # Every workspace route requires a valid session. Mounting the dependency here (not per route) means a
 # newly added route cannot accidentally be served anonymously; per-route ``require(...)`` adds role checks.
-for router in [*core.routers, *engagement.routers, integrations.router, integrations.sync_jobs, ai.ai, ai.analytics_router]:
+for router in [*core.routers, *engagement.routers, integrations.router, integrations.sync_jobs, ai.ai, ai.analytics_router, ops.ops]:
     api_router.include_router(router, dependencies=[Depends(require_auth)])

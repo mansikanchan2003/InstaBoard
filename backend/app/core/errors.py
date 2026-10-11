@@ -43,7 +43,7 @@ class NotFoundError(ApiError):
 class UnprocessableError(ApiError):
     """Well-formed request that fails a business rule (e.g. end date before start date)."""
 
-    status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+    status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
     code = "validation_error"
 
 
@@ -61,6 +61,17 @@ class NotImplementedInPhaseError(ApiError):
 
 def _body(code: str, message: str, details: Any = None) -> dict[str, Any]:
     return {"error": {"code": code, "message": message, "details": details}}
+
+
+def log_db_error(exc: BaseException) -> None:
+    """Log a database error without its message: PostgreSQL messages and DETAIL lines can echo submitted values
+    (emails, tokens, comment text). Only the type, SQLSTATE and stack frames are recorded."""
+    import traceback
+
+    orig = getattr(exc, "orig", None)
+    sqlstate = getattr(orig, "sqlstate", None) or getattr(orig, "pgcode", None)
+    frames = "".join(traceback.format_tb(exc.__traceback__)) if exc.__traceback__ else ""
+    logger.error("Database error type=%s sqlstate=%s frames=\n%s", exc.__class__.__name__, sqlstate, frames)
 
 
 def register_error_handlers(app: FastAPI) -> None:
@@ -81,7 +92,13 @@ def register_error_handlers(app: FastAPI) -> None:
             {"location": list(err.get("loc", ())), "message": err.get("msg", "Invalid value"), "type": err.get("type")}
             for err in exc.errors()
         ]
-        return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, content=_body("validation_error", "Request validation failed", details))
+        return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, content=_body("validation_error", "Request validation failed", details))
+
+    from .middleware import RequestBodyTooLarge
+
+    @app.exception_handler(RequestBodyTooLarge)
+    async def _too_large(_: Request, exc: RequestBodyTooLarge) -> JSONResponse:
+        return JSONResponse(status_code=413, content=_body("payload_too_large", f"Request body exceeds the {exc.limit}-byte limit."))
 
     @app.exception_handler(StarletteHTTPException)
     async def _http(_: Request, exc: StarletteHTTPException) -> JSONResponse:
@@ -96,7 +113,7 @@ def register_error_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(SQLAlchemyError)
     async def _db_error(_: Request, exc: SQLAlchemyError) -> JSONResponse:
-        logger.exception("Database error")
+        log_db_error(exc)
         return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=_body("internal_error", "An internal error occurred"))
 
     @app.exception_handler(Exception)

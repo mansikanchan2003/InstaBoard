@@ -18,12 +18,14 @@ from app.api.router import api_router
 from app.core.config import Settings, get_settings
 from app.core.database import build_engine, build_session_factory, check_connection
 from app.core.errors import register_error_handlers
-from app.core.security import RateLimiter
+from app.core.logging import configure_logging
+from app.core.middleware import BodySizeLimitMiddleware, RequestContextMiddleware, SecurityHeadersMiddleware
+from app.core.security import build_rate_limiter
 from app.worker.queue import make_dispatcher
 
 logger = logging.getLogger("instaboard.api")
 
-_SENSITIVE_QUERY = re.compile(r"((?:code|state|signed_request|access_token|client_secret)=)[^&\s\"]+")
+_SENSITIVE_QUERY = re.compile(r"(?<![A-Za-z0-9_])((?:code|state|signed_request|access_token|client_secret)=)[^&\s\"]+")
 
 
 class RedactSecretsFilter(logging.Filter):
@@ -58,9 +60,10 @@ Backend for **Eko InstaBoard** (Instagram Campaign Intelligence Platform).
 
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or get_settings()
+    configure_logging(fmt=settings.log_format, level=settings.log_level)
     app = FastAPI(
         title=settings.app_name,
-        version="0.3.0",
+        version="0.4.0",
         description=DESCRIPTION,
         docs_url="/docs" if settings.enable_docs else None,
         redoc_url=None,
@@ -69,7 +72,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.settings = settings
     app.state.engine = build_engine(settings)
     app.state.session_factory = build_session_factory(app.state.engine)
-    app.state.rate_limiter = RateLimiter()
+    # Shared across API processes/replicas through Redis when REDIS_URL is set (falls back per process if Redis is down).
+    app.state.rate_limiter = build_rate_limiter(settings.redis_url)
     # Publishes "job ready" messages to Redis for the Celery worker (None without REDIS_URL → manual sync answers 503).
     app.state.job_dispatcher = make_dispatcher(settings.redis_url)
 
@@ -78,8 +82,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_origins=settings.cors_origins,
         allow_credentials=True,
         allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-        allow_headers=["Content-Type", "Accept", "X-CSRF-Token"],
+        allow_headers=["Content-Type", "Accept", "X-CSRF-Token", "X-Request-ID"],
+        expose_headers=["X-Request-ID", "Retry-After"],
     )
+    # Added after CORS → they wrap it (outermost last): request id/logging → security headers → body limit → CORS.
+    app.add_middleware(BodySizeLimitMiddleware, max_bytes=settings.max_request_bytes)
+    app.add_middleware(SecurityHeadersMiddleware, hsts=settings.cookie_secure)
+    app.add_middleware(RequestContextMiddleware)
     register_error_handlers(app)
 
     @app.get("/health", tags=["health"], summary="Liveness: the process is up (does not touch the database)")

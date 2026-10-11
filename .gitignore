@@ -43,3 +43,7 @@ celerybeat-schedule*
 
 # AI evaluation outputs (local)
 backend/evaluation/results/
+
+# Deployment secrets and local backups
+deploy/.env.production
+backups/

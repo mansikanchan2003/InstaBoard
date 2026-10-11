@@ -27,7 +27,7 @@ from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session
 
 from app.core.config import Settings
-from app.core.errors import ApiError, ConflictError, NotFoundError
+from app.core.errors import ApiError, NotFoundError
 from app.core.tenancy import bind_workspace
 from app.models import (
     InstagramAccountInsight, InstagramConnection, InstagramDataDeletionRequest, InstagramMedia, InstagramOAuthState,

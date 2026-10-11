@@ -1,0 +1,12 @@
+# Lint gate used in CI: correctness rules only (syntax errors, undefined names, unused imports/variables).
+target-version = "py312"
+line-length = 160
+extend-exclude = [".venv", ".pgdata", "evaluation/results"]
+
+[lint]
+select = ["E9", "F63", "F7", "F82", "F401", "F841"]
+
+[lint.per-file-ignores]
+# pytest fixtures are imported into test modules on purpose (F401/F811 false positives).
+"tests/*" = ["F401", "F811"]
+"migrations/*" = ["F401"]

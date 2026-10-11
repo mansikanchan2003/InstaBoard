@@ -758,10 +758,12 @@ INSTABOARD_LIVE_AI_EVAL=1 .venv/Scripts/python -m pytest -q tests/test_ai_evalua
 
 ## Security boundaries
 
-- **Not production-hardened yet.** Before any deployment:
-  - serve over HTTPS with `APP_ENV=production` (which enforces `SECRET_KEY`, `COOKIE_SECURE` and https-only CORS);
-  - keep `ENABLE_DOCS=false`;
-  - run behind a reverse proxy that sets the client IP.
+- **Production hardening (Phase 8):**
+  - Security headers, a 1 MiB request limit, structured redacted logs with request and job IDs, and database errors logged without values.
+  - Rate limits shared through Redis, and stricter production startup checks (docs off, https frontend, no SQL echo or DEBUG logging).
+  - Housekeeping of expired sessions and states.
+  - An Owner/Admin `GET /api/v1/ops/status` endpoint.
+  - Deploy with `docker-compose.prod.yml` behind TLS. See [docs/OPERATIONS.md](../docs/OPERATIONS.md) and [docs/SECURITY.md](../docs/SECURITY.md).
 - **Not implemented yet:**
   - email verification and self-service password reset (an admin re-invites instead);
   - multi-factor authentication and SSO;
@@ -770,7 +772,7 @@ INSTABOARD_LIVE_AI_EVAL=1 .venv/Scripts/python -m pytest -q tests/test_ai_evalua
   - a shared rate-limit store. Limits are per process, so several workers multiply them; use Redis or similar.
 - **IP-based limits** use the direct client address. Behind a proxy, configure trusted forwarded headers, or every user shares the proxy's IP.
 - **Dependency advisories:**
-  - **Backend:** `pip-audit` (2026-10-11) reports advisories for **Starlette 0.41.3**, which is pinned by FastAPI 0.115.6. Upgrading FastAPI/Starlette is the next maintenance task.
+  - **Backend:** FastAPI was upgraded to 0.142.4 (Starlette 1.7.0) in Phase 8, and `pip-audit` reports no known vulnerabilities (2026-10-11).
   - **Frontend:** `npm audit` reports a react-router 6 open-redirect advisory (backslash paths). The app's only user-controlled redirect (`?next=`) is validated by `safeNext`, which rejects backslashes and absolute URLs. The remaining advisories are dev and test tooling only.
 - **Instagram tokens** exist only server-side: encrypted in `instagram_tokens`, never in code, responses or logs. The app secret and encryption key live only in `backend/.env`. The backend never sees Instagram passwords, because users sign in on instagram.com. AI provider keys likewise exist only in `backend/.env` and are never logged or returned.
 - **Nothing is published or sent.** No endpoint publishes to Instagram, posts replies, sends DMs or WhatsApp messages, or emails reports or invitations. The demo-account sync and disconnect endpoints (`/accounts/{id}/sync`, `DELETE /accounts/{id}`) still return `501`.

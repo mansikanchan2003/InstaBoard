@@ -6,7 +6,6 @@ from __future__ import annotations
 import re
 
 import pytest
-from fastapi.routing import APIRoute
 
 from app.main import create_app
 
@@ -25,17 +24,19 @@ def test_every_api_route_requires_authentication(anon_client):
     """Fails if a new route is added without being mounted behind authentication."""
     app = create_app(make_settings(UNREACHABLE_DB))
     checked = 0
-    for route in app.routes:
-        if not isinstance(route, APIRoute) or not route.path.startswith("/api/v1"):
+    # Walk the OpenAPI schema: it lists every mounted operation regardless of how the framework nests routers
+    # (FastAPI ≥ 0.13x keeps included routers lazily, so ``app.routes`` is no longer a flat list).
+    for route_path, operations in app.openapi()["paths"].items():
+        if not route_path.startswith("/api/v1"):
             continue
-        for method in route.methods - {"HEAD", "OPTIONS"}:
-            if (method, route.path) in PUBLIC_ROUTES:
+        for method in (m.upper() for m in operations if m.upper() in {"GET", "POST", "PUT", "PATCH", "DELETE"}):
+            if (method, route_path) in PUBLIC_ROUTES:
                 continue
-            path = re.sub(r"\{[^}]+\}", "probe-id", route.path)
+            path = re.sub(r"\{[^}]+\}", "probe-id", route_path)
             response = anon_client.request(method, path, json={})
-            assert response.status_code == 401, (method, route.path, response.status_code)
+            assert response.status_code == 401, (method, route_path, response.status_code)
             checked += 1
-    assert checked >= 75
+    assert checked >= 105  # 115 operations minus 7 public ones are checked today; a drop means routes went missing from the check
 
 
 # ---------------------------------------------------------------------------------------- viewer
