@@ -25,6 +25,11 @@ InstaBoard/
   - A 404 renders the screen's "not found" state.
   - A `501 not_available` (account sync, disconnect, AI regeneration) and network failures appear in error states and toasts.
   - The app **never** falls back to demo data after an API error.
+- **Sign-in differs by mode:**
+  - **API mode** requires an account. Every workspace screen waits for `GET /auth/me`, and nothing protected is fetched or shown before it resolves.
+  - Unauthenticated visitors go to `/login`, and the app returns them to the page they asked for after sign-in.
+  - A session that expires or is revoked mid-use sends you back to `/login` with an explanation.
+  - **Demo mode** has no accounts and works exactly as before. `/login` and `/accept-invite` simply redirect to the dashboard.
 
 ### Run everything locally (API mode)
 
@@ -41,6 +46,7 @@ cp .env.example .env                                             # set a local-o
 .venv/Scripts/python -m scripts.local_postgres init              # or: docker compose --env-file backend/.env up -d db  (repo root)
 .venv/Scripts/alembic upgrade head
 .venv/Scripts/python -m scripts.seed_demo_data                   # idempotent
+.venv/Scripts/python -m scripts.create_owner --email you@example.com   # first sign-in account; prompts for a password
 .venv/Scripts/python -m uvicorn app.main:app --reload --port 8100   # docs: http://localhost:8100/docs
 
 # 2. Frontend (from frontend/, second terminal)
@@ -48,7 +54,9 @@ npm install
 npm run dev:api                                                  # http://localhost:5173
 ```
 
-Later sessions only need `python -m scripts.local_postgres start`, the uvicorn command, and `npm run dev:api`.
+Later sessions only need `python -m scripts.local_postgres start` (or the Docker container), the uvicorn command, and `npm run dev:api`.
+
+Sign in at http://localhost:5173/login with the account you created. Then use Settings → Workspace & Team → **Invite Team Member** to create one-time invitation links for colleagues; no email is sent, so copy the link to them. For stable sessions across backend restarts, set `SECRET_KEY` in `backend/.env` (see `backend/.env.example`).
 
 ### Frontend scripts (run from `frontend/`)
 
@@ -58,7 +66,7 @@ Later sessions only need `python -m scripts.local_postgres start`, the uvicorn c
 | `npm run build` / `npm run build:api` | Type-checks (`tsc -b`) and builds `dist/` for demo / API mode |
 | `npm run preview` | Serves the production build locally (client-side routes refresh correctly) |
 | `npm run typecheck` | TypeScript only |
-| `npm test` | Vitest: route smoke tests, demo-data consistency, formatter and API-client tests |
+| `npm test` | Vitest: route smoke tests, demo-data consistency, formatter, API-client, mutation and auth (api-mode login/expiry/CSRF) tests |
 | `npm run export:demo-data` | Regenerates the backend seed file and contract fixture from `src/data` |
 
 Configuration lives in `frontend/.env.example` (`VITE_DATA_SOURCE=demo|api`, `VITE_API_BASE_URL`). Backend setup,
@@ -221,20 +229,24 @@ behave alike. Endpoints and example bodies: [backend/README.md](backend/README.m
 - **No Meta / Instagram integration:** `POST /accounts/{id}/sync` and `DELETE /accounts/{id}` return `501`, and
   the UI shows that message. The connect flow remains a UI walkthrough with no OAuth.
 - **No AI provider:** insights, briefs and narratives are stored demo output. `POST /insights/regenerate` returns `501`.
-- **No authentication:** every request acts as the seeded session user. Run the backend locally only.
+- **Authentication (Phase 4):** email and password with server-side sessions, plus invitations by link. There is no email delivery, password reset, MFA or SSO yet. See [backend/README.md](backend/README.md#authentication--authorization-phase-4) for the role matrix and remaining risks.
 - **Still client-side in both modes:**
   - report figures (computed from campaign/content data fetched via the API);
   - CSV downloads;
   - the global-search index;
-  - static UI config: notification trigger labels, and the session user shown in the header.
+  - static UI config: notification trigger labels.
 - **No scheduler or email:** report schedules and recipients are saved, but nothing is delivered.
 
-## Recommended next step (Phase 4)
+## Recommended next steps
 
-1. **Authentication and roles:** add sign-in (e.g. OAuth2/OIDC with server-side sessions), resolve the workspace
-   from the principal in `app/api/deps.py`, and enforce Owner/Admin/Editor/Viewer on write routes.
-2. **Meta integration:** Facebook Login on the backend, tokens encrypted at rest, ingestion jobs for media,
-   insights and comments on a scheduler with rate-limit handling. Real rows then replace `is_demo` rows.
+1. **Meta integration:**
+   - Facebook Login on the backend, with tokens encrypted at rest and scoped to a workspace.
+   - Ingestion jobs for media, insights and comments, run on a scheduler with rate-limit handling.
+   - Real rows then replace `is_demo` rows.
+2. **Production hardening:**
+   - HTTPS deployment, with a shared rate-limit store.
+   - Email delivery for invitations and password reset; MFA and SSO.
+   - FastAPI/Starlette upgrade, to clear pip-audit advisories.
 3. **Server-side reports:** move the report engine to the backend, add PDF/XLSX export and scheduled delivery.
 4. **AI provider:** generate insights from persisted metrics, with provenance and human review before anything is
    shown as a recommendation.

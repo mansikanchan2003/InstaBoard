@@ -6,7 +6,8 @@ import { useQuery } from '@/hooks/useQuery';
 import { cn } from '@/lib/format';
 import { accountService } from '@/services/accounts';
 import { notificationService } from '@/services/notifications';
-import { sessionUser, sessionWorkspace } from '@/services/workspace';
+import { useAuth } from '@/app/AuthContext';
+import { sessionWorkspace } from '@/services/workspace';
 import { Button } from '@/components/ui/Button';
 import { Dropdown, MenuItem } from '@/components/ui/Controls';
 import { Icon } from '@/components/ui/Icon';
@@ -32,6 +33,12 @@ const statusMeta = {
 export function TopBar() {
   const navigate = useNavigate();
   const toast = useToast();
+  const auth = useAuth();
+  const signOut = async () => {
+    await auth.logout();
+    toast({ tone: 'success', title: 'Signed out', description: 'Your session was ended on the server.' });
+    navigate('/login', { replace: true });
+  };
   const { setMobileNavOpen, lastSyncedLabel, setLastSyncedLabel } = useAppUi();
   const accounts = useQuery('accounts:list', accountService.list);
   const unread = useQuery('notifications:unread', notificationService.unreadCount);
@@ -179,13 +186,35 @@ export function TopBar() {
             <span className="absolute top-0 right-0 w-4 h-4 rounded-full bg-status-paused text-[10px] font-bold text-white flex items-center justify-center tnum">{unread.data}</span>
           )}
         </button>
-        <button type="button" className="flex items-center gap-2 pl-1" onClick={() => navigate('/settings')} aria-label="Profile and workspace settings">
-          <Avatar name={sessionUser.name} />
-          <span className="hidden xl:flex flex-col text-left">
-            <span className="font-label-sm text-xs text-text-primary font-bold leading-none">{sessionUser.name}</span>
-            <span className="text-[10px] text-text-secondary leading-tight">{sessionUser.role}</span>
-          </span>
-        </button>
+        <Dropdown
+          label="Account"
+          className="w-60"
+          trigger={({ toggle, open }) => (
+            <button type="button" className="flex items-center gap-2 pl-1" onClick={toggle} aria-expanded={open} aria-haspopup="menu" aria-label="Account menu">
+              <Avatar name={auth.displayName} />
+              <span className="hidden xl:flex flex-col text-left">
+                <span className="font-label-sm text-xs text-text-primary font-bold leading-none">{auth.displayName}</span>
+                <span className="text-[10px] text-text-secondary leading-tight">{auth.displayRole}</span>
+              </span>
+            </button>
+          )}
+        >
+          {(close) => (
+            <>
+              <div className="px-3 pt-1.5 pb-2 border-b border-border-strong">
+                <p className="text-label-md font-semibold text-text-primary truncate">{auth.displayName}</p>
+                <p className="text-[11px] text-text-tertiary truncate">{auth.me ? `${auth.me.user.email} · ${auth.workspaceName}` : 'Demo identity (no account)'}</p>
+              </div>
+              <MenuItem icon="settings" onClick={() => { close(); navigate('/settings'); }}>Settings</MenuItem>
+              <MenuItem icon="shield_person" onClick={() => { close(); navigate('/settings?tab=security'); }}>Security & sessions</MenuItem>
+              {auth.status === 'authenticated' ? (
+                <MenuItem icon="logout" danger onClick={() => { close(); void signOut(); }}>Sign out</MenuItem>
+              ) : (
+                <p className="px-3 py-2 text-[11px] text-text-tertiary">Demo mode has no accounts — run in API mode to sign in.</p>
+              )}
+            </>
+          )}
+        </Dropdown>
       </div>
     </header>
   );

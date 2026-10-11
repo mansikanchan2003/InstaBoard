@@ -10,6 +10,7 @@ from sqlalchemy import delete, distinct, func, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.core.config import Settings
 from app.core.errors import ConflictError, NotFoundError, NotImplementedInPhaseError, UnprocessableError
 from app.models import (
     ActivityActor,
@@ -36,8 +37,10 @@ from app.schemas.base import ev, num
 from app.schemas.core import TeamMemberOut
 from app.schemas.inputs import TeamAccessIn, TeamInviteIn, WorkspaceSettingsIn
 
-from .common import IST, current_workspace, day_label, iso_ist, ist_wallclock, reference, session_member, utcnow
+from .common import IST, current_workspace, day_label, iso_ist, ist_wallclock, reference, session_member, utcnow, workspace_doc
 from .audit import record_activity, record_user_change
+from .auth import ForbiddenError
+from .permissions import can_grant, can_manage_member
 from .core import find_lead_by_handle, lead_out, member_out, new_lead, validate_lead_refs
 
 # ====================================================================================== comments
@@ -297,11 +300,11 @@ def regenerate_insights() -> None:
 
 
 def insights_overview(db: Session) -> dict:
-    return reference(db, "insights_overview")
+    return workspace_doc(db, "insights_overview")
 
 
 def executive_brief(db: Session) -> dict:
-    return reference(db, "executive_brief")
+    return workspace_doc(db, "executive_brief")
 
 
 # ======================================================================================= reports
@@ -358,7 +361,7 @@ def get_report(db: Session, report_id: str) -> s.ReportOut:
 
 def report_reference(db: Session) -> s.ReportReferenceOut:
     spend = {cid: amount for cid, amount in db.execute(select(Campaign.id, Campaign.boost_spend_inr).where(Campaign.boost_spend_inr.is_not(None)))}
-    return s.ReportReferenceOut(boost_spend_inr=spend, cpl_benchmark_inr=reference(db, "report_reference")["cplBenchmarkInr"])
+    return s.ReportReferenceOut(boost_spend_inr=spend, cpl_benchmark_inr=workspace_doc(db, "report_reference")["cplBenchmarkInr"])
 
 
 def _apply_report_config(db: Session, report: Report, body: s.ReportConfigIn) -> None:
@@ -570,7 +573,7 @@ def activity_summary(db: Session) -> s.ActivitySummaryOut:
     ws = current_workspace(db)
     start = datetime.combine(ws.reporting_start, time.min, IST)
     end = datetime.combine(ws.reporting_end + timedelta(days=1), time.min, IST)
-    member_ids = select(TeamMember.id)
+    member_ids = select(TeamMember.id).where(TeamMember.workspace_id == ws.id)
     in_period = (ActivityEvent.occurred_at >= start) & (ActivityEvent.occurred_at < end)
     is_operator = ActivityEvent.actor_id.in_(member_ids)
     issue = ActivityEvent.outcome.in_([ActivityOutcome.warning, ActivityOutcome.failed, ActivityOutcome.resolved])
@@ -586,7 +589,7 @@ def activity_summary(db: Session) -> s.ActivitySummaryOut:
     ).one()
     total, automated, automated_ok, issues, addressed, active_ops = (int(x or 0) for x in row)
     return s.ActivitySummaryOut(
-        total=total, previous_period_total=reference(db, "activity_meta")["previousPeriodEventTotal"], automated=automated,
+        total=total, previous_period_total=workspace_doc(db, "activity_meta")["previousPeriodEventTotal"], automated=automated,
         operator=total - automated, issues=issues, issues_addressed=addressed, active_operators=active_ops,
         pipeline_health=num(automated_ok / automated * 100) if automated else 100,
     )
@@ -671,7 +674,20 @@ def settings_environment(db: Session) -> dict:
 
 
 def settings_session(db: Session) -> dict:
-    return reference(db, "settings_session")
+    """The caller's real session (Settings → Security)."""
+    from app.models import AuthSession
+
+    from .auth import describe_device
+
+    session = db.get(AuthSession, _actor_ctx(db).session_id)
+    if session is None:
+        raise NotFoundError("Session", "current")
+    return {
+        "device": describe_device(session.user_agent),
+        "authMethod": "Email + password (Argon2id) · HttpOnly session cookie",
+        "startedAt": session.created_at.astimezone(IST).strftime("%b %d, %Y, %I:%M %p IST"),
+        "origin": session.ip_address or "Unknown",
+    }
 
 
 def notification_trigger_meta(db: Session) -> list:
@@ -696,7 +712,19 @@ def _name_from_email(email: str) -> str:
     return " ".join(p[0].upper() + p[1:] for p in parts) or email
 
 
-def invite_member(db: Session, body: TeamInviteIn) -> TeamMemberOut:
+def _actor_ctx(db: Session):
+    from .common import auth_context
+
+    return auth_context(db)
+
+
+def invite_member(db: Session, body: TeamInviteIn, *, settings: Settings) -> s.TeamInviteOut:
+    """Creates a pending membership and a one-time invitation link (no email is sent in this phase)."""
+    from .auth import create_invitation
+
+    ctx = _actor_ctx(db)
+    if not can_grant(ctx.role, body.access):
+        raise ForbiddenError(f"Your role ({ctx.role}) cannot invite members as {body.access}.")
     ws = current_workspace(db)
     if db.scalar(select(TeamMember).where(TeamMember.workspace_id == ws.id, TeamMember.email == body.email)):
         raise ConflictError(f"{body.email} is already a member of this workspace.")
@@ -708,8 +736,11 @@ def invite_member(db: Session, body: TeamInviteIn) -> TeamMemberOut:
     )
     db.add(member)
     db.flush()
+    token = create_invitation(db, settings, member=member, invited_by_member_id=ctx.member_id)
     _team_event(db, "Workspace Invitation Created", f"Invited {member.email} with {ev(member.access)} access.", member)
-    return member_out(member)
+    base = member_out(member).model_dump()
+    return s.TeamInviteOut(**base, invite_url=f"{settings.frontend_url.rstrip('/')}/accept-invite#token={token}",
+                           invite_expires_in_hours=settings.invitation_ttl_hours)
 
 
 def _get_member(db: Session, member_id: str) -> TeamMember:
@@ -720,9 +751,14 @@ def _get_member(db: Session, member_id: str) -> TeamMember:
 
 
 def update_member_access(db: Session, member_id: str, body: TeamAccessIn) -> TeamMemberOut:
+    ctx = _actor_ctx(db)
     member = _get_member(db, member_id)
     if ev(member.access) == "Owner":
         raise ConflictError("The workspace owner role cannot be changed.")
+    if member.id == ctx.member_id:
+        raise ForbiddenError("You cannot change your own role.")
+    if not can_manage_member(ctx.role, ev(member.access)) or not can_grant(ctx.role, body.access):
+        raise ForbiddenError(f"Your role ({ctx.role}) cannot change this member to {body.access}.")
     before = ev(member.access)
     member.access = body.access
     db.flush()
@@ -732,12 +768,21 @@ def update_member_access(db: Session, member_id: str, body: TeamAccessIn) -> Tea
 
 
 def remove_member(db: Session, member_id: str) -> dict[str, str]:
+    from .auth import revoke_sessions
+
+    ctx = _actor_ctx(db)
     member = _get_member(db, member_id)
     if ev(member.access) == "Owner":
         raise ConflictError("The workspace owner cannot be removed.")
+    if member.id == ctx.member_id:
+        raise ForbiddenError("You cannot remove yourself.")
+    if not can_manage_member(ctx.role, ev(member.access)):
+        raise ForbiddenError(f"Your role ({ctx.role}) cannot remove a member with {ev(member.access)} access.")
     invited = ev(member.status) == "invited"
     _team_event(db, "Invitation Revoked" if invited else "Member Removed",
                 f"Revoked the pending invitation for {member.email}." if invited else f"Removed {member.name} from the workspace.", member)
+    if member.user_id:  # sign them out of this workspace immediately
+        revoke_sessions(db, user_id=member.user_id, reason="membership_removed", workspace_id=member.workspace_id)
     db.delete(member)
     db.flush()
     return {"id": member_id}

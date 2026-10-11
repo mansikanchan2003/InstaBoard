@@ -26,11 +26,11 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .base import Base, DemoMixin, TimestampMixin, str_enum
+from .base import Base, DemoMixin, TimestampMixin, str_enum, WorkspaceOwned
 from .enums import AccountStatus, AccountType, AudienceDimension, KpiMetric, SyncRunStatus, SyncTrigger, TrendMetric
 
 
-class InstagramAccount(TimestampMixin, DemoMixin, Base):
+class InstagramAccount(WorkspaceOwned, TimestampMixin, DemoMixin, Base):
     __tablename__ = "instagram_accounts"
     __table_args__ = (
         Index("uq_instagram_accounts_primary", "workspace_id", unique=True, postgresql_where=text("is_primary")),
@@ -38,7 +38,6 @@ class InstagramAccount(TimestampMixin, DemoMixin, Base):
     )
 
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
-    workspace_id: Mapped[str] = mapped_column(ForeignKey("workspaces.id", ondelete="CASCADE"), index=True)
     display_name: Mapped[str] = mapped_column(String(200))
     handle: Mapped[str] = mapped_column(String(64), unique=True)
     initials: Mapped[str] = mapped_column(String(4))
@@ -72,7 +71,7 @@ class AccountTelemetry(TimestampMixin, DemoMixin, Base):
     document: Mapped[dict[str, Any]] = mapped_column()
 
 
-class SyncLog(TimestampMixin, DemoMixin, Base):
+class SyncLog(WorkspaceOwned, TimestampMixin, DemoMixin, Base):
     __tablename__ = "sync_logs"
     __table_args__ = (Index("ix_sync_logs_account_executed", "account_id", "executed_at"),)
 

@@ -21,10 +21,22 @@ from .conftest import api, make_settings
 
 @pytest.fixture
 def committing_client(engine, db_url):
-    app = create_app(make_settings(db_url))  # default session factory: every request commits for real
+    """Signed in (real committed session) as the development Owner; every request commits for real."""
+    from app.core.security import csrf_token_for
+    from app.models import AuthSession, User
+    from app.services.auth import _new_session
+
+    app = create_app(make_settings(db_url))
+    with Session(engine) as s, s.begin():
+        token, session = _new_session(s, app.state.settings, s.get(User, "usr_test_usr-priya"), "ws-eko-india", user_agent="pytest", ip="testclient")
+        session_id, digest = session.id, session.token_hash
     with TestClient(app, raise_server_exceptions=False) as client:
+        client.cookies.set(app.state.settings.session_cookie_name, token)
+        client.headers["X-CSRF-Token"] = csrf_token_for(app.state.settings.signing_key, digest)
         yield client
     app.state.engine.dispose()
+    with Session(engine) as s, s.begin():
+        s.execute(delete(AuthSession).where(AuthSession.id == session_id))
 
 
 def _fresh(engine) -> Session:

@@ -5,19 +5,19 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Any
 
-from sqlalchemy import Boolean, CheckConstraint, Date, DateTime, Float, ForeignKey, Index, Integer, SmallInteger, String, Text, text
+from sqlalchemy import Boolean, CheckConstraint, Date, DateTime, Float, ForeignKey, Index, Integer, SmallInteger, String, Text, UniqueConstraint, text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from .base import Base, DemoMixin, TimestampMixin, str_enum
+from .base import Base, DemoMixin, TimestampMixin, str_enum, WorkspaceOwned
 from .enums import CommentIntent, CommentSentiment, CommentStatus, LeadPotential, LeadSource, LeadStatus
 
 
-class Lead(TimestampMixin, DemoMixin, Base):
+class Lead(WorkspaceOwned, TimestampMixin, DemoMixin, Base):
     __tablename__ = "leads"
     __table_args__ = (
         CheckConstraint("score >= 0 AND score <= 100", name="score_range"),
-        # One lead per Instagram handle, case-insensitively (comment → lead conversion de-duplicates on this).
-        Index("uq_leads_handle_lower", text("lower(handle)"), unique=True),
+        # One lead per Instagram handle per workspace, case-insensitively (comment → lead de-duplicates on this).
+        Index("uq_leads_workspace_handle_lower", "workspace_id", text("lower(handle)"), unique=True),
     )
 
     id: Mapped[str] = mapped_column(String(80), primary_key=True)
@@ -38,12 +38,15 @@ class Lead(TimestampMixin, DemoMixin, Base):
     position: Mapped[int] = mapped_column(Integer, server_default="0")
 
 
-class Comment(TimestampMixin, DemoMixin, Base):
+class Comment(WorkspaceOwned, TimestampMixin, DemoMixin, Base):
     __tablename__ = "comments"
-    __table_args__ = (CheckConstraint("intent_score >= 0 AND intent_score <= 100", name="intent_score_range"),)
+    __table_args__ = (
+        CheckConstraint("intent_score >= 0 AND intent_score <= 100", name="intent_score_range"),
+        UniqueConstraint("workspace_id", "ref"),
+    )
 
     id: Mapped[str] = mapped_column(String(80), primary_key=True)
-    ref: Mapped[str] = mapped_column(String(40), unique=True)
+    ref: Mapped[str] = mapped_column(String(40))  # unique per workspace
     account_id: Mapped[str] = mapped_column(ForeignKey("instagram_accounts.id", ondelete="CASCADE"), index=True)
     content_id: Mapped[str] = mapped_column(ForeignKey("content_items.id", ondelete="CASCADE"), index=True)
     campaign_id: Mapped[str | None] = mapped_column(ForeignKey("campaigns.id", ondelete="SET NULL"), index=True)
@@ -70,7 +73,7 @@ class Comment(TimestampMixin, DemoMixin, Base):
     position: Mapped[int] = mapped_column(Integer, server_default="0")
 
 
-class CommentPeriodSummary(TimestampMixin, DemoMixin, Base):
+class CommentPeriodSummary(WorkspaceOwned, TimestampMixin, DemoMixin, Base):
     """Comment analytics for an account period. Totals cover every comment in the period; the
     ``comments`` table only holds the sampled rows that the UI lists."""
 
@@ -106,7 +109,7 @@ class CommentPeriodSummary(TimestampMixin, DemoMixin, Base):
     )
 
 
-class CommentSentimentDaily(DemoMixin, Base):
+class CommentSentimentDaily(WorkspaceOwned, DemoMixin, Base):
     __tablename__ = "comment_sentiment_daily"
 
     account_id: Mapped[str] = mapped_column(ForeignKey("instagram_accounts.id", ondelete="CASCADE"), primary_key=True)

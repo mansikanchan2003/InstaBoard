@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Overlay';
 import { useToast } from '@/components/ui/Toast';
 import { useMutation } from '@/hooks/useMutation';
+import { isDemoMode } from '@/lib/config';
 import { workspaceService } from '@/services/workspace';
 import type { TeamMember } from '@/types/domain';
 import { FieldError, inputCls, labelCls } from './settingsUi';
@@ -17,15 +18,18 @@ const roleOptions: Array<{ value: AssignableAccess; label: string }> = [
   { value: 'Admin', label: 'Admin (Full Control & Integration Management)' },
 ];
 
-export function InviteMemberModal({ open, onClose, existingEmails }: { open: boolean; onClose: () => void; existingEmails: string[] }) {
+export function InviteMemberModal({ open, onClose, existingEmails, canGrantAdmin = true }: { open: boolean; onClose: () => void; existingEmails: string[]; canGrantAdmin?: boolean }) {
   const toast = useToast();
   const [email, setEmail] = useState('');
   const [jobTitle, setJobTitle] = useState('');
   const [access, setAccess] = useState<AssignableAccess>('Editor');
   const [touched, setTouched] = useState(false);
+  // api mode: the one-time invitation link returned by the server (no email service exists yet).
+  const [issued, setIssued] = useState<{ email: string; url: string; hours: number } | null>(null);
 
   useEffect(() => {
     if (open) {
+      setIssued(null);
       setEmail('');
       setJobTitle('');
       setAccess('Editor');
@@ -45,6 +49,11 @@ export function InviteMemberModal({ open, onClose, existingEmails }: { open: boo
   const invite = useMutation(workspaceService.inviteMember, {
     invalidate: ['workspace', 'activity'],
     onSuccess: (m) => {
+      const withLink = m as TeamMember & { inviteUrl?: string; inviteExpiresInHours?: number };
+      if (!isDemoMode && withLink.inviteUrl) {
+        setIssued({ email: m.email, url: withLink.inviteUrl, hours: withLink.inviteExpiresInHours ?? 72 });
+        return;
+      }
       toast({ tone: 'demo', title: `${m.email} added as pending`, description: 'Invitation recorded in the demo team list only — no email was sent.' });
       onClose();
     },
@@ -57,6 +66,48 @@ export function InviteMemberModal({ open, onClose, existingEmails }: { open: boo
     if (error) return;
     invite.mutate({ email: trimmed, access, role: jobTitle });
   };
+
+  if (issued) {
+    const copy = async () => {
+      try {
+        await navigator.clipboard.writeText(issued.url);
+        toast({ title: 'Invitation link copied' });
+      } catch {
+        toast({ tone: 'error', title: 'Copy failed', description: 'Select the link and copy it manually.' });
+      }
+    };
+    return (
+      <Modal
+        open={open}
+        onClose={onClose}
+        size="sm"
+        icon="link"
+        title="Invitation created"
+        subtitle={`Share this one-time link with ${issued.email}.`}
+        footer={
+          <>
+            <Button onClick={() => void copy()} icon="content_copy">
+              Copy link
+            </Button>
+            <Button variant="primary" onClick={onClose}>
+              Done
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <label htmlFor="invite-link" className={labelCls}>
+            Invitation link
+          </label>
+          <input id="invite-link" readOnly value={issued.url} onFocus={(e) => e.currentTarget.select()} className={`${inputCls} font-mono text-xs`} />
+          <p className="text-xs text-text-secondary">
+            No email was sent — InstaBoard has no email service yet. The link works once and expires in {issued.hours} hours. It is shown only now; if it is lost, revoke
+            the invitation and invite again.
+          </p>
+        </div>
+      </Modal>
+    );
+  }
 
   return (
     <Modal
@@ -104,7 +155,7 @@ export function InviteMemberModal({ open, onClose, existingEmails }: { open: boo
             Select Access Role
           </label>
           <select id="invite-role" className={inputCls} value={access} onChange={(e) => setAccess(e.target.value as AssignableAccess)}>
-            {roleOptions.map((o) => (
+            {roleOptions.filter((o) => canGrantAdmin || o.value !== 'Admin').map((o) => (
               <option key={o.value} value={o.value}>
                 {o.label}
               </option>
@@ -114,8 +165,13 @@ export function InviteMemberModal({ open, onClose, existingEmails }: { open: boo
         <div className="p-3 bg-surface-canvas rounded border border-border-strong text-xs text-text-secondary">
           <div className="font-semibold text-text-primary mb-0.5">Permission Scope Summary:</div>
           <div>
-            In production the recipient would receive a single-sign-on invitation expiring in 48 hours, scoped to <span className="font-mono text-text-primary">@ekoindia</span>. In
-            this prototype the invite is only added to the demo team list.
+            {isDemoMode ? (
+              <>
+                In production the recipient would receive an invitation expiring in 72 hours. In this prototype the invite is only added to the demo team list.
+              </>
+            ) : (
+              <>You will get a one-time invitation link to share with the recipient (no email is sent). They choose their own password when accepting.</>
+            )}
           </div>
         </div>
       </form>

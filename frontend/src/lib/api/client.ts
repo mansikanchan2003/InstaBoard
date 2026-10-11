@@ -26,6 +26,19 @@ export type ApiErrorBody = { error?: { code?: string; message?: string; details?
 
 type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
+/**
+ * CSRF token for the current session (from POST /auth/login or GET /auth/me). Kept in memory only —
+ * never in localStorage/sessionStorage — and sent as `X-CSRF-Token` on state-changing requests.
+ * The session itself lives in an HttpOnly cookie the browser attaches automatically.
+ */
+let csrfToken: string | null = null;
+export function setCsrfToken(token: string | null) {
+  csrfToken = token;
+}
+
+/** Fired when the API answers 401 (no / expired / revoked session). `AuthProvider` listens. */
+export const UNAUTHORIZED_EVENT = 'instaboard:unauthorized';
+
 async function request<T>(method: Method, path: string, body?: unknown, init?: RequestInit): Promise<T> {
   const url = `${config.apiBaseUrl}${path}`;
   let res: Response;
@@ -33,7 +46,12 @@ async function request<T>(method: Method, path: string, body?: unknown, init?: R
     res = await fetch(url, {
       method,
       credentials: 'include',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...(init?.headers ?? {}) },
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        ...(method !== 'GET' && csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+        ...(init?.headers ?? {}),
+      },
       body: body === undefined ? undefined : JSON.stringify(body),
       ...init,
     });
@@ -52,11 +70,14 @@ async function request<T>(method: Method, path: string, body?: unknown, init?: R
   if (!res.ok) {
     const envelope = (data as ApiErrorBody | undefined)?.error;
     const message = envelope?.message ?? `Request failed: ${method} ${path} (${res.status})`;
+    if (res.status === 401 && !path.startsWith('/auth/login') && !path.startsWith('/auth/invitations')) {
+      window.dispatchEvent(new CustomEvent(UNAUTHORIZED_EVENT, { detail: { code: envelope?.code, message } }));
+    }
     // 404 → NotFoundError subclass so screens show their designed "not found" state.
     if (res.status === 404) throw new ApiNotFoundError(message, envelope?.code);
     throw new ApiError(message, res.status, envelope?.code, data);
   }
-  return data as T;
+  return (res.status === 204 ? undefined : data) as T;
 }
 
 export const apiClient = {

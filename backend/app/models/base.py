@@ -6,7 +6,7 @@ import enum
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import Boolean, DateTime, Enum, MetaData, func
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, MetaData, String, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -49,3 +49,11 @@ class DemoMixin:
     """Marks rows imported from the frontend demonstration dataset (never live Instagram data)."""
 
     is_demo: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
+
+
+class WorkspaceOwned:
+    """Tenant-owned row. Every request runs with its authenticated workspace bound to the session, and
+    a global query filter (``app.core.tenancy``) restricts every SELECT / UPDATE / DELETE on these
+    models to that workspace — another tenant's ids simply do not exist for the request."""
+
+    workspace_id: Mapped[str] = mapped_column(String(64), ForeignKey("workspaces.id", ondelete="CASCADE"), index=True)

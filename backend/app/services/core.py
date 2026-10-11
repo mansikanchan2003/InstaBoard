@@ -33,7 +33,7 @@ from app.schemas.base import ev, num
 from app.schemas.inputs import CampaignCreateIn, CampaignPatchIn, LeadCreateIn, LeadPatchIn
 
 from .audit import diff_rows, record_user_change
-from .common import current_workspace, day_label, get_account, iso_date, iso_ist, next_position_first, reference, session_member
+from .common import current_workspace, day_label, get_account, iso_date, iso_ist, next_position_first, reference, session_member, workspace_doc
 
 # ===================================================================================== workspace
 
@@ -108,7 +108,7 @@ def sync_logs(db: Session, account_id: str | None = None, *, limit: int | None =
 
 
 def accounts_summary(db: Session) -> dict:
-    return reference(db, "accounts_summary")
+    return workspace_doc(db, "accounts_summary")
 
 
 def connect_reference(db: Session) -> dict:

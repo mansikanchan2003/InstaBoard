@@ -1,6 +1,7 @@
-import { lazy } from 'react';
+import { lazy, Suspense } from 'react';
 import { Navigate, type RouteObject } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
+import { RequireAuth } from '@/components/layout/RequireAuth';
 import NotFoundPage from '@/pages/NotFoundPage';
 
 const DashboardPage = lazy(() => import('@/pages/DashboardPage'));
@@ -21,12 +22,22 @@ const AccountDetailPage = lazy(() => import('@/pages/accounts/AccountDetailPage'
 const NotificationsPage = lazy(() => import('@/pages/NotificationsPage'));
 const ActivityLogPage = lazy(() => import('@/pages/ActivityLogPage'));
 const SettingsPage = lazy(() => import('@/pages/SettingsPage'));
+const LoginPage = lazy(() => import('@/pages/auth/LoginPage'));
+const AcceptInvitePage = lazy(() => import('@/pages/auth/AcceptInvitePage'));
 
 /** Route table. Each path maps to a screen in design-reference/ (see README "Screen map"). */
 export const routes: RouteObject[] = [
+  // Public screens (api mode). In demo mode they redirect to the dashboard.
+  { path: '/login', element: <Suspense fallback={null}><LoginPage /></Suspense> },
+  { path: '/accept-invite', element: <Suspense fallback={null}><AcceptInvitePage /></Suspense> },
   {
     path: '/',
-    element: <AppShell />,
+    // Every workspace screen requires a verified session in api mode (demo mode passes straight through).
+    element: (
+      <RequireAuth>
+        <AppShell />
+      </RequireAuth>
+    ),
     children: [
       { index: true, element: <Navigate to="/dashboard" replace /> },
       { path: 'dashboard', element: <DashboardPage /> },

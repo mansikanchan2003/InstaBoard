@@ -6,20 +6,21 @@ from typing import Any
 from sqlalchemy import BigInteger, CheckConstraint, Date, Float, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .base import Base, DemoMixin, TimestampMixin, str_enum
+from .base import Base, DemoMixin, TimestampMixin, str_enum, WorkspaceOwned
 from .enums import CampaignHealth, CampaignObjective, CampaignStatus, FunnelStage, MetricPeriod, ThumbnailType
 
 
-class Campaign(TimestampMixin, DemoMixin, Base):
+class Campaign(WorkspaceOwned, TimestampMixin, DemoMixin, Base):
     __tablename__ = "campaigns"
     __table_args__ = (
         CheckConstraint("end_date IS NULL OR start_date IS NULL OR end_date >= start_date", name="date_order"),
         CheckConstraint("creatives_count >= 0", name="creatives_non_negative"),
         CheckConstraint("budget_inr IS NULL OR budget_inr >= 0", name="budget_non_negative"),
+        UniqueConstraint("workspace_id", "code"),
     )
 
     id: Mapped[str] = mapped_column(String(80), primary_key=True)
-    code: Mapped[str] = mapped_column(String(24), unique=True)
+    code: Mapped[str] = mapped_column(String(24))  # unique per workspace
     name: Mapped[str] = mapped_column(String(200))
     objective: Mapped[CampaignObjective] = mapped_column(str_enum(CampaignObjective, "campaign_objective"), index=True)
     focus: Mapped[str] = mapped_column(String(120))

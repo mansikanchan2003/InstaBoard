@@ -65,8 +65,15 @@ def _body(code: str, message: str, details: Any = None) -> dict[str, Any]:
 
 def register_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(ApiError)
-    async def _api_error(_: Request, exc: ApiError) -> JSONResponse:
-        return JSONResponse(status_code=exc.status_code, content=_body(exc.code, exc.message, exc.details))
+    async def _api_error(request: Request, exc: ApiError) -> JSONResponse:
+        response = JSONResponse(status_code=exc.status_code, content=_body(exc.code, exc.message, exc.details))
+        if retry_after := getattr(exc, "retry_after", None):
+            response.headers["Retry-After"] = str(retry_after)
+        if exc.status_code == 401 and (settings := getattr(request.app.state, "settings", None)):
+            # The session is gone — drop the dead cookie so the browser stops sending it.
+            response.delete_cookie(settings.session_cookie_name, path="/", domain=settings.cookie_domain,
+                                   secure=settings.cookie_secure, httponly=True, samesite=settings.cookie_samesite)
+        return response
 
     @app.exception_handler(RequestValidationError)
     async def _validation(_: Request, exc: RequestValidationError) -> JSONResponse:

@@ -1,9 +1,8 @@
-"""FastAPI dependencies.
+"""FastAPI dependencies: database session, authentication context and permission checks.
 
-Authentication is intentionally not implemented in this phase: every endpoint acts as the seeded
-demo "session user". When auth is added, introduce a ``current_principal`` dependency here and
-add it to the routers (plus role checks for write routes) — services already resolve the workspace
-through one function (``services.common.current_workspace``).
+Every workspace API router is mounted with ``require_auth`` (see ``app/api/router.py``), so a route
+cannot accidentally be served without a validated session. ``require_auth`` also binds the request's
+database session to the session's workspace, which activates the ORM tenant filter.
 """
 
 from __future__ import annotations
@@ -15,6 +14,9 @@ from fastapi import Depends, Request
 from sqlalchemy.orm import Session
 
 from app.core.database import session_scope
+from app.services.auth import AuthContext, ForbiddenError, authenticate
+from app.services.common import AUTH_KEY
+from app.services.permissions import Permission
 
 T = TypeVar("T")
 
@@ -24,6 +26,34 @@ def get_db(request: Request) -> Iterator[Session]:
 
 
 DB = Annotated[Session, Depends(get_db)]
+
+
+def require_auth(request: Request, db: DB) -> AuthContext:
+    settings = request.app.state.settings
+    ctx = authenticate(
+        db, settings,
+        token=request.cookies.get(settings.session_cookie_name),
+        method=request.method,
+        origin=request.headers.get("origin"),
+        csrf_header=request.headers.get("x-csrf-token"),
+    )
+    db.info[AUTH_KEY] = ctx
+    request.state.auth = ctx
+    return ctx
+
+
+Ctx = Annotated[AuthContext, Depends(require_auth)]
+
+
+def require(permission: Permission):
+    """Route dependency: the caller's workspace role must include ``permission`` (else 403)."""
+
+    def _check(ctx: Ctx) -> AuthContext:
+        if not ctx.can(permission):
+            raise ForbiddenError(f"Your role ({ctx.role}) does not allow this action.", details={"required": permission})
+        return ctx
+
+    return Depends(_check)
 
 
 def commit(db: Session, value: T) -> T:

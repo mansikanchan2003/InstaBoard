@@ -93,21 +93,26 @@ def test_sync_log_pagination_is_newest_first(client):
 
 # ------------------------------------------------------------------------------- empty database
 @pytest.mark.parametrize("path", ["/campaigns", "/content", "/leads", "/accounts", "/insights", "/insights/actions", "/notifications",
-                                  "/reports", "/activity", "/accounts/sync-logs"])
-def test_empty_database_returns_empty_lists(empty_client, path):
+                                  "/reports", "/activity", "/accounts/sync-logs", "/comments/sentiment-trend"])
+def test_empty_workspace_returns_empty_lists(empty_client, path):
     response = empty_client.get(api(path))
     assert response.status_code == 200
     assert response.json() == []
 
 
-def test_empty_database_singletons_return_404(empty_client):
-    for path in ["/workspace", "/me", "/settings", "/leads/summary", "/comments/summary", "/comments/sentiment-trend", "/audience/summary", "/insights/overview"]:
+def test_empty_workspace_singletons_return_404(empty_client):
+    for path in ["/settings", "/leads/summary", "/comments/summary", "/audience/summary", "/insights/overview", "/dashboard/executive-brief"]:
         response = empty_client.get(api(path))
         assert response.status_code == 404, path
         assert response.json()["error"]["code"] == "not_found"
 
 
-def test_empty_database_counts(empty_client):
+def test_empty_workspace_still_knows_who_you_are(empty_client):
+    assert empty_client.get(api("/workspace")).json()["id"] == "ws-eko-india"
+    assert empty_client.get(api("/me")).json()["id"] == "usr-priya"
+
+
+def test_empty_workspace_counts(empty_client):
     assert empty_client.get(api("/notifications/unread-count")).json() == 0
     comments = empty_client.get(api("/comments")).json()
     assert comments == {"items": [], "sampleSize": 0, "totalComments": 0}
@@ -190,8 +195,9 @@ def test_campaign_list_avoids_n_plus_one(client, connection):
         assert len(client.get(api("/campaigns")).json()) == 7
     finally:
         event.remove(connection, "before_cursor_execute", record)
-    selects = [s for s in statements if s.lstrip().upper().startswith("SELECT")]
-    assert len(selects) <= 3, selects  # campaigns + eager-loaded metrics, not one query per campaign
+    # Ignore the authentication lookups (session, user, membership) — count the campaign queries only.
+    selects = [s for s in statements if s.lstrip().upper().startswith("SELECT") and ("FROM campaigns" in s or "FROM campaign_metrics" in s)]
+    assert len(selects) <= 2, selects  # campaigns + eager-loaded metrics, not one query per campaign
 
 
 def test_demo_rows_are_flagged(db_session):

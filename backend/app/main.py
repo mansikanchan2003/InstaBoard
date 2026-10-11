@@ -2,7 +2,7 @@
 
     uvicorn app.main:app --reload            # development server (http://localhost:8100)
 
-This is a local-development backend: there is no authentication yet, so do not expose it publicly.
+Production requires APP_ENV=production, a strong SECRET_KEY, COOKIE_SECURE=true and HTTPS (see README).
 """
 
 from __future__ import annotations
@@ -17,6 +17,7 @@ from app.api.router import api_router
 from app.core.config import Settings, get_settings
 from app.core.database import build_engine, build_session_factory, check_connection
 from app.core.errors import register_error_handlers
+from app.core.security import RateLimiter
 
 logger = logging.getLogger("instaboard.api")
 
@@ -26,7 +27,9 @@ Backend for **Eko InstaBoard** (Instagram Campaign Intelligence Platform).
 * All seeded records are **demonstration data** (`is_demo = true`) — not live Instagram data.
 * There is **no Meta / Instagram integration** and **no AI provider** in this phase: endpoints that would
   need one (account sync, disconnect, insight regeneration) return `501 not_available`.
-* There is **no authentication** yet — run locally only.
+* **Authentication:** HttpOnly session cookie from `POST /api/v1/auth/login`; state-changing requests also need
+  the `X-CSRF-Token` header (value from the login / `GET /auth/me` response). Every workspace endpoint is scoped
+  to the session's workspace and checked against the caller's role (Owner / Admin / Editor / Viewer).
 """
 
 
@@ -43,13 +46,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.settings = settings
     app.state.engine = build_engine(settings)
     app.state.session_factory = build_session_factory(app.state.engine)
+    app.state.rate_limiter = RateLimiter()
 
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,
         allow_credentials=True,
         allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-        allow_headers=["Content-Type", "Accept", "Authorization"],
+        allow_headers=["Content-Type", "Accept", "X-CSRF-Token"],
     )
     register_error_handlers(app)
 

@@ -10,6 +10,7 @@ import { useToast } from '@/components/ui/Toast';
 import { useMutation } from '@/hooks/useMutation';
 import { useQuery } from '@/hooks/useQuery';
 import { cn } from '@/lib/format';
+import { useAuth } from '@/app/AuthContext';
 import { sessionUser, workspaceService } from '@/services/workspace';
 import type { TeamMember } from '@/types/domain';
 import { InviteMemberModal } from './InviteMemberModal';
@@ -36,6 +37,10 @@ const SEAT_LIMIT = 10;
 
 export function TeamTab() {
   const toast = useToast();
+  const auth = useAuth();
+  const youId = auth.me?.member.id ?? sessionUser.id;
+  const canManage = auth.can('team:manage');
+  const canManageAdmins = auth.can('admins:manage');
   const teamQ = useQuery('workspace:team', workspaceService.team);
   const [filter, setFilter] = useState('');
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -101,13 +106,14 @@ export function TeamTab() {
         <div className="bg-surface-card border border-border-strong rounded-lg p-4 flex flex-col justify-center items-start">
           <button
             type="button"
-            disabled={team.length >= SEAT_LIMIT}
+            disabled={team.length >= SEAT_LIMIT || !canManage}
             onClick={() => setInviteOpen(true)}
             className="w-full h-10 px-4 rounded bg-primary-container text-text-primary font-label-md text-label-md font-bold hover:bg-brand-primary-hover shadow-sm flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Icon name="person_add" className="text-[18px]" />
             <span>Invite Team Member</span>
           </button>
+          {!canManage && <span className="text-[11px] text-text-tertiary mt-1">Only workspace owners and admins can invite members.</span>}
           {team.length >= SEAT_LIMIT && <span className="text-[11px] text-text-tertiary mt-1">All {SEAT_LIMIT} seats are allocated.</span>}
         </div>
       </div>
@@ -168,7 +174,8 @@ export function TeamTab() {
                     </tr>
                   )}
                   {visible.map((m) => {
-                    const you = m.id === sessionUser.id;
+                    const you = m.id === youId;
+                    const manageable = canManage && !you && (m.access !== 'Admin' || canManageAdmins);
                     const invited = m.status === 'invited';
                     return (
                       <tr key={m.id} className={cn('transition-colors', invited ? 'bg-amber-50/20 hover:bg-amber-50/40' : 'hover:bg-surface-canvas')}>
@@ -201,6 +208,8 @@ export function TeamTab() {
                         <td className="py-3.5 px-5 text-right whitespace-nowrap">
                           {m.access === 'Owner' ? (
                             <span className="font-label-sm text-label-sm text-text-tertiary italic">Account Owner</span>
+                          ) : !manageable ? (
+                            <span className="font-label-sm text-label-sm text-text-tertiary italic">{you ? 'You' : 'No permission'}</span>
                           ) : invited ? (
                             <div className="flex items-center justify-end gap-2">
                               <button
@@ -244,7 +253,7 @@ export function TeamTab() {
         </QueryState>
       </div>
 
-      <InviteMemberModal open={inviteOpen} onClose={() => setInviteOpen(false)} existingEmails={team.map((m) => m.email.toLowerCase())} />
+      <InviteMemberModal open={inviteOpen} onClose={() => setInviteOpen(false)} existingEmails={team.map((m) => m.email.toLowerCase())} canGrantAdmin={canManageAdmins} />
 
       <Modal
         open={!!editing}
@@ -271,7 +280,7 @@ export function TeamTab() {
           Access level
         </label>
         <Select id="edit-access" className="w-full" value={editAccess} onChange={(e) => setEditAccess(e.target.value as AssignableAccess)}>
-          {(['Admin', 'Editor', 'Viewer'] as AssignableAccess[]).map((a) => (
+          {((canManageAdmins ? ['Admin', 'Editor', 'Viewer'] : ['Editor', 'Viewer']) as AssignableAccess[]).map((a) => (
             <option key={a} value={a}>
               {a}
             </option>

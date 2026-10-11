@@ -1,10 +1,11 @@
-# InstaBoard backend (Phase 2)
+# InstaBoard backend (Phases 2–4)
 
 FastAPI + PostgreSQL backend for the existing InstaBoard frontend.
 
 - It serves the frontend's **demonstration dataset**, imported into PostgreSQL. Every seeded row has `is_demo = true`; none of it is live Instagram data.
-- There is **no Meta/Instagram integration, no AI provider and no authentication** in this phase.
-- It is a **local development service only**: do not expose it publicly (see [Security boundaries](#security-boundaries)).
+- **Authentication and workspace isolation** (Phase 4): email + password sign-in, server-side sessions in an HttpOnly cookie, CSRF protection, Owner/Admin/Editor/Viewer roles, and every tenant row scoped to a workspace. See [Authentication & authorization](#authentication--authorization-phase-4).
+- There is **no Meta/Instagram integration and no AI provider** yet.
+- It has **not been deployed or penetration-tested**; read [Security boundaries](#security-boundaries) before exposing it anywhere.
 
 ## Stack
 
@@ -72,6 +73,15 @@ Migrate and seed:
 .venv/Scripts/python -m scripts.seed_demo_data --reset   # restore demo rows to their original values
 ```
 
+Create the first sign-in account (the workspace Owner). There is no public sign-up; everyone else joins by invitation:
+
+```bash
+.venv/Scripts/python -m scripts.create_owner --email you@example.com          # prompts for the password (not echoed)
+# options: --name "Display Name"  --workspace ws-eko-india  --member usr-priya  --platform-admin
+```
+
+The password is read with `getpass` (or from the `INSTABOARD_OWNER_PASSWORD` environment variable for scripted setups), checked against the password policy, and stored only as an Argon2id hash.
+
 Run:
 
 ```bash
@@ -93,6 +103,13 @@ Run:
 | `CORS_ORIGINS` | Comma-separated browser origins, e.g. `http://localhost:5173`. `*` is rejected because credentials are enabled. |
 | `ENABLE_DOCS` | Exposes `/docs` and `/openapi.json`. |
 | `LOCAL_PG_PORT`, `LOCAL_PG_USER`, `LOCAL_PG_PASSWORD` | Used by the local helper cluster and Docker Compose. |
+| `SECRET_KEY` | HMAC key for CSRF tokens. **Required in production** (≥ 32 random characters, not a placeholder); the app refuses to start otherwise. Blank in development means an ephemeral per-process key. |
+| `SESSION_COOKIE_NAME`, `COOKIE_SECURE`, `COOKIE_SAMESITE`, `COOKIE_DOMAIN` | Session cookie attributes. `COOKIE_SECURE=true` is enforced in production. |
+| `SESSION_IDLE_MINUTES`, `SESSION_MAX_AGE_HOURS` | Sliding idle timeout (default 120 min) and absolute lifetime (default 24 h). |
+| `FRONTEND_URL`, `INVITATION_TTL_HOURS` | Base URL of invitation links and their lifetime (default 72 h). |
+| `LOGIN_ATTEMPTS_PER_WINDOW`, `LOGIN_WINDOW_SECONDS`, `AUTH_REQUESTS_PER_MINUTE_PER_IP`, `MIN_PASSWORD_LENGTH` | Rate limits and password policy. |
+
+In production (`APP_ENV=production`) startup also fails if `CORS_ORIGINS` contains `http://` or localhost origins.
 
 ### Migrations
 
@@ -235,13 +252,109 @@ Free-text lead notes are recorded only as "updated", never copied into the audit
 
 Replying to comments or DMs is not implemented anywhere.
 
+## Authentication & authorization (Phase 4)
+
+### Sessions
+
+- **Server-side sessions.** `POST /auth/login` creates a row in `auth_sessions` and sets an **HttpOnly** cookie (`instaboard_session`, `SameSite=Lax`, `Secure` in production) containing a random 256-bit token. Only the token's SHA-256 digest is stored, so a database leak does not reveal usable sessions.
+- **Why this design rather than JWTs:** sessions can be revoked immediately (logout, password change, member removal, "sign out other sessions"), nothing sensitive is readable by JavaScript, and there is a single same-site web client.
+- **Expiry:** a sliding idle timeout (`SESSION_IDLE_MINUTES`) is renewed on use, at most once a minute, up to an absolute cap (`SESSION_MAX_AGE_HOURS`). Expired and revoked sessions get `401` (`session_expired` / `not_authenticated`) and the cookie is cleared.
+- **CSRF:** every unsafe request (POST, PUT, PATCH, DELETE) must send `X-CSRF-Token`, an HMAC of the session derived with `SECRET_KEY` and returned by login and `/auth/me`. The frontend keeps it in memory only. The `Origin` header is also checked against `CORS_ORIGINS`. Failures return `403 csrf_failed`.
+- **Passwords:** stored as Argon2id hashes only; a database CHECK rejects anything else. Length-first policy: minimum 12 characters; very repetitive passwords, a small list of obvious ones and passwords containing your name or email are rejected (no breached-password check yet). Hashes are upgraded on login when parameters change.
+- **Login protection:**
+  - Login answers with a generic "Invalid email or password." for both unknown emails and wrong passwords, and the verify time is equalised with a dummy hash.
+  - Failed attempts are limited per email+IP (`LOGIN_ATTEMPTS_PER_WINDOW` in `LOGIN_WINDOW_SECONDS`), and all auth endpoints are limited per IP. Over the limit, the API returns `429` with `Retry-After`.
+- **Onboarding:** admin-provisioned only.
+  - `scripts.create_owner` creates the first Owner.
+  - Owners and Admins invite people from Settings → Team, which returns a one-time link (`/accept-invite#token=…`, valid for 72 h; only its hash is stored; the token sits in the URL fragment, so it is never sent to or logged by a web server).
+  - No email is sent; the inviter shares the link.
+  - There is no public registration.
+- **Audit:** sign-in, sign-out, password change, session revocation, invitations, acceptance, role changes and removals are written to the workspace activity log.
+
+### Workspace isolation
+
+- **Tenant ownership:** each of the 15 tenant tables (accounts, sync logs, campaigns, content, leads, comments, comment summaries, insights, actions, reports, notifications, activity, team members, workspace documents) has a non-null `workspace_id`.
+- **Workspace comes from the session only**, never from the URL or the body.
+- **Enforced in one place, `app/core/tenancy.py`:**
+  - Once a request is authenticated, a SQLAlchemy `do_orm_execute` hook adds `workspace_id = :current` to every ORM SELECT, UPDATE and DELETE on tenant models, including joins, relationship loads and subqueries.
+  - A `before_flush` guard stamps new rows with the current workspace and refuses to write rows that belong to another one.
+- **Responses for other workspaces:** another workspace's resources are indistinguishable from missing ones (`404`), so IDs cannot be probed. Uniqueness (campaign and report codes, comment refs, lead handles) is per workspace.
+- **Platform administrators** (`users.is_platform_admin`) are separate from workspace roles. They only get `GET /platform/workspaces`, a directory of workspace names and member counts, and no access to tenant data.
+
+### Role matrix
+
+| Capability | Owner | Admin | Editor | Viewer |
+| --- | :-: | :-: | :-: | :-: |
+| Read all workspace data, export CSV | ✓ | ✓ | ✓ | ✓ |
+| Mark own notifications read/unread | ✓ | ✓ | ✓ | ✓ |
+| Change password, manage own sessions | ✓ | ✓ | ✓ | ✓ |
+| Write campaigns, leads, comments, insights, reports; dismiss notifications | ✓ | ✓ | ✓ | – |
+| Workspace settings and notification preferences | ✓ | ✓ | – | – |
+| Invite / change / remove Editors and Viewers | ✓ | ✓ | – | – |
+| Instagram account management (sync/disconnect, still `501`) | ✓ | ✓ | – | – |
+| Invite, promote to, or remove Admins | ✓ | – | – | – |
+| Change or remove the Owner | – | – | – | – |
+
+No one can change their own role, grant Owner, or remove the Owner. The "Member" role in the brief maps to **Editor** (read and write) and **Viewer** (read-only).
+
+### Endpoints
+
+| Endpoint | Auth |
+| --- | --- |
+| `POST /auth/login` | public, rate-limited |
+| `POST /auth/invitations/preview`, `POST /auth/invitations/accept` | public, rate-limited, one-time token (sent in the body, never in a URL) |
+| `GET /auth/me`, `POST /auth/logout`, `POST /auth/password` | session |
+| `GET /auth/sessions`, `DELETE /auth/sessions/{id}`, `POST /auth/sessions/revoke-others` | session (own sessions only) |
+| `GET /platform/workspaces` | session + platform admin |
+| Every other `/api/v1/*` route (campaigns, content, comments, leads, insights, reports, accounts, notifications, activity, settings, workspace/team, search, exports, `/me/session`) | session + workspace scope + role permission above |
+| `/health`, `/ready` | public (no data) |
+
+`401` means not signed in, or the session is expired or revoked. `403` means signed in but the role lacks permission, or CSRF failed. `404` means the resource does not exist **in your workspace**.
+
+### Migration
+
+- **Phase 4 migration:** `20261011_b126a04be743_phase4_auth_and_workspace_isolation`. It creates `users`, `auth_sessions`, `invitations` and `workspace_documents`, then adds `workspace_id` to every tenant table.
+- **Backfill:** existing rows get their workspace from their parent account, campaign or insight, or from the single existing workspace. The migration aborts rather than guess if several workspaces exist.
+- **Other changes:** workspace-level documents move out of the global `reference_documents`, `team_members` gains `user_id`, and the downgrade path is complete.
+- **Apply it:** `alembic upgrade head`, then `scripts.create_owner`.
+
+### Tests
+
+```bash
+.venv/Scripts/python -m pytest -q tests/test_auth.py tests/test_isolation.py tests/test_rbac.py
+```
+
+- **`test_auth.py`:**
+  - login success and failure, with an identical response for unknown emails;
+  - Argon2id-only storage;
+  - expired, idle and revoked sessions;
+  - logout, password change and session revocation;
+  - CSRF and Origin checks, rate limits;
+  - invitations, including one-time use and expiry;
+  - production configuration guards.
+- **`test_isolation.py`:** a second workspace with its own data. Every list, detail, nested, search, export, notification, activity, settings and write route, including ID tampering, is checked for no cross-workspace reads or writes.
+- **`test_rbac.py`:**
+  - every route rejects anonymous requests with `401`;
+  - Viewer, Editor and Admin limits;
+  - privilege-escalation attempts (self-promotion, granting Owner, Admin managing Admins);
+  - mass assignment rejected (`extra="forbid"`).
+
 ## Security boundaries
 
-- **No authentication.** Every request acts as the seeded demo session user. The routers and services are structured so a `current_principal` dependency and role checks can be added in `app/api/deps.py` and `services/common.current_workspace`.
-- **Never deploy as-is.**
-  - Bind to `127.0.0.1` (the default in the commands above).
-  - Keep `ENABLE_DOCS=false` anywhere non-local.
-  - Do not put this service on a public network until authentication and authorization exist.
+- **Not production-hardened yet.** Before any deployment:
+  - serve over HTTPS with `APP_ENV=production` (which enforces `SECRET_KEY`, `COOKIE_SECURE` and https-only CORS);
+  - keep `ENABLE_DOCS=false`;
+  - run behind a reverse proxy that sets the client IP.
+- **Not implemented yet:**
+  - email verification and self-service password reset (an admin re-invites instead);
+  - multi-factor authentication and SSO;
+  - account lockout beyond rate limiting, and audit entries for failed sign-ins (they are rate-limited, not logged);
+  - a breached-password check (e.g. k-anonymity lookup);
+  - a shared rate-limit store. Limits are per process, so several workers multiply them; use Redis or similar.
+- **IP-based limits** use the direct client address. Behind a proxy, configure trusted forwarded headers, or every user shares the proxy's IP.
+- **Dependency advisories:**
+  - **Backend:** `pip-audit` (2026-10-11) reports advisories for **Starlette 0.41.3**, which is pinned by FastAPI 0.115.6. Upgrading FastAPI/Starlette is the next maintenance task.
+  - **Frontend:** `npm audit` reports a react-router 6 open-redirect advisory (backslash paths). The app's only user-controlled redirect (`?next=`) is validated by `safeNext`, which rejects backslashes and absolute URLs. The remaining advisories are dev and test tooling only.
 - **No Instagram/Meta tokens, API keys or AI credentials** exist in code, the schema or the configuration. There is no OAuth flow, and the backend never asks for Instagram passwords.
-- **Nothing is published or sent.** No endpoint publishes campaigns, posts replies, sends DMs or WhatsApp messages, or emails reports. Features that would need an external integration return `501`.
+- **Nothing is published or sent.** No endpoint publishes campaigns, posts replies, sends DMs or WhatsApp messages, or emails reports or invitations. Features that would need an external integration return `501`.
 - **Credentials stay local.** `.env` holds them and is git-ignored. `.env.example` contains placeholders only.

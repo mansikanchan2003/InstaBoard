@@ -2,11 +2,19 @@ import { useState } from 'react';
 import { Icon } from '@/components/ui/Icon';
 import { Avatar } from '@/components/ui/Misc';
 import { useToast } from '@/components/ui/Toast';
+import { useAuth } from '@/app/AuthContext';
 import { sessionUser } from '@/services/workspace';
 import type { SettingsSession } from '@/types/settings';
+import { ApiSecurityTab } from './ApiSecurityTab';
 import { ConfirmModal } from './settingsUi';
 
-export function SecurityTab({ session, retentionDays }: { session?: SettingsSession; retentionDays: number }) {
+export function SecurityTab(props: { session?: SettingsSession; retentionDays: number }) {
+  const { status } = useAuth();
+  // api mode: real password change + server sessions. demo mode: the honest prototype stubs below.
+  return status === 'demo' ? <DemoSecurityTab {...props} /> : <ApiSecurityTab retentionDays={props.retentionDays} />;
+}
+
+function DemoSecurityTab({ session, retentionDays }: { session?: SettingsSession; retentionDays: number }) {
   const toast = useToast();
   const [confirmRevoke, setConfirmRevoke] = useState(false);
 

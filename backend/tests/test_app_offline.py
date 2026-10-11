@@ -1,4 +1,7 @@
-"""Startup, configuration, error format, CORS and validation — no database required."""
+"""Startup, configuration, error format, CORS and validation.
+
+Tests using ``offline_client`` need no database; validation tests use the signed-in ``client``
+because every workspace endpoint authenticates before validating its inputs."""
 
 from __future__ import annotations
 
@@ -24,7 +27,14 @@ def test_ready_reports_unavailable_database_without_leaking_details(offline_clie
     assert "nobody" not in response.text and "127.0.0.1" not in response.text
 
 
+def test_anonymous_requests_are_rejected_before_touching_the_database(offline_client):
+    response = offline_client.get(api("/campaigns"))
+    assert response.status_code == 401
+    assert response.json()["error"]["code"] == "not_authenticated"
+
+
 def test_database_errors_return_structured_503(offline_client):
+    offline_client.cookies.set("instaboard_session", "some-session-token")  # forces the session lookup
     response = offline_client.get(api("/campaigns"))
     assert response.status_code == 503
     assert response.json()["error"]["code"] == "database_unavailable"
@@ -49,21 +59,21 @@ def test_unknown_endpoint_uses_error_envelope(offline_client):
         ("/notifications?unread=maybe", "unread"),
     ],
 )
-def test_invalid_query_parameters_are_rejected(offline_client, path, param):
-    response = offline_client.get(api(path))
+def test_invalid_query_parameters_are_rejected(client, path, param):
+    response = client.get(api(path))
     assert response.status_code == 422
     body = response.json()["error"]
     assert body["code"] == "validation_error"
     assert any(param in detail["location"] for detail in body["details"])
 
 
-def test_invalid_path_parameter_is_rejected(offline_client):
-    response = offline_client.get(api("/campaigns/bad id!"))
+def test_invalid_path_parameter_is_rejected(client):
+    response = client.get(api("/campaigns/bad id!"))
     assert response.status_code == 422
 
 
-def test_invalid_body_is_rejected_before_touching_the_database(offline_client):
-    response = offline_client.post(api("/campaigns"), json={"name": "x", "objective": "Sales", "status": "active"})
+def test_invalid_body_is_rejected(client):
+    response = client.post(api("/campaigns"), json={"name": "x", "objective": "Sales", "status": "active"})
     assert response.status_code == 422
     fields = {tuple(d["location"]) for d in response.json()["error"]["details"]}
     assert ("body", "name") in fields and ("body", "objective") in fields and ("body", "status") in fields

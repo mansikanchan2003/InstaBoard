@@ -7,6 +7,7 @@ from typing import Annotated, Any, Literal
 from pydantic import ConfigDict, Field, StringConstraints, field_validator, model_validator
 
 from .base import ApiModel, JsonDoc, optional
+from .core import TeamMemberOut
 
 Number = int | float
 
@@ -334,3 +335,10 @@ class ActivitySummaryOut(ApiModel):
     issues_addressed: int
     active_operators: int
     pipeline_health: Number
+
+
+class TeamInviteOut(TeamMemberOut):
+    """POST /workspace/members: the pending member plus a one-time invitation link (shown once)."""
+
+    invite_url: str
+    invite_expires_in_hours: int

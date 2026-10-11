@@ -5,10 +5,10 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Any
 
-from sqlalchemy import Boolean, CheckConstraint, Date, DateTime, ForeignKey, Index, Integer, SmallInteger, String, Text, func
+from sqlalchemy import Boolean, CheckConstraint, Date, DateTime, ForeignKey, Index, Integer, SmallInteger, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .base import Base, DemoMixin, TimestampMixin, str_enum
+from .base import Base, DemoMixin, TimestampMixin, str_enum, WorkspaceOwned
 from .enums import (
     ActionStatus,
     ActivityCategory,
@@ -28,7 +28,7 @@ from .enums import (
 )
 
 
-class Insight(TimestampMixin, DemoMixin, Base):
+class Insight(WorkspaceOwned, TimestampMixin, DemoMixin, Base):
     __tablename__ = "insights"
     __table_args__ = (CheckConstraint("confidence >= 0 AND confidence <= 100", name="confidence_range"),)
 
@@ -51,7 +51,7 @@ class Insight(TimestampMixin, DemoMixin, Base):
     actions: Mapped[list[RecommendedAction]] = relationship(back_populates="insight", cascade="all, delete-orphan")
 
 
-class RecommendedAction(TimestampMixin, DemoMixin, Base):
+class RecommendedAction(WorkspaceOwned, TimestampMixin, DemoMixin, Base):
     __tablename__ = "recommended_actions"
 
     id: Mapped[str] = mapped_column(String(80), primary_key=True)
@@ -71,15 +71,15 @@ class RecommendedAction(TimestampMixin, DemoMixin, Base):
     insight: Mapped[Insight] = relationship(back_populates="actions")
 
 
-class Report(TimestampMixin, DemoMixin, Base):
+class Report(WorkspaceOwned, TimestampMixin, DemoMixin, Base):
     """A saved report configuration. Figures are computed on read from campaign/content data
     (the frontend's report engine), so reports never store stale totals."""
 
     __tablename__ = "reports"
-    __table_args__ = (CheckConstraint("period_end >= period_start", name="period_order"),)
+    __table_args__ = (CheckConstraint("period_end >= period_start", name="period_order"), UniqueConstraint("workspace_id", "code"))
 
     id: Mapped[str] = mapped_column(String(40), primary_key=True)
-    code: Mapped[str] = mapped_column(String(40), unique=True)
+    code: Mapped[str] = mapped_column(String(40))  # unique per workspace
     title: Mapped[str] = mapped_column(String(240))
     type: Mapped[ReportType] = mapped_column(str_enum(ReportType, "report_type"), index=True)
     scope: Mapped[ReportScope] = mapped_column(str_enum(ReportScope, "report_scope"))
@@ -123,7 +123,7 @@ class ReportContentItem(Base):
     position: Mapped[int] = mapped_column(Integer, server_default="0")
 
 
-class Notification(TimestampMixin, DemoMixin, Base):
+class Notification(WorkspaceOwned, TimestampMixin, DemoMixin, Base):
     __tablename__ = "notifications"
 
     id: Mapped[str] = mapped_column(String(80), primary_key=True)
@@ -162,7 +162,7 @@ class ActivityActor(DemoMixin, Base):
     position: Mapped[int] = mapped_column(Integer, server_default="0")
 
 
-class ActivityEvent(DemoMixin, Base):
+class ActivityEvent(WorkspaceOwned, DemoMixin, Base):
     __tablename__ = "activity_events"
     __table_args__ = (Index("ix_activity_events_occurred_at", "occurred_at"),)
 

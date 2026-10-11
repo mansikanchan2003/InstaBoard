@@ -5,6 +5,8 @@
 * Default mode inserts rows that are missing and leaves existing rows untouched (safe to re-run;
   changes made through the API survive). ``reset=True`` restores demo rows to their original values.
 * No records are invented: the loader only maps what the frontend dataset contains.
+* All tenant rows belong to the development workspace (``ws-eko-india``). No user accounts or
+  passwords are seeded — create the first owner with ``python -m scripts.create_owner``.
 """
 
 from __future__ import annotations
@@ -21,6 +23,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
 from app import models as m
+from app.models.base import WorkspaceOwned
 
 DATA_FILE = Path(__file__).with_name("demo_data.json")
 
@@ -61,15 +64,18 @@ class SeedReport:
 
 
 class _Writer:
-    def __init__(self, session: Session, reset: bool) -> None:
+    def __init__(self, session: Session, reset: bool, workspace_id: str) -> None:
         self.session = session
         self.reset = reset
+        self.workspace_id = workspace_id  # every tenant row belongs to the development workspace
         self.report = SeedReport()
 
     def upsert(self, model: type[m.Base], rows: list[dict[str, Any]], conflict: list[str] | None = None) -> None:
         if not rows:
             return
         table: Table = model.__table__  # type: ignore[assignment]
+        if issubclass(model, WorkspaceOwned):
+            rows = [{"workspace_id": self.workspace_id, **row} for row in rows]
         keys = conflict or [c.name for c in table.primary_key.columns]
         stmt = insert(table).values(rows)
         if self.reset:
@@ -85,7 +91,7 @@ class _Writer:
 
 def seed_demo_data(session: Session, data: dict[str, Any] | None = None, *, reset: bool = False) -> SeedReport:
     data = data or load_demo_data()
-    w = _Writer(session, reset)
+    w = _Writer(session, reset, data["workspace"]["id"])
     demo = {"is_demo": True}
 
     ws = data["workspace"]
@@ -103,7 +109,7 @@ def seed_demo_data(session: Session, data: dict[str, Any] | None = None, *, rese
     w.upsert(m.TeamMember, [{
         **demo, "id": t["id"], "workspace_id": ws["id"], "name": t["name"], "email": t["email"].lower(), "role": t["role"],
         "access": t["access"], "avatar_url": t.get("avatarUrl"), "status": t["status"], "last_active_label": t["lastActive"],
-        "is_session_user": t["id"] == data["currentUserId"], "position": i,
+        "position": i,
     } for i, t in enumerate(data["teamMembers"])])
     s = data["defaultWorkspaceSettings"]
     w.upsert(m.WorkspaceSettings, [{
@@ -282,24 +288,28 @@ def seed_demo_data(session: Session, data: dict[str, Any] | None = None, *, rese
         "payload": e["payload"], "diff": e.get("diff"),
     } for e in data["activityEntries"]])
 
-    # --- reference documents (presentation copy without relational structure) -------------
+    # --- global reference content (not tenant data) ------------------------------------------------
     w.upsert(m.ReferenceDocument, [
         {**demo, "key": key, "description": desc, "document": doc}
         for key, desc, doc in [
-            ("insights_overview", "AI Insights overview synthesis copy (stored demo output)", data["insightsOverview"]),
-            ("executive_brief", "Dashboard AI executive brief (stored demo output)", data["executiveBrief"]),
-            ("accounts_summary", "Accounts overview summary, rate-limit notes and retention policy",
-             {"meta": data["accountsSummaryMeta"], "rateLimitNotes": data["rateLimitNotes"], "retentionPolicy": data["retentionPolicy"]}),
             ("meta_scope_catalog", "Instagram Graph API scope descriptions", data["scopeCatalog"]),
             ("connect_reference", "Connect-flow prerequisites and sample (non-real) candidate accounts",
              {"prerequisites": data["connectPrerequisites"], "candidates": data["connectCandidates"]}),
             ("settings_environment", "Settings → environment panel", data["settingsEnvironment"]),
-            ("settings_session", "Settings → current session panel (demo identity, no real auth)", data["settingsSession"]),
             ("notification_trigger_meta", "Settings → notification trigger definitions", data["notificationTriggerMeta"]),
-            ("activity_meta", "Activity log period comparison", {"previousPeriodEventTotal": data["previousPeriodEventTotal"]}),
-            ("report_reference", "Reports CPL benchmark", {"cplBenchmarkInr": data["cplBenchmarkInr"]}),
         ]
     ])
+    # --- workspace-specific presentation documents ---------------------------------------------------
+    w.upsert(m.WorkspaceDocument, [
+        {**demo, "key": key, "document": doc}
+        for key, doc in [
+            ("insights_overview", data["insightsOverview"]),
+            ("executive_brief", data["executiveBrief"]),
+            ("accounts_summary", {"meta": data["accountsSummaryMeta"], "rateLimitNotes": data["rateLimitNotes"], "retentionPolicy": data["retentionPolicy"]}),
+            ("activity_meta", {"previousPeriodEventTotal": data["previousPeriodEventTotal"]}),
+            ("report_reference", {"cplBenchmarkInr": data["cplBenchmarkInr"]}),
+        ]
+    ], conflict=["workspace_id", "key"])
 
     session.flush()
     return w.report

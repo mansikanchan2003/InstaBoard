@@ -1,10 +1,10 @@
-import { createBrowserRouter, RouterProvider, type RouteObject } from 'react-router-dom';
+import { createBrowserRouter, Outlet, RouterProvider, type RouteObject } from 'react-router-dom';
 import { Providers } from '@/app/Providers';
 import { routes } from '@/app/routes';
 
-/** Wrap the route tree so providers can use router hooks. */
+/** One provider tree (auth, toasts, preview state…) shared by every route, inside the router context. */
 export function withProviders(routeList: RouteObject[]): RouteObject[] {
-  return routeList.map((r) => ({ ...r, element: <Providers>{r.element}</Providers> }));
+  return [{ element: <Providers><Outlet /></Providers>, children: routeList }];
 }
 
 const router = createBrowserRouter(withProviders(routes));

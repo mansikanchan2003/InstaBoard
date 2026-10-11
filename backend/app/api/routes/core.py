@@ -6,7 +6,7 @@ from typing import Literal
 
 from fastapi import APIRouter, Path, Query, Response, status
 
-from app.api.deps import DB, commit
+from app.api.deps import DB, commit, require
 from app.schemas import core as s
 from app.schemas.base import JsonDoc
 from app.schemas.inputs import CampaignCreateIn, CampaignPatchIn, LeadCreateIn, LeadPatchIn
@@ -97,12 +97,12 @@ def account_sync_logs(db: DB, account_id: str = IdPath(), limit: int | None = Qu
 
 
 @accounts.post("/{account_id}/sync", status_code=status.HTTP_501_NOT_IMPLEMENTED, summary="Not available: no Meta integration in this phase")
-def request_sync(db: DB, account_id: str = IdPath()):
+def request_sync(db: DB, account_id: str = IdPath(), _perm=require("accounts:manage")):
     svc.request_sync(db, account_id)
 
 
 @accounts.delete("/{account_id}", status_code=status.HTTP_501_NOT_IMPLEMENTED, summary="Not available: needs Meta token revocation")
-def disconnect_account(db: DB, account_id: str = IdPath()):
+def disconnect_account(db: DB, account_id: str = IdPath(), _perm=require("accounts:manage")):
     svc.disconnect_account(db, account_id)
 
 
@@ -122,7 +122,7 @@ def list_campaigns(db: DB, status_: CampaignStatus | None = Query(default=None, 
 
 @campaigns.post("", response_model=s.CampaignOut, status_code=status.HTTP_201_CREATED,
                 summary="Save a draft / scheduled campaign in InstaBoard (nothing is published to Instagram)")
-def create_campaign(db: DB, body: CampaignCreateIn):
+def create_campaign(db: DB, body: CampaignCreateIn, _perm=require("write")):
     return commit(db, svc.create_campaign(db, body))
 
 
@@ -132,7 +132,7 @@ def get_campaign(db: DB, campaign_id: str = IdPath()):
 
 
 @campaigns.patch("/{campaign_id}", response_model=s.CampaignOut, summary="Edit fields and/or status (InstaBoard only)")
-def update_campaign(db: DB, body: CampaignPatchIn, campaign_id: str = IdPath()):
+def update_campaign(db: DB, body: CampaignPatchIn, campaign_id: str = IdPath(), _perm=require("write")):
     return commit(db, svc.update_campaign(db, campaign_id, body))
 
 
@@ -182,7 +182,7 @@ def list_leads(db: DB, status_: LeadStatus | None = Query(default=None, alias="s
 
 @leads.post("", response_model=s.LeadCreateResultOut, status_code=status.HTTP_201_CREATED,
             summary="Create a lead (201), or return the existing lead for the same handle (200, created=false)")
-def create_lead(db: DB, body: LeadCreateIn, response: Response):
+def create_lead(db: DB, body: LeadCreateIn, response: Response, _perm=require("write")):
     result = svc.create_lead(db, body)
     if not result.created:
         response.status_code = status.HTTP_200_OK
@@ -195,7 +195,7 @@ def lead_summary(db: DB):
 
 
 @leads.patch("/{lead_id}", response_model=s.LeadOut, summary="Update status and/or editable details (notes, name, location, phone)")
-def update_lead(db: DB, body: LeadPatchIn, lead_id: str = IdPath()):
+def update_lead(db: DB, body: LeadPatchIn, lead_id: str = IdPath(), _perm=require("write")):
     return commit(db, svc.update_lead(db, lead_id, body))
 
 

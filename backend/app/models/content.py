@@ -6,11 +6,11 @@ from typing import Any
 from sqlalchemy import BigInteger, Boolean, CheckConstraint, Date, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from .base import Base, DemoMixin, TimestampMixin, str_enum
+from .base import Base, DemoMixin, TimestampMixin, str_enum, WorkspaceOwned
 from .enums import ContentType
 
 
-class ContentItem(TimestampMixin, DemoMixin, Base):
+class ContentItem(WorkspaceOwned, TimestampMixin, DemoMixin, Base):
     """Instagram media item (reel / post / carousel / story) with its period totals."""
 
     __tablename__ = "content_items"

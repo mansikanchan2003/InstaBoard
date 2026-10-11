@@ -8,7 +8,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.errors import NotFoundError
-from app.models import InstagramAccount, ReferenceDocument, TeamMember, Workspace
+from app.models import InstagramAccount, ReferenceDocument, TeamMember, Workspace, WorkspaceDocument
 
 IST = timezone(timedelta(hours=5, minutes=30))
 MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -37,22 +37,30 @@ def utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
 
-def current_workspace(db: Session) -> Workspace:
-    """The workspace of the (demo) session user.
+AUTH_KEY = "auth"
 
-    There is no authentication yet: a single seeded "session user" stands in for the signed-in
-    operator. When auth is added, resolve the workspace from the authenticated principal instead.
-    """
-    workspace = db.scalar(select(Workspace).join(TeamMember).where(TeamMember.is_session_user.is_(True)).limit(1))
+
+def auth_context(db: Session):
+    """The authenticated request context bound by ``app.api.deps.require_auth``."""
+    ctx = db.info.get(AUTH_KEY)
+    if ctx is None:  # a service was called outside an authenticated request — fail closed
+        raise RuntimeError("No authenticated workspace context on this database session")
+    return ctx
+
+
+def current_workspace(db: Session) -> Workspace:
+    """The workspace of the authenticated session (validated against membership on every request)."""
+    workspace = db.get(Workspace, auth_context(db).workspace_id)
     if workspace is None:
         raise NotFoundError("Workspace", "current")
     return workspace
 
 
 def session_member(db: Session) -> TeamMember:
-    member = db.scalar(select(TeamMember).where(TeamMember.is_session_user.is_(True)).limit(1))
+    """The authenticated user's membership in the active workspace."""
+    member = db.get(TeamMember, auth_context(db).member_id)
     if member is None:
-        raise NotFoundError("Team member", "session user")
+        raise NotFoundError("Team member", "current")
     return member
 
 
@@ -64,9 +72,18 @@ def get_account(db: Session, account_id: str) -> InstagramAccount:
 
 
 def reference(db: Session, key: str):
+    """Global (non-tenant) reference content."""
     doc = db.get(ReferenceDocument, key)
     if doc is None:
         raise NotFoundError("Reference document", key)
+    return doc.document
+
+
+def workspace_doc(db: Session, key: str):
+    """Document belonging to the active workspace (tenant-filtered)."""
+    doc = db.scalar(select(WorkspaceDocument).where(WorkspaceDocument.key == key))
+    if doc is None:
+        raise NotFoundError("Workspace document", key)
     return doc.document
 
 

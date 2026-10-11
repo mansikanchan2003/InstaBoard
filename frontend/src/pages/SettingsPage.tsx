@@ -1,5 +1,7 @@
 import { modeText } from '@/lib/config';
 import { useSearchParams } from 'react-router-dom';
+import { useAuth } from '@/app/AuthContext';
+import { Notice } from '@/components/ui/Misc';
 import { Breadcrumbs } from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { Tabs } from '@/components/ui/Controls';
@@ -69,7 +71,8 @@ export default function SettingsPage() {
     const s = sectionForTab[t];
     return !!s && form.dirtySections.includes(s);
   };
-  const canSave = form.isDirty && !form.hasErrors && !form.isSaving;
+  const canManageSettings = useAuth().can('settings:manage');
+  const canSave = canManageSettings && form.isDirty && !form.hasErrors && !form.isSaving;
   const accounts = accountsQ.data ?? [];
   const primary = accounts.find((a) => a.isPrimary) ?? accounts[0];
   const connectedOk = accounts.some((a) => a.status === 'connected');
@@ -138,6 +141,12 @@ export default function SettingsPage() {
           </button>
         </div>
       </div>
+
+      {!canManageSettings && tab !== 'security' && (
+        <Notice tone="info" title="Read-only settings" className="mb-4">
+          Your role can view workspace settings but not change them. Ask a workspace owner or admin for changes.
+        </Notice>
+      )}
 
       <Tabs tabs={tabs} value={tab} onChange={setTab} ariaLabel="Settings sections" className="mb-6" />
 
