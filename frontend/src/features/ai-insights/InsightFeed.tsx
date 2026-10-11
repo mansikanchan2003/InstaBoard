@@ -1,3 +1,4 @@
+import { AiGeneratedBadge, QualityPill } from '@/features/ai/AiWidgets';
 import { Link } from 'react-router-dom';
 import { Icon } from '@/components/ui/Icon';
 import { cn } from '@/lib/format';
@@ -110,6 +111,7 @@ export function InsightCard({ insight: i }: { insight: Insight }) {
               {categoryMeta[i.category].label}
             </span>
             <PriorityPill priority={i.priority} />
+            {i.ai && <AiGeneratedBadge ai={i.ai} />}
             {i.status !== 'new' && (
               <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-label-code font-label-code font-semibold border', status.pill)}>
                 <Icon name={status.icon} className="text-[12px]" />
@@ -117,9 +119,13 @@ export function InsightCard({ insight: i }: { insight: Insight }) {
               </span>
             )}
           </div>
-          <span className="text-label-sm font-label-sm text-text-tertiary font-medium shrink-0">
-            {i.confidence}% {i.confidence >= 89 ? 'High ' : ''}Confidence
-          </span>
+          {i.ai ? (
+            <QualityPill quality={i.ai.evidenceQuality} />
+          ) : (
+            <span className="text-label-sm font-label-sm text-text-tertiary font-medium shrink-0">
+              {i.confidence}% {i.confidence >= 89 ? 'High ' : ''}Confidence
+            </span>
+          )}
         </div>
         <h3 className="text-headline-sm font-headline-sm text-text-primary font-bold mb-3 tracking-tight">
           <Link to={`/ai-insights/${i.id}`} className="hover:underline">

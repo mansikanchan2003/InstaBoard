@@ -1,11 +1,11 @@
-# InstaBoard backend (Phases 2–6)
+# InstaBoard backend (Phases 2–7)
 
 FastAPI + PostgreSQL backend for the existing InstaBoard frontend.
 
 - It serves the frontend's **demonstration dataset**, imported into PostgreSQL. Every seeded row has `is_demo = true`; none of it is live Instagram data.
 - **Authentication and workspace isolation** (Phase 4): email + password sign-in, server-side sessions in an HttpOnly cookie, CSRF protection, Owner/Admin/Editor/Viewer roles, and every tenant row scoped to a workspace. See [Authentication & authorization](#authentication--authorization-phase-4).
 - **Instagram integration** (Phase 5): official Instagram Login OAuth plus bounded, read-only syncs. It is disabled unless configured; see [Instagram integration](#instagram-integration-phase-5).
-- There is **no AI provider** yet.
+- **AI intelligence** (Phase 7): provider-independent, evidence-grounded insights, comment classification and lead summaries. It is off by default; see [AI intelligence](#ai-intelligence-phase-7).
 - It has **not been deployed or penetration-tested**; read [Security boundaries](#security-boundaries) before exposing it anywhere.
 
 ## Stack
@@ -598,6 +598,164 @@ cd backend
 - **Mocked Meta and no Redis:** all of the above use mocked Meta responses and no Redis.
 - **Real worker run:** a real worker + beat + Redis run was verified manually; see the Phase 6 report.
 
+## AI intelligence (Phase 7)
+
+### Architecture
+
+```
+app/ai/providers.py     adapters: AnthropicProvider (Messages API, single forced tool = output schema),
+                        OpenAICompatibleProvider (/chat/completions + response_format json_schema)
+app/ai/service.py       AIGateway — budget check → bounded retries/backoff → Pydantic validation → usage record
+app/ai/schemas.py       the only shapes model output may take (closed enums, length limits, extra keys rejected)
+app/ai/prompts.py       versioned prompts (insights-v1, comments-v1, leads-v1); variable data passed as delimited JSON
+app/ai/safety.py        untrusted-text sanitising, prompt-injection heuristics, numeric-claim verification
+app/services/intelligence/
+  analytics.py          deterministic metrics (no AI) — the only numbers AI may cite
+  insights.py           evidence pack → model → verify → dedupe/persist into `insights`
+  comments.py           batched classification into `comment_classifications` (+ human review)
+  leads.py              deterministic priorities + optional AI follow-up summaries
+  jobs.py               durable AI jobs on the existing Celery worker (same claim/lease/retry design as Phase 6)
+```
+
+- **Provider-independent:** business logic never imports a concrete provider. Switch with `AI_PROVIDER` / `AI_MODEL` / `AI_BASE_URL`.
+- **Tools and keys:** no tool other than the output schema is ever offered to the model. API keys stay server-side.
+- **Disabled state:** with `AI_PROVIDER=none` (the default), AI endpoints answer `503 ai_disabled`. Dashboards, stored insights, `/analytics/campaigns` and lead priorities keep working.
+
+### Configuration
+
+The variables are listed in `backend/.env.example`.
+
+| Variable | Meaning |
+| --- | --- |
+| `AI_PROVIDER` | `none` \| `anthropic` \| `openai_compatible` |
+| `AI_MODEL` | Required when enabled; no default, because availability differs by account and provider. |
+| `AI_API_KEY` | Required when enabled; server-side only. |
+| `AI_BASE_URL` | Required for `openai_compatible`; https only outside localhost. |
+| `AI_TIMEOUT_SECONDS`, `AI_MAX_RETRIES`, `AI_MAX_INPUT_CHARS`, `AI_MAX_OUTPUT_TOKENS` | Request limits. |
+| `AI_MONTHLY_TOKEN_LIMIT`, `AI_DAILY_REQUEST_LIMIT` | **InstaBoard-enforced** per-workspace limits on provider-reported tokens and requests, checked before each request. They are not a provider-side spending cap: one in-flight request can overshoot by its own size. Set provider-side caps in the provider console as well. |
+| `AI_COMMENT_BATCH_SIZE`, `AI_COMMENT_JOB_LIMIT` | Comments per model call and per job. |
+| `AI_INSIGHT_CACHE_HOURS`, `AI_INSIGHT_TTL_DAYS`, `AI_MAX_INSIGHTS_PER_RUN`, `AI_ANALYSIS_MAX_DAYS` | Insight cache, review window, per-run cap and maximum period. |
+| `AI_SCHEDULED_INSIGHTS_ENABLED` | Daily scheduled insight runs, via the worker and beat. |
+
+### Metrics and formulas (`GET /api/v1/analytics/campaigns?start=&end=`)
+
+| Metric | Definition |
+| --- | --- |
+| Engagements (measured) | likes + comments + shares + saves |
+| Engagement rate (calculated) | Σ engagements ÷ Σ reach × 100, over items with all inputs present and reach > 0. It is reach-weighted, not an average of per-post ratios. |
+| Lead attribution | A lead counts when its source content (`leads.content_id`) was published in the period. Campaign-only leads count when the campaign's dates overlap the period. |
+| Lead conversion rate | Attributed leads with status `converted` ÷ attributed leads × 100. |
+| Lead yield | Attributed leads ÷ Σ reach × 1,000. |
+| Period change | (current − previous) ÷ previous × 100, where previous is the equal-length period just before. |
+| Follower change (live) | Last − first `followers_count` observation in the period (needs ≥ 2 observations). |
+
+**Rules applied before anything is compared or concluded:**
+
+- A rate needs at least 3 complete items, and conversion rate needs at least 10 leads.
+- Comparisons need both sides to be sufficient.
+- A change is "notable" only when |change| ≥ 20 %.
+- Missing values are excluded from numerator **and** denominator, and are reported as `missing`.
+- Insufficient figures are flagged and shown as unavailable, never estimated.
+
+Every figure carries its definition, period, sample size, measured/calculated kind and **source**:
+
+- `demo_dataset` — the seeded demonstration rows;
+- `workspace_data`;
+- `instagram_api` — live data.
+
+### Insights: evidence and confidence semantics
+
+1. `POST /api/v1/insights/regenerate` (`{start,end}` optional) queues a job, returning 202 with `{job, deduplicated}`. Poll `GET /api/v1/ai/jobs/{id}`.
+2. The job computes the facts deterministically and sends **only aggregates** (no names, handles, comment text or contact data) to the model. The model must cite fact IDs (`E1…`).
+3. **Verification:** a draft is discarded (and counted in the job result) if it cites an unknown fact, or if **any number in its text does not match a cited fact** (rounding to one decimal is allowed).
+4. **Evidence quality** (`confidence` column: 80 / 60 / 35) is computed from the cited facts, not taken from the model:
+   - **high:** all cited facts are sufficient, with ≥ 10 observations and ≤ 10 % missing;
+   - **medium:** all cited facts are sufficient;
+   - **low:** at least one cited fact is insufficient, and priority is forced to low.
+
+   It describes the data, **not** a probability that the suggestion is right.
+5. **Deduplication:** fingerprint = category + cited metrics and scopes + period. Re-running refreshes an existing insight instead of duplicating it, and a dismissed insight is not resurrected within its review window (`AI_INSIGHT_TTL_DAYS`).
+6. **Cache:** key = sha256(evidence hash · period · prompt version · provider:model). If the evidence is unchanged within `AI_INSIGHT_CACHE_HOURS`, there is no model call. When evidence changes, the key changes and the analysis is fresh.
+7. **Persisted fields:** insights go into the existing `insights` table with `origin='ai'`. `ai_meta` holds provider/model, prompt version, evidence (definitions, periods, sample sizes, sources), summary, explanation, suggested action, evidence quality, evidence hash, job ID and generated/expires times.
+8. **Statuses:** new / reviewed / saved / completed / dismissed. `completed` means a person carried the action out; the AI never acts.
+9. **API shape:** demo insights keep their original shape. The optional `ai` field appears only on AI-generated ones.
+
+### Comment classification
+
+- **Labels:**
+  - sentiment: `positive`, `neutral`, `negative`;
+  - intent: `product_inquiry`, `pricing_inquiry`, `contact_request`, `interest`, `complaint_support`, `spam_irrelevant`, `other`;
+  - plus lead signal (bool), priority, uncertainty (`low` / `medium` / `high`) and a one-sentence explanation.
+- **Endpoints:**
+  - `POST /api/v1/ai/comments/classify` with `{source: workspace|instagram, commentIds?}` queues a job.
+  - `GET /api/v1/ai/comments/classifications` returns the latest classification per comment.
+  - `PATCH …/classifications/{id}` takes `{reviewStatus: confirmed|corrected, sentiment?, intent?, leadSignal?}`.
+- **Untrusted input:**
+  - Comment text is sanitised (control and zero-width characters removed, ≤ 1,000 characters).
+  - It is sent as JSON inside explicit markers under local aliases (`c1`, `c2` …), so no database IDs, usernames, handles or locations reach the model.
+  - The system prompt says the text is data. IDs the model invents or repeats are ignored, and output is limited to closed enums.
+  - Instruction-like text (`injection_suspected`) is still classified, but marked high-uncertainty for human review.
+  - The model has no tools, so a comment cannot cause an action, data access, a reply or a lead.
+- **Separation:** predictions are stored separately from the original comment. Human review is stored **next to** the prediction (`effective` = reviewed values where present). Conversion to a lead stays the existing manual workflow.
+- **Idempotency and versioning:**
+  - A comment is skipped when a classification exists for the same `classifier_version` (prompt version + provider:model) and the same text hash.
+  - Changing the prompt or model creates a new version, so reprocessing is deliberate and old results stay attributable.
+
+### Lead intelligence
+
+- **Priorities:** `GET /api/v1/ai/leads/priorities` is deterministic and needs no AI:
+  - leads with status `new` recorded ≥ 2 days ago;
+  - lead counts by campaign and content;
+  - each lead's current status distribution. This is not a historical funnel, so no drop-off rates are claimed.
+- **Summaries:** `POST /api/v1/ai/leads/{id}/summary` produces a summary, a follow-up reason and a suggested next action.
+  - **Sent to the model:** only status, campaign, source, days since recorded and the first message.
+  - **Never sent:** name, handle, phone, location and notes.
+  - **Not produced:** no conversion probability, because there is no validated model or training data for one.
+  - **Caching:** unchanged context is not re-sent.
+
+### Jobs, usage and privacy
+
+- **Jobs:** AI jobs run on the existing Celery worker (`instaboard.ai.run_job`). Maintenance also recovers and re-sends AI jobs, and the daily `instaboard.ai.schedule_insights` is opt-in. Job states match Phase 6.
+- **Idempotency:** one active job per (workspace, request key). Repeated requests return it.
+- **Retries:** for rate limits (honouring `Retry-After`), timeouts, provider unavailability and invalid output, with backoff and jitter, up to `AI_MAX_RETRIES`. Auth/config errors, disabled AI and exhausted budgets fail immediately.
+- **`ai_usage_records`:** one row per provider call, holding task, provider, model, prompt version, outcome, provider-reported tokens and latency. `GET /api/v1/ai/status` shows this month's usage, failures and limits.
+- **Privacy:**
+  - **Logs:** IDs, categories, token counts and latency only. Never prompts, comment text, model output or keys.
+  - **Retention:** AI classifications, summaries and insights live in workspace-scoped tables and are deleted with the workspace. Instagram comment classifications refer to comments that are purged on disconnect and data deletion.
+  - **Raw responses:** raw model responses are not stored.
+
+### Evaluation
+
+```bash
+.venv/Scripts/python -m pytest -q tests/test_ai_evaluation.py           # deterministic parts (always)
+INSTABOARD_LIVE_AI_EVAL=1 .venv/Scripts/python -m pytest -q tests/test_ai_evaluation.py   # + live provider (costs tokens)
+.venv/Scripts/python -m evaluation.run_comment_eval                      # live report → evaluation/results/ (git-ignored)
+```
+
+- **Deterministic parts:** dataset integrity, scoring maths, the injection heuristic, and campaign-formula scenarios with hand-computed expected values.
+- **Dataset:** 30 synthetic comments with expected labels, in `evaluation/comments_eval.jsonl`.
+- **Live mode:** classifies the dataset with the configured provider and reports accuracy, per-class precision/recall, macro-F1 and a confusion table.
+- **Limitations:** 30 synthetic, hand-labelled examples (mostly English, some Hinglish) are a smoke test of label behaviour. They are **not** an estimate of production accuracy, which needs a larger labelled sample of real comments.
+- **Injection heuristic:** keyword patterns that will miss novel attacks. Containment comes from the data-only prompt design, closed output enums, alias IDs and the absence of tools, not from the heuristic.
+
+### Tests
+
+`tests/test_ai.py` (42 tests) uses a scripted fake provider and mocked HTTP for the adapters. It covers:
+
+- metric calculations and boundary cases;
+- insufficient and incompatible periods;
+- structured-output validation and malformed output;
+- provider timeouts, rate limits and auth errors;
+- budget enforcement and the AI-disabled state;
+- insight grounding (rejected fabricated numbers and unknown evidence), caching, stale-cache invalidation, deduplication, and no resurrection of dismissed insights;
+- comment idempotency, prompt-injection containment, missing labels, human review and version changes;
+- lead priorities and summary privacy;
+- job retries;
+- authorization and cross-tenant isolation;
+- no comment text or keys in logs.
+
+**No live provider has been called by these tests.**
+
 ## Security boundaries
 
 - **Not production-hardened yet.** Before any deployment:
@@ -614,6 +772,6 @@ cd backend
 - **Dependency advisories:**
   - **Backend:** `pip-audit` (2026-10-11) reports advisories for **Starlette 0.41.3**, which is pinned by FastAPI 0.115.6. Upgrading FastAPI/Starlette is the next maintenance task.
   - **Frontend:** `npm audit` reports a react-router 6 open-redirect advisory (backslash paths). The app's only user-controlled redirect (`?next=`) is validated by `safeNext`, which rejects backslashes and absolute URLs. The remaining advisories are dev and test tooling only.
-- **Instagram tokens** exist only server-side: encrypted in `instagram_tokens`, never in code, responses or logs. The app secret and encryption key live only in `backend/.env`. The backend never sees Instagram passwords, because users sign in on instagram.com. There are no AI credentials.
+- **Instagram tokens** exist only server-side: encrypted in `instagram_tokens`, never in code, responses or logs. The app secret and encryption key live only in `backend/.env`. The backend never sees Instagram passwords, because users sign in on instagram.com. AI provider keys likewise exist only in `backend/.env` and are never logged or returned.
 - **Nothing is published or sent.** No endpoint publishes to Instagram, posts replies, sends DMs or WhatsApp messages, or emails reports or invitations. The demo-account sync and disconnect endpoints (`/accounts/{id}/sync`, `DELETE /accounts/{id}`) still return `501`.
 - **Credentials stay local.** `.env` holds them and is git-ignored. `.env.example` contains placeholders only.

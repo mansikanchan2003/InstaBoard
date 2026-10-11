@@ -1,3 +1,5 @@
+import { LeadPrioritiesPanel } from '@/features/ai/LeadAiPanels';
+import { isDemoMode } from '@/lib/config';
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -113,6 +115,7 @@ export default function LeadsPage() {
       <QueryState query={summary} loading={<LeadKpisSkeleton />} error={(err, retry) => <ErrorState title="Unable to load pipeline summary" error={err} onRetry={retry} />}>
         {(s) => <LeadKpis summary={s} />}
       </QueryState>
+      {!isDemoMode && <LeadPrioritiesPanel />}
 
       <section className="bg-surface-card border border-border-strong rounded-lg overflow-hidden" aria-label="Leads">
         <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 border-b border-border-strong bg-surface-canvas">

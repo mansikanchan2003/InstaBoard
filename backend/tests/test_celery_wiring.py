@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from app.worker.queue import TASK_MAINTENANCE, TASK_RUN_JOB, TASK_SCHEDULE, build_celery, make_dispatcher
+from app.worker.queue import TASK_AI_JOB, TASK_AI_SCHEDULE, TASK_MAINTENANCE, TASK_RUN_JOB, TASK_SCHEDULE, build_celery, make_dispatcher
 
 
 def test_celery_is_configured_for_safe_redelivery_and_utc_scheduling():
@@ -15,7 +15,7 @@ def test_celery_is_configured_for_safe_redelivery_and_utc_scheduling():
     assert conf.task_ignore_result  # job state lives in PostgreSQL
     assert conf.broker_transport_options["visibility_timeout"] > conf.task_time_limit
     schedule = {entry["task"]: entry["schedule"] for entry in conf.beat_schedule.values()}
-    assert schedule == {TASK_SCHEDULE: 300.0, TASK_MAINTENANCE: 60.0}
+    assert schedule == {TASK_SCHEDULE: 300.0, TASK_MAINTENANCE: 60.0, TASK_AI_SCHEDULE: 86400.0}
 
 
 def test_no_dispatcher_without_a_broker():
@@ -31,6 +31,6 @@ def test_tasks_are_registered(monkeypatch):
     try:
         tasks = pytest.importorskip("app.worker.tasks")
         registered = set(tasks.celery_app.tasks.keys())
-        assert {TASK_RUN_JOB, TASK_SCHEDULE, TASK_MAINTENANCE} <= registered
+        assert {TASK_RUN_JOB, TASK_SCHEDULE, TASK_MAINTENANCE, TASK_AI_JOB, TASK_AI_SCHEDULE} <= registered
     finally:
         get_settings.cache_clear()

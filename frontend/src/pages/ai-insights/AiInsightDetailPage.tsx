@@ -1,3 +1,4 @@
+import { AiInsightBody } from '@/features/ai/AiInsightBody';
 import { modeText } from '@/lib/config';
 import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
@@ -104,6 +105,8 @@ export default function AiInsightDetailPage() {
       reviewed: { title: 'Insight marked as reviewed', description: modeText('Status updated on the AI Insights overview (local demo store).', 'Status saved; the AI Insights overview reflects it.') },
       dismissed: { title: 'Insight dismissed', description: 'Hidden from the AI Insights feed. You can restore it from this page.' },
       new: { title: 'Insight restored', description: 'Back in the AI Insights feed as pending review.' },
+      saved: { title: 'Insight saved', description: 'Kept in the feed for later review.' },
+      completed: { title: 'Marked as completed', description: 'Recorded that a person carried out the suggested action.' },
     };
     toast({ tone: 'success', ...copy[status] });
   };
@@ -129,6 +132,9 @@ export default function AiInsightDetailPage() {
         onToggleReviewed={() => changeStatus(insight.status === 'reviewed' ? 'new' : 'reviewed')}
       />
 
+      {insight.ai ? (
+        <AiInsightBody insight={insight} onStatus={(st) => void changeStatus(st)} busy={setStatus.isPending} />
+      ) : (
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <div className="lg:col-span-8 space-y-6 min-w-0">
           {detail?.telemetry ? (
@@ -166,6 +172,7 @@ export default function AiInsightDetailPage() {
           <AuditCard insight={insight} />
         </div>
       </div>
+      )}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 """SQLAlchemy models. Importing this package registers every table on ``Base.metadata``."""
 
+from .ai import AIAnalysisCache, AIJob, AIUsageRecord, CommentClassification, LeadAISummary
 from .auth import AuthSession, Invitation, User
 from .account import AccountDailyMetric, AccountKpi, AccountReportingPeriod, AccountTelemetry, AudienceBreakdown, AudienceSnapshot, InstagramAccount, SyncLog
 from .base import Base
@@ -15,6 +16,7 @@ from .workspace import ReferenceDocument, TeamMember, Workspace, WorkspaceDocume
 
 __all__ = [
     "AuthSession", "Invitation", "User", "WorkspaceDocument",
+    "AIAnalysisCache", "AIJob", "AIUsageRecord", "CommentClassification", "LeadAISummary",
     "InstagramAccountInsight", "InstagramComment", "InstagramConnection", "InstagramDataDeletionRequest", "InstagramMedia",
     "InstagramMediaInsight", "InstagramOAuthState", "InstagramSyncRun", "InstagramToken", "WorkerHeartbeat",
     "AccountDailyMetric", "AccountKpi", "AccountReportingPeriod", "AccountTelemetry", "ActivityActor", "ActivityEvent",

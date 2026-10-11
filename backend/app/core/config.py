@@ -121,7 +121,34 @@ class Settings(BaseSettings):
     instagram_insights_max_age_days: int = Field(default=730, ge=1, le=730)
     instagram_comment_pages_per_media: int = Field(default=2, ge=1, le=20)
 
-    @field_validator("secret_key", "cookie_domain", "redis_url", "instagram_app_id", "instagram_app_secret", "instagram_redirect_uri",
+    # --- AI intelligence (Phase 7) ----------------------------------------------------------
+    # Provider-independent: "none" (default — AI features off, deterministic analytics still work),
+    # "anthropic" (Messages API) or "openai_compatible" (any /chat/completions endpoint with JSON-schema output).
+    ai_provider: Literal["none", "anthropic", "openai_compatible"] = "none"
+    # Model name is deliberately not defaulted (availability differs per account/provider).
+    ai_model: str | None = None
+    ai_api_key: SecretStr | None = None
+    # Required for openai_compatible (e.g. https://api.openai.com/v1); optional override for anthropic.
+    ai_base_url: str | None = None
+    ai_timeout_seconds: float = Field(default=45.0, gt=0, le=300)
+    ai_max_retries: int = Field(default=2, ge=0, le=5)
+    ai_retry_backoff_seconds: float = Field(default=2.0, ge=0, le=60)
+    ai_max_input_chars: int = Field(default=24_000, ge=1_000, le=400_000)
+    ai_max_output_tokens: int = Field(default=2_000, ge=128, le=16_000)
+    # App-enforced budget: new AI requests are refused once a workspace used this many tokens (provider-reported)
+    # in the current UTC month. 0 = no limit. This is NOT a provider-side spending cap.
+    ai_monthly_token_limit: int = Field(default=500_000, ge=0)
+    ai_daily_request_limit: int = Field(default=500, ge=0)
+    ai_comment_batch_size: int = Field(default=20, ge=1, le=50)
+    ai_comment_job_limit: int = Field(default=200, ge=1, le=2_000)
+    ai_insight_cache_hours: int = Field(default=24, ge=1, le=24 * 30)
+    ai_insight_ttl_days: int = Field(default=14, ge=1, le=90)
+    ai_max_insights_per_run: int = Field(default=6, ge=1, le=12)
+    ai_analysis_max_days: int = Field(default=366, ge=7, le=3 * 366)
+    # Daily scheduled insight generation per workspace (only when AI is enabled and the worker/beat run).
+    ai_scheduled_insights_enabled: bool = False
+
+    @field_validator("secret_key", "cookie_domain", "redis_url", "ai_model", "ai_api_key", "ai_base_url", "instagram_app_id", "instagram_app_secret", "instagram_redirect_uri",
                      "instagram_graph_api_version", "instagram_token_encryption_key", "instagram_token_previous_keys", mode="before")
     @classmethod
     def _blank_is_unset(cls, value: object) -> object:
@@ -199,6 +226,24 @@ class Settings(BaseSettings):
             if not uri.rstrip("/").endswith("/integrations/instagram/callback"):
                 raise ValueError("INSTAGRAM_REDIRECT_URI must point at <API>/integrations/instagram/callback")
         return self
+
+    @model_validator(mode="after")
+    def _ai_config_complete(self) -> Settings:
+        if self.ai_provider == "none":
+            return self
+        missing = [name for name, value in (("AI_MODEL", self.ai_model), ("AI_API_KEY", self.ai_api_key)) if value is None]
+        if self.ai_provider == "openai_compatible" and not self.ai_base_url:
+            missing.append("AI_BASE_URL")
+        if missing:
+            raise ValueError(f"AI_PROVIDER={self.ai_provider} also needs: " + ", ".join(missing))
+        if self.ai_base_url and not (self.ai_base_url.startswith("https://") or
+                                     (self.app_env != "production" and self.ai_base_url.startswith(("http://localhost", "http://127.0.0.1")))):
+            raise ValueError("AI_BASE_URL must use https:// (http://localhost is allowed outside production)")
+        return self
+
+    @property
+    def ai_enabled(self) -> bool:
+        return self.ai_provider != "none"
 
     @property
     def instagram_missing_config(self) -> list[str]:

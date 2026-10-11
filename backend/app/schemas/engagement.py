@@ -119,7 +119,7 @@ class CommentBulkIn(ApiModel):
 
 # --- insights ------------------------------------------------------------------------
 class InsightOut(ApiModel):
-    __omit_if_none__ = optional("detail")
+    __omit_if_none__ = optional("detail", "ai")
     id: str
     category: Literal["campaign", "content", "audience", "comments", "leads"]
     priority: Literal["high", "medium", "low"]
@@ -130,9 +130,12 @@ class InsightOut(ApiModel):
     impact: JsonDoc
     primary_link: JsonDoc
     generated_at: str
-    status: Literal["new", "reviewed", "dismissed"]
+    status: Literal["new", "reviewed", "saved", "completed", "dismissed"]
     completed_step_ids: list[str]
     detail: JsonDoc | None = None
+    # Phase 7: present only on AI-generated insights — provider/model, evidence (with definitions and periods),
+    # evidence quality, recommendation, prompt version and timestamps. Absent on demonstration insights.
+    ai: JsonDoc | None = None
 
 
 class RecommendedActionOut(ApiModel):
@@ -152,7 +155,7 @@ class RecommendedActionOut(ApiModel):
 
 
 class InsightStatusIn(ApiModel):
-    status: Literal["new", "reviewed", "dismissed"]
+    status: Literal["new", "reviewed", "saved", "completed", "dismissed"]
 
 
 class ActionStatusIn(ApiModel):

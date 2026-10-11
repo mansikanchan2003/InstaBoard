@@ -103,11 +103,14 @@ def test_insight_review_and_step_toggle(client):
 
 
 def test_features_needing_external_integrations_return_501(client):
-    for method, path in [("post", "/accounts/acc-ekoindia/sync"), ("delete", "/accounts/acc-ekoindia"), ("post", "/insights/regenerate")]:
+    for method, path in [("post", "/accounts/acc-ekoindia/sync"), ("delete", "/accounts/acc-ekoindia")]:
         response = getattr(client, method)(api(path))
         assert response.status_code == 501, path
         assert response.json()["error"]["code"] == "not_available"
     assert client.post(api("/accounts/nope/sync")).status_code == 404
+    # Phase 7: insight regeneration exists now; without an AI provider it reports that clearly instead of 501.
+    response = client.post(api("/insights/regenerate"))
+    assert response.status_code == 503 and response.json()["error"]["code"] == "ai_disabled"
 
 
 REPORT_CONFIG = {

@@ -1,5 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { CommentAiToolbar } from '@/features/ai/CommentAiPanel';
+import { isDemoMode } from '@/lib/config';
 import { Drawer } from '@/components/ui/Overlay';
 import { Icon } from '@/components/ui/Icon';
 import { useToast } from '@/components/ui/Toast';
@@ -166,7 +168,10 @@ export default function CommentsPage() {
   });
 
   const header = (
-    <CommentsHeader selectedCount={checked.size} onBulkStatus={bulk} onExport={exportCsv} onStartTriage={startTriage} />
+    <>
+      <CommentsHeader selectedCount={checked.size} onBulkStatus={bulk} onExport={exportCsv} onStartTriage={startTriage} />
+      {!isDemoMode && <CommentAiToolbar />}
+    </>
   );
 
   if (summaryQ.status === 'loading' || listQ.status === 'loading') {

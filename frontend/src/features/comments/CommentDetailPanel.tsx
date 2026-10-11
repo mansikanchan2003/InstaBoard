@@ -1,3 +1,5 @@
+import { CommentAiPanel } from '@/features/ai/CommentAiPanel';
+import { isDemoMode } from '@/lib/config';
 import { modeText } from '@/lib/config';
 import { forwardRef } from 'react';
 import { Link } from 'react-router-dom';
@@ -32,6 +34,7 @@ export const CommentDetailBody = forwardRef<HTMLDivElement, DetailPanelProps>(fu
 ) {
   return (
     <div className="space-y-4">
+      {!isDemoMode && <CommentAiPanel commentId={c.id} />}
       <div className="flex items-start justify-between gap-3 pb-3 border-b border-border-strong">
         <div className="flex items-center gap-3 min-w-0">
           <CommentAvatar comment={c} size="lg" />

@@ -6,9 +6,10 @@ from typing import Literal
 
 from fastapi import APIRouter, Path, Query, Request, Response, status
 
-from app.api.deps import DB, commit, require
+from app.api.deps import DB, commit, require, Ctx
 from app.schemas import core as cs
 from app.schemas import engagement as s
+from app.schemas.ai import InsightsRequestIn
 from app.schemas.base import JsonDoc
 from app.schemas.inputs import TeamAccessIn, TeamInviteIn, WorkspaceSettingsIn
 from app.services import engagement as svc
@@ -93,16 +94,20 @@ def set_action_status(db: DB, body: s.ActionStatusIn, action_id: str = IdPath(),
     return commit(db, svc.set_action_status(db, action_id, body))
 
 
-@insights.post("/regenerate", status_code=status.HTTP_501_NOT_IMPLEMENTED, summary="Not available: no AI provider in this phase")
-def regenerate(_perm=require("write")):
-    svc.regenerate_insights()
+@insights.post("/regenerate", status_code=status.HTTP_202_ACCEPTED, summary="Queue evidence-grounded AI insight generation for a period")
+def regenerate(request: Request, db: DB, ctx: Ctx, body: InsightsRequestIn | None = None, _perm=require("write")):
+    from app.api.routes.ai import enqueue_insights
+
+    body = body or InsightsRequestIn()
+    return enqueue_insights(request, db, ctx, body.start, body.end)
 
 
-@insights.get("", response_model=list[s.InsightOut], summary="Stored insights (demonstration output; no model is called)")
+@insights.get("", response_model=list[s.InsightOut], summary="Insights: seeded demonstration output and AI-generated ones (``ai`` present)")
 def list_insights(db: DB, category: Literal["campaign", "content", "audience", "comments", "leads"] | None = None,
                   priority: Literal["high", "medium", "low"] | None = None,
-                  status_: Literal["new", "reviewed", "dismissed"] | None = Query(default=None, alias="status")):
-    return svc.list_insights(db, category=category, priority=priority, status=status_)
+                  status_: Literal["new", "reviewed", "saved", "completed", "dismissed"] | None = Query(default=None, alias="status"),
+                  origin: Literal["demo", "ai"] | None = None, include_expired: bool = Query(default=False, alias="includeExpired")):
+    return svc.list_insights(db, category=category, priority=priority, status=status_, origin=origin, include_expired=include_expired)
 
 
 @insights.get("/{insight_id}", response_model=s.InsightOut)

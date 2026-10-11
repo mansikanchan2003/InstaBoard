@@ -183,6 +183,8 @@ export function CommentEvidenceCard({ comments, contentTitle }: { comments: Inst
 const lifecycle = {
   new: { label: 'Pending Team Action', cls: 'text-status-paused', dot: 'bg-status-paused' },
   reviewed: { label: 'Reviewed', cls: 'text-status-active', dot: 'bg-status-active' },
+  saved: { label: 'Saved for later', cls: 'text-sky-800', dot: 'bg-sky-500' },
+  completed: { label: 'Action completed', cls: 'text-status-active', dot: 'bg-status-active' },
   dismissed: { label: 'Dismissed', cls: 'text-text-secondary', dot: 'bg-text-tertiary' },
 } as const;
 

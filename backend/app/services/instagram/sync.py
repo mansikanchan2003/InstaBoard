@@ -262,8 +262,8 @@ class SyncEngine:
                     workspace_id=self.connection.workspace_id, media_id=item.id, metric=metric, period="lifetime", value=value,
                     status="ok" if value is not None else "unavailable", captured_at=self.observed, api_version=self.client.api_version,
                     unit="count", source="instagram_api",
-                ).on_conflict_do_nothing(index_elements=["media_id", "metric", "captured_at"]))
-                stored += int(value is not None and result.rowcount > 0)
+                ).on_conflict_do_nothing(index_elements=["media_id", "metric", "captured_at"]).returning(InstagramMediaInsight.id))
+                stored += int(value is not None and result.scalar() is not None)
             self._count("media_insights_fetched", stored)
             if index % 5 == 0:
                 self.checkpoint("media_insights", 40 + int(30 * index / len(candidates)))

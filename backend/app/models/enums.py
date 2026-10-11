@@ -188,6 +188,8 @@ class InsightPriority(StrEnum):
 class InsightStatus(StrEnum):
     new = "new"
     reviewed = "reviewed"
+    saved = "saved"  # Phase 7: kept for later
+    completed = "completed"  # Phase 7: the suggested action was carried out (by a human)
     dismissed = "dismissed"
 
 
@@ -307,3 +309,20 @@ class IgSyncStatus(StrEnum):
 
 ACTIVE_JOB_STATES = ("queued", "running", "retrying")
 TERMINAL_JOB_STATES = ("succeeded", "partially_succeeded", "failed", "cancelled")
+
+
+# --- AI intelligence (Phase 7) -------------------------------------------------------------
+class AIJobKind(StrEnum):
+    insights = "insights"
+    comment_classification = "comment_classification"
+    lead_summary = "lead_summary"
+
+
+class AIJobStatus(StrEnum):
+    queued = "queued"
+    running = "running"
+    succeeded = "succeeded"
+    partially_succeeded = "partially_succeeded"
+    retrying = "retrying"
+    failed = "failed"
+    cancelled = "cancelled"

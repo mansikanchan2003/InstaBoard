@@ -12,6 +12,8 @@ logger = logging.getLogger("instaboard.queue")
 TASK_RUN_JOB = "instaboard.instagram.run_sync_job"
 TASK_SCHEDULE = "instaboard.instagram.schedule_syncs"
 TASK_MAINTENANCE = "instaboard.instagram.maintenance"
+TASK_AI_JOB = "instaboard.ai.run_job"
+TASK_AI_SCHEDULE = "instaboard.ai.schedule_insights"
 
 
 def build_celery(redis_url: str | None, *, tick_seconds: int = 300, concurrency: int = 2) -> Celery:
@@ -34,6 +36,7 @@ def build_celery(redis_url: str | None, *, tick_seconds: int = 300, concurrency:
         beat_schedule={
             "instagram-schedule-syncs": {"task": TASK_SCHEDULE, "schedule": float(tick_seconds)},
             "instagram-maintenance": {"task": TASK_MAINTENANCE, "schedule": 60.0},
+            "ai-schedule-insights": {"task": TASK_AI_SCHEDULE, "schedule": 24 * 3600.0},
         },
     )
     return app
@@ -47,8 +50,9 @@ def make_dispatcher(redis_url: str | None):
     producer = build_celery(redis_url)
 
     def dispatch(job_id: str, countdown: float = 0.0) -> None:
+        task = TASK_AI_JOB if job_id.startswith("aij_") else TASK_RUN_JOB  # AI jobs and sync jobs share the worker
         try:
-            producer.send_task(TASK_RUN_JOB, args=[job_id], countdown=max(0.0, countdown))
+            producer.send_task(task, args=[job_id], countdown=max(0.0, countdown))
         except Exception as exc:  # noqa: BLE001 — broker down: the queued job is re-sent by the maintenance task
             logger.warning("Could not publish sync job %s (%s); it stays queued and will be re-dispatched.", job_id, exc.__class__.__name__)
 

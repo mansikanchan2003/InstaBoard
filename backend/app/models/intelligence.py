@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Any
 
-from sqlalchemy import Boolean, CheckConstraint, Date, DateTime, ForeignKey, Index, Integer, SmallInteger, String, Text, UniqueConstraint, func
+from sqlalchemy import Boolean, CheckConstraint, Date, DateTime, ForeignKey, Index, Integer, SmallInteger, String, Text, UniqueConstraint, func, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base, DemoMixin, TimestampMixin, str_enum, WorkspaceOwned
@@ -30,7 +30,11 @@ from .enums import (
 
 class Insight(WorkspaceOwned, TimestampMixin, DemoMixin, Base):
     __tablename__ = "insights"
-    __table_args__ = (CheckConstraint("confidence >= 0 AND confidence <= 100", name="confidence_range"),)
+    __table_args__ = (
+        CheckConstraint("confidence >= 0 AND confidence <= 100", name="confidence_range"),
+        CheckConstraint("origin IN ('demo', 'ai')", name="origin_values"),
+        Index("uq_insights_workspace_fingerprint", "workspace_id", "fingerprint", unique=True, postgresql_where=text("fingerprint IS NOT NULL")),
+    )
 
     id: Mapped[str] = mapped_column(String(80), primary_key=True)
     category: Mapped[InsightCategory] = mapped_column(str_enum(InsightCategory, "insight_category"), index=True)
@@ -47,6 +51,13 @@ class Insight(WorkspaceOwned, TimestampMixin, DemoMixin, Base):
     # Evidence layout (telemetry table, reasoning, action steps, artifacts, audit) — presentation document.
     detail: Mapped[dict[str, Any] | None] = mapped_column()
     position: Mapped[int] = mapped_column(Integer, server_default="0")
+    # Phase 7 provenance. origin='demo' rows are the seeded demonstration output; origin='ai' rows were generated
+    # from database evidence by the configured model (details + evidence in ``ai_meta`` / ``detail``).
+    origin: Mapped[str] = mapped_column(String(8), server_default="demo")
+    fingerprint: Mapped[str | None] = mapped_column(String(64))  # dedupe key for AI insights
+    generated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    ai_meta: Mapped[dict[str, Any] | None] = mapped_column()
 
     actions: Mapped[list[RecommendedAction]] = relationship(back_populates="insight", cascade="all, delete-orphan")
 

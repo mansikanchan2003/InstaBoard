@@ -245,7 +245,12 @@ behave alike. Endpoints and example bodies: [backend/README.md](backend/README.m
     - Historical charts (followers, daily reach, rolling totals, per-media insight history) are drawn only from stored observations, with gaps where nothing was observed.
   - Not built: publishing, DMs, replies, Ads.
   - Setup is in [backend/README.md](backend/README.md#instagram-integration-phase-5).
-- **No AI provider:** insights, briefs and narratives are stored demo output. `POST /insights/regenerate` returns `501`.
+- **AI (Phase 7, off by default):**
+  - **When enabled:** with `AI_PROVIDER`, `AI_MODEL` and `AI_API_KEY` set, **Generate insights** queues an evidence-grounded analysis. Every number is verified against database figures, shown with its definition, period and source, and labelled with model and evidence quality.
+  - **Comments and leads:** Comment Intelligence gets AI label suggestions with human confirm/correct. Lead Detail gets an AI follow-up suggestion.
+  - **Without AI:** these show an honest "not configured" state. Calculated campaign metrics and follow-up priorities still work.
+  - **Demo data:** the seeded insights remain demo output and are labelled as such.
+  - Details: [backend/README.md → AI intelligence](backend/README.md#ai-intelligence-phase-7).
 - **Authentication (Phase 4):** email and password with server-side sessions, plus invitations by link. There is no email delivery, password reset, MFA or SSO yet. See [backend/README.md](backend/README.md#authentication--authorization-phase-4) for the role matrix and remaining risks.
 - **Still client-side in both modes:**
   - report figures (computed from campaign/content data fetched via the API);
@@ -276,6 +281,5 @@ The automated tests use a mocked Meta API. To try a real connection:
    - Email delivery for invitations and password reset; MFA and SSO.
    - FastAPI/Starlette upgrade, to clear pip-audit advisories.
 3. **Server-side reports:** move the report engine to the backend, add PDF/XLSX export and scheduled delivery.
-4. **AI provider:** generate insights from persisted metrics, with provenance and human review before anything is
-   shown as a recommendation.
+4. **AI:** evaluate classification on a larger labelled sample of real comments before relying on it; add provider-side spend caps.
 5. Swap `useQuery` for TanStack Query for retries, background refresh and server pagination.

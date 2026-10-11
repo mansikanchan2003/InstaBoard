@@ -1,3 +1,5 @@
+import { LeadAiSummaryPanel } from '@/features/ai/LeadAiPanels';
+import { isDemoMode } from '@/lib/config';
 import { modeText } from '@/lib/config';
 import { useId, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
@@ -145,6 +147,7 @@ function LeadDetail({ lead, onClose }: { lead: LeadRow; onClose: () => void }) {
       <div>
         <h4 className="font-bold text-text-primary mb-2">First Message</h4>
         <p className="p-3 rounded bg-surface-canvas border border-border-strong text-text-primary font-medium italic">“{lead.firstMessage}”</p>
+        {!isDemoMode && <div className="mt-3"><LeadAiSummaryPanel leadId={lead.id} /></div>}
       </div>
 
       <div className="p-3 rounded bg-ai-subtle border border-ai-border">

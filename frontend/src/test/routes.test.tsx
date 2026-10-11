@@ -44,7 +44,7 @@ describe('routes', () => {
   it('redirects / to the dashboard', async () => {
     renderAt('/');
     expect(await screen.findByRole('heading', { name: 'Eko India Campaign Overview' }, { timeout: 25000 })).toBeInTheDocument();
-    expect(document.title).toBe('Dashboard - Eko InstaBoard');
+    await waitFor(() => expect(document.title).toBe('Dashboard - Eko InstaBoard')); // title is set by an effect right after the heading renders
     expect(screen.getByRole('navigation', { name: 'Primary' })).toBeInTheDocument();
   });
 

@@ -15,7 +15,10 @@ from app.services.instagram import jobs
 from app.services.instagram.crypto import TokenCipher
 from app.services.instagram.provider import InstagramClient
 
+from app.services.intelligence import jobs as ai_jobs
+
 from .celery_app import TASK_MAINTENANCE, TASK_RUN_JOB, TASK_SCHEDULE, celery_app
+from .queue import TASK_AI_JOB, TASK_AI_SCHEDULE
 
 logger = logging.getLogger("instaboard.worker")
 
@@ -26,7 +29,19 @@ def _session_factory():
 
 
 def celery_dispatcher(job_id: str, countdown: float = 0.0) -> None:
-    celery_app.send_task(TASK_RUN_JOB, args=[job_id], countdown=max(0.0, countdown))
+    task = TASK_AI_JOB if job_id.startswith("aij_") else TASK_RUN_JOB
+    celery_app.send_task(task, args=[job_id], countdown=max(0.0, countdown))
+
+
+@celery_app.task(name=TASK_AI_JOB, ignore_result=True)
+def run_ai_job(job_id: str) -> str:
+    return ai_jobs.execute_ai_job(_session_factory(), get_settings(), dispatcher=celery_dispatcher, job_id=job_id)
+
+
+@celery_app.task(name=TASK_AI_SCHEDULE, ignore_result=True)
+def schedule_ai_insights() -> int:
+    with _session_factory()() as db:
+        return ai_jobs.schedule_insights(db, get_settings(), celery_dispatcher)
 
 
 @celery_app.task(name=TASK_RUN_JOB, ignore_result=True)
@@ -54,8 +69,8 @@ def schedule_syncs() -> int:
 @celery_app.task(name=TASK_MAINTENANCE, ignore_result=True)
 def maintenance() -> dict:
     with _session_factory()() as db:
-        reaped = jobs.reap_stale_jobs(db)
-        dispatched = jobs.dispatch_due_jobs(db, celery_dispatcher)
+        reaped = jobs.reap_stale_jobs(db) + ai_jobs.reap_stale_ai_jobs(db)
+        dispatched = jobs.dispatch_due_jobs(db, celery_dispatcher) + ai_jobs.dispatch_due_ai_jobs(db, celery_dispatcher)
         jobs.record_heartbeat(db, "worker", {"reaped": reaped, "dispatched": dispatched, "host": socket.gethostname(), "pid": os.getpid()})
     return {"reaped": reaped, "dispatched": dispatched}
 

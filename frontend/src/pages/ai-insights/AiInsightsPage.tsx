@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
+import { Notice } from '@/components/ui/Misc';
 import { EmptyState } from '@/components/ui/States';
 import { useToast } from '@/components/ui/Toast';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
@@ -11,6 +12,11 @@ import { defaultInsightFilters, filterInsights, InsightCard, InsightFilterBar, t
 import { InsightsEmpty, InsightsError, InsightsSkeleton, ProcessingAnalysis } from '@/features/ai-insights/InsightsStates';
 import { ExecutiveSynthesis, InsightKpiTiles } from '@/features/ai-insights/OverviewSummary';
 import { RecommendedActionsTable } from '@/features/ai-insights/RecommendedActionsTable';
+import { AiJobProgress, AiStatusNotice } from '@/features/ai/AiWidgets';
+import { CampaignAnalyticsPanel } from '@/features/ai/CampaignAnalyticsPanel';
+import { useAiJob } from '@/features/ai/useAiJob';
+import { isDemoMode } from '@/lib/config';
+import { aiService } from '@/services/ai';
 
 export default function AiInsightsPage() {
   useDocumentTitle('AI Insights');
@@ -20,6 +26,10 @@ export default function AiInsightsPage() {
   const actionsQ = useQuery('insights:actions', insightsService.actions);
   const [filters, setFilters] = useState<InsightFilterState>(defaultInsightFilters);
   const [processing, setProcessing] = useState(false);
+  const aiJob = useAiJob({ invalidate: ['insights', 'ai'] });
+  const lastAi = useMemo(() => (listQ.data ?? []).map((i) => i.ai?.generatedAt).filter(Boolean).sort().at(-1), [listQ.data]);
+  // api mode: queue a real, evidence-grounded generation job; demo mode keeps the labelled walkthrough.
+  const startGeneration = () => (isDemoMode ? setProcessing(true) : void aiJob.start(() => aiService.generateInsights()));
 
   const regenerate = useMutation(insightsService.regenerate, {
     invalidate: ['insights'],
@@ -54,12 +64,21 @@ export default function AiInsightsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
         <div className="flex items-center gap-2 text-label-sm font-label-sm text-text-tertiary">
           <Icon name="schedule" className="text-[14px]" />
-          <span>Last generated: {overviewQ.data?.generatedAt ?? '—'}</span>
+          <span>{isDemoMode ? `Last generated: ${overviewQ.data?.generatedAt ?? '—'}` : `Last AI analysis: ${lastAi ? new Date(lastAi).toLocaleString() : 'never'}`}</span>
         </div>
-        <Button variant="primary" icon="refresh" onClick={() => setProcessing(true)} disabled={processing} className="rounded">
-          Regenerate analysis
+        <Button variant="primary" icon={aiJob.active ? 'progress_activity' : 'refresh'} onClick={startGeneration}
+          disabled={processing || !!aiJob.active} loading={aiJob.starting} className="rounded">
+          {isDemoMode ? 'Regenerate analysis' : aiJob.active ? 'Analysing…' : 'Generate insights'}
         </Button>
       </div>
+    </div>
+  );
+
+  const apiExtras = !isDemoMode && (
+    <div className="space-y-4">
+      <AiStatusNotice />
+      {aiJob.active && <div className="bg-surface-card border border-ai-border rounded-xl p-4"><AiJobProgress job={aiJob.active} /></div>}
+      <CampaignAnalyticsPanel />
     </div>
   );
 
@@ -67,15 +86,21 @@ export default function AiInsightsPage() {
     if (processing) return <ProcessingAnalysis onComplete={() => regenerate.mutate()} onCancel={() => setProcessing(false)} />;
     if (overviewQ.status === 'loading' || listQ.status === 'loading') return <InsightsSkeleton />;
     if (overviewQ.status === 'error' || listQ.status === 'error') return <InsightsError error={overviewQ.error ?? listQ.error} onRetry={() => (overviewQ.refetch(), listQ.refetch(), actionsQ.refetch())} />;
-    if (!overviewQ.data || !listQ.data) return <InsightsEmpty onRun={() => setProcessing(true)} />;
+    if (!overviewQ.data || !listQ.data) return <InsightsEmpty onRun={startGeneration} />;
 
     const overview = overviewQ.data;
     const actions = actionsQ.data ?? [];
     const top = listQ.data.find((i) => i.priority === 'high' && i.status !== 'dismissed') ?? listQ.data[0];
     return (
       <>
+        {!isDemoMode && (
+          <Notice tone="demo" title="Demonstration synthesis below">
+            The KPI tiles, executive synthesis and insights without an “AI-generated” badge are the seeded demonstration output stored in the database — no
+            model produced them and their figures are not live analysis. Insights generated from your data carry an “AI-generated · model” badge and cite their evidence.
+          </Notice>
+        )}
         <InsightKpiTiles overview={overview} actions={actions} />
-        <ExecutiveSynthesis overview={overview} onRegenerate={() => setProcessing(true)} topInsightId={top.id} />
+        <ExecutiveSynthesis overview={overview} onRegenerate={startGeneration} topInsightId={top.id} />
         <InsightFilterBar insights={listQ.data} filters={filters} onChange={setFilters} />
         {visible.length === 0 ? (
           <EmptyState
@@ -103,6 +128,7 @@ export default function AiInsightsPage() {
   return (
     <div className="space-y-6">
       {header}
+      {apiExtras}
       {body()}
     </div>
   );

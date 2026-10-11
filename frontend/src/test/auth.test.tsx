@@ -8,13 +8,15 @@ vi.mock('@/lib/config', () => ({
   modeText: (_demo: string, api: string) => api,
 }));
 
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, configure, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { withProviders } from '@/App';
 import { routes } from '@/app/routes';
 import { safeNext } from '@/features/auth/AuthLayout';
 import { clearQueryCache } from '@/hooks/useQuery';
 import { apiClient, setCsrfToken } from '@/lib/api/client';
+
+configure({ asyncUtilTimeout: 12000 }); // lazy route chunks load on first render (slow under a parallel full run)
 
 const ME = {
   user: { id: 'usr_1', name: 'Test Owner', email: 'owner@example.test', isPlatformAdmin: false },

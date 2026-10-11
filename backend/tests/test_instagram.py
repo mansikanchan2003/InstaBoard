@@ -383,6 +383,7 @@ def test_sync_ingests_profile_media_insights_and_comments_idempotently(owner, co
     run = sync(owner, account)
     assert run["status"] in ("partially_succeeded", "succeeded") and run["terminal"] and run["progress"] == 100
     assert run["mediaFetched"] == 3 and run["commentsFetched"] == 3
+    assert run["mediaInsightsFetched"] == 10  # 7 (m1) + 2 (m2) + 1 (m3) returned values; unavailable ones not counted
     assert meta.count(f"/{IG_ID}/media") == 2  # followed the cursor to page 2
 
     media = owner.get(api(f"/integrations/instagram/accounts/{account}/media")).json()

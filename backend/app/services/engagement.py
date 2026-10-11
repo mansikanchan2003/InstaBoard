@@ -11,7 +11,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.config import Settings
-from app.core.errors import ConflictError, NotFoundError, NotImplementedInPhaseError, UnprocessableError
+from app.core.errors import ConflictError, NotFoundError, UnprocessableError
 from app.models import (
     ActivityActor,
     ActivityEvent,
@@ -209,7 +209,7 @@ def insight_out(i: Insight) -> s.InsightOut:
     return s.InsightOut(
         id=i.id, category=ev(i.category), priority=ev(i.priority), confidence=i.confidence, title=i.title, observed=i.observed,
         interpretation=i.interpretation, impact=i.impact, primary_link=i.primary_link, generated_at=i.generated_label,
-        status=ev(i.status), completed_step_ids=i.completed_step_ids, detail=i.detail,
+        status=ev(i.status), completed_step_ids=i.completed_step_ids, detail=i.detail, ai=i.ai_meta if i.origin == "ai" else None,
     )
 
 
@@ -220,8 +220,13 @@ def action_out(a: RecommendedAction) -> s.RecommendedActionOut:
     )
 
 
-def list_insights(db: Session, *, category: str | None = None, priority: str | None = None, status: str | None = None) -> list[s.InsightOut]:
-    query = select(Insight).order_by(Insight.position, Insight.id)
+def list_insights(db: Session, *, category: str | None = None, priority: str | None = None, status: str | None = None,
+                  origin: str | None = None, include_expired: bool = False) -> list[s.InsightOut]:
+    query = select(Insight).order_by(Insight.position, Insight.generated_at.desc().nulls_last(), Insight.id)
+    if origin:
+        query = query.where(Insight.origin == origin)
+    if not include_expired:  # expired AI insights stay available by id (and when saved/completed) but leave the feed
+        query = query.where((Insight.expires_at.is_(None)) | (Insight.expires_at > utcnow()) | (Insight.status.in_(("saved", "completed"))))
     for column, value in ((Insight.category, category), (Insight.priority, priority), (Insight.status, status)):
         if value:
             query = query.where(column == value)
@@ -293,10 +298,6 @@ def set_action_status(db: Session, action_id: str, body: s.ActionStatusIn) -> s.
 def review_all_actions(db: Session) -> s.UpdatedCountOut:
     result = db.execute(update(RecommendedAction).where(RecommendedAction.status == "pending_review").values(status="reviewed"))
     return s.UpdatedCountOut(updated=result.rowcount or 0)
-
-
-def regenerate_insights() -> None:
-    raise NotImplementedInPhaseError("Insight regeneration needs an AI provider, which is not configured in this phase. Stored insights are demonstration output.")
 
 
 def insights_overview(db: Session) -> dict:

@@ -31,6 +31,8 @@ export function PriorityPill({ priority, short, className }: { priority: Insight
 export const insightStatusMeta: Record<InsightStatus, { label: string; pill: string; icon: string }> = {
   new: { label: 'New', pill: 'bg-ai-subtle border-ai-border text-ai-accent', icon: 'fiber_new' },
   reviewed: { label: 'Reviewed', pill: 'bg-status-active-subtle border-status-active/30 text-status-active', icon: 'check_circle' },
+  saved: { label: 'Saved', pill: 'bg-sky-50 border-sky-200 text-sky-800', icon: 'bookmark' },
+  completed: { label: 'Action completed', pill: 'bg-status-active-subtle border-status-active/30 text-status-active', icon: 'task_alt' },
   dismissed: { label: 'Dismissed', pill: 'bg-surface-card-subtle border-border-strong text-text-secondary', icon: 'visibility_off' },
 };
 

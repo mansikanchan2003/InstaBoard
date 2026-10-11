@@ -40,3 +40,6 @@ Thumbs.db
 # Celery beat schedule state (local)
 backend/.celerybeat/
 celerybeat-schedule*
+
+# AI evaluation outputs (local)
+backend/evaluation/results/

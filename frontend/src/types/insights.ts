@@ -1,3 +1,4 @@
+import type { InsightAI } from './ai';
 import type { ID } from './domain';
 
 /**
@@ -7,7 +8,7 @@ import type { ID } from './domain';
 
 export type InsightCategory = 'campaign' | 'content' | 'audience' | 'comments' | 'leads';
 export type InsightPriority = 'high' | 'medium' | 'low';
-export type InsightStatus = 'new' | 'reviewed' | 'dismissed';
+export type InsightStatus = 'new' | 'reviewed' | 'saved' | 'completed' | 'dismissed';
 
 export interface InsightLink {
   label: string;
@@ -99,6 +100,8 @@ export interface Insight {
   status: InsightStatus;
   completedStepIds: ID[];
   detail?: InsightDetail;
+  /** Present only on AI-generated insights (api mode): provider/model, evidence, evidence quality, recommendation. */
+  ai?: InsightAI;
 }
 
 export type ActionStatus = 'pending_review' | 'reviewed' | 'done' | 'dismissed';
