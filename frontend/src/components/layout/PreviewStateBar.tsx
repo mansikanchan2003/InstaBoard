@@ -41,7 +41,7 @@ export function PreviewStateBar() {
       <div className="text-[11px] text-text-secondary flex items-center gap-1">
         <Icon name={config.dataSource === 'api' ? 'dns' : 'science'} className="text-[14px] text-ai-accent" />
         {config.dataSource === 'api'
-          ? 'API mode · demo dataset served from PostgreSQL · no live Instagram connection'
+          ? 'API mode · sample dataset served from PostgreSQL · live Instagram data appears only where labelled “Live · Instagram API”'
           : 'Prototype · demo data (Oct 2024) · no live Instagram connection'}
       </div>
     </div>

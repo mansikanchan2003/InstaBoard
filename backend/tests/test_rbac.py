@@ -14,6 +14,10 @@ from .conftest import UNREACHABLE_DB, api, make_settings
 
 PUBLIC_ROUTES = {
     ("POST", "/api/v1/auth/login"), ("POST", "/api/v1/auth/invitations/preview"), ("POST", "/api/v1/auth/invitations/accept"),
+    # Called by Instagram/Meta, not the web app. The callback requires the initiating session + single-use state and the
+    # Meta callbacks require a valid signed_request — both covered in tests/test_instagram.py.
+    ("GET", "/api/v1/integrations/instagram/callback"), ("POST", "/api/v1/integrations/instagram/deauthorize"),
+    ("POST", "/api/v1/integrations/instagram/data-deletion"), ("GET", "/api/v1/integrations/instagram/data-deletion/{code}"),
 }
 
 

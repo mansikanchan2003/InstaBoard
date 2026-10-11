@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import re
 import secrets
 from functools import cached_property, lru_cache
 from pathlib import Path
@@ -13,6 +14,16 @@ from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 BACKEND_DIR = Path(__file__).resolve().parents[2]
 logger = logging.getLogger("instaboard.config")
+
+INSTAGRAM_REQUIRED_ENV = (
+    "INSTAGRAM_APP_ID",
+    "INSTAGRAM_APP_SECRET",
+    "INSTAGRAM_REDIRECT_URI",
+    "INSTAGRAM_GRAPH_API_VERSION",
+    "INSTAGRAM_TOKEN_ENCRYPTION_KEY",
+)
+# Read-only Instagram Login scopes this phase may request (publishing / messaging need separate reviews).
+INSTAGRAM_READ_SCOPES = frozenset({"instagram_business_basic", "instagram_business_manage_insights", "instagram_business_manage_comments"})
 
 # Values that must never be used as a real signing secret.
 _PLACEHOLDER_MARKERS = ("change-me", "changeme", "placeholder", "example", "secret", "password")
@@ -54,7 +65,40 @@ class Settings(BaseSettings):
     auth_requests_per_minute_per_ip: int = Field(default=30, ge=1)
     min_password_length: int = Field(default=12, ge=8, le=128)
 
-    @field_validator("secret_key", "cookie_domain", mode="before")
+    # --- Instagram API with Instagram Login (Phase 5) ---------------------------------------
+    # The integration is enabled only when every required value below is set; with none of them set it
+    # is cleanly disabled (demo data keeps working). A partial configuration is a startup error.
+    # IDs come from App Dashboard > Instagram > API setup with Instagram login > Business login settings
+    # (the *Instagram* app ID/secret, which differ from the Meta app ID/secret).
+    instagram_app_id: str | None = None
+    instagram_app_secret: SecretStr | None = None
+    # Must exactly match a "Valid OAuth Redirect URI" in Business login settings; points at this API:
+    #   http://localhost:8100/api/v1/integrations/instagram/callback  (https:// is required outside localhost)
+    instagram_redirect_uri: str | None = None
+    # Graph API version for graph.instagram.com calls, e.g. "v26.0". Deliberately no default (verify in Meta's changelog).
+    instagram_graph_api_version: str | None = None
+    # Read-only scopes requested at login. instagram_business_basic is mandatory; insights and comments are optional.
+    instagram_oauth_scopes: Annotated[list[str], NoDecode] = Field(
+        default_factory=lambda: ["instagram_business_basic", "instagram_business_manage_insights"]
+    )
+    # Fernet key (urlsafe base64, 32 bytes) used to encrypt access tokens at rest, and its version number.
+    # Generate: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+    instagram_token_encryption_key: SecretStr | None = None
+    instagram_token_key_version: int = Field(default=1, ge=1, le=10_000)
+    # Retired keys still needed to decrypt older tokens during rotation: "1:<key>,2:<key>".
+    instagram_token_previous_keys: SecretStr | None = None
+    # HTTP behaviour and bounded manual sync.
+    instagram_http_timeout_seconds: float = Field(default=10.0, gt=0, le=60)
+    instagram_http_max_retries: int = Field(default=2, ge=0, le=5)
+    instagram_retry_backoff_seconds: float = Field(default=0.5, ge=0, le=10)
+    instagram_oauth_state_ttl_seconds: int = Field(default=600, ge=60, le=3600)
+    instagram_sync_max_media: int = Field(default=50, ge=1, le=500)
+    instagram_sync_max_media_insights: int = Field(default=25, ge=0, le=200)
+    instagram_sync_max_comment_media: int = Field(default=10, ge=0, le=100)
+    instagram_sync_cooldown_seconds: int = Field(default=60, ge=0, le=3600)
+
+    @field_validator("secret_key", "cookie_domain", "instagram_app_id", "instagram_app_secret", "instagram_redirect_uri",
+                     "instagram_graph_api_version", "instagram_token_encryption_key", "instagram_token_previous_keys", mode="before")
     @classmethod
     def _blank_is_unset(cls, value: object) -> object:
         # `SECRET_KEY=` in .env must mean "not set", never an empty signing key.
@@ -67,6 +111,33 @@ class Settings(BaseSettings):
     def _split_origins(cls, value: object) -> object:
         if isinstance(value, str):
             return [origin.strip() for origin in value.split(",") if origin.strip()]
+        return value
+
+    @field_validator("instagram_oauth_scopes", mode="before")
+    @classmethod
+    def _split_scopes(cls, value: object) -> object:
+        if isinstance(value, str):
+            return [scope.strip() for scope in value.replace(" ", ",").split(",") if scope.strip()]
+        return value
+
+    @field_validator("instagram_oauth_scopes")
+    @classmethod
+    def _read_only_scopes(cls, value: list[str]) -> list[str]:
+        unknown = [scope for scope in value if scope not in INSTAGRAM_READ_SCOPES]
+        if unknown:
+            raise ValueError(
+                f"INSTAGRAM_OAUTH_SCOPES may only contain {', '.join(sorted(INSTAGRAM_READ_SCOPES))} "
+                f"(publishing and messaging are out of scope); got: {', '.join(unknown)}"
+            )
+        if "instagram_business_basic" not in value:
+            raise ValueError("INSTAGRAM_OAUTH_SCOPES must include instagram_business_basic")
+        return list(dict.fromkeys(value))
+
+    @field_validator("instagram_graph_api_version")
+    @classmethod
+    def _api_version(cls, value: str | None) -> str | None:
+        if value is not None and not re.fullmatch(r"v\d{1,3}\.\d", value):
+            raise ValueError("INSTAGRAM_GRAPH_API_VERSION must look like v26.0")
         return value
 
     @field_validator("cors_origins")
@@ -82,6 +153,44 @@ class Settings(BaseSettings):
         if not str(value).startswith("postgresql+psycopg://"):
             raise ValueError("DATABASE_URL must use the psycopg 3 driver: postgresql+psycopg://user:password@host:port/db")
         return value
+
+    @model_validator(mode="after")
+    def _instagram_config_complete(self) -> Settings:
+        """All-or-nothing: a half-configured integration fails loudly instead of misbehaving later."""
+        missing = self.instagram_missing_config
+        if missing and len(missing) < len(INSTAGRAM_REQUIRED_ENV):
+            raise ValueError("Incomplete Instagram integration configuration; also set: " + ", ".join(missing))
+        if self.instagram_token_encryption_key is not None:
+            from cryptography.fernet import Fernet
+
+            try:
+                Fernet(self.instagram_token_encryption_key.get_secret_value().encode())
+            except (ValueError, TypeError):
+                raise ValueError("INSTAGRAM_TOKEN_ENCRYPTION_KEY must be a Fernet key (urlsafe base64 of 32 bytes)") from None
+        if self.instagram_redirect_uri is not None:
+            uri = self.instagram_redirect_uri
+            local = uri.startswith(("http://localhost", "http://127.0.0.1"))
+            if not (uri.startswith("https://") or (local and self.app_env != "production")):
+                raise ValueError("INSTAGRAM_REDIRECT_URI must use https:// (http://localhost is allowed outside production)")
+            if not uri.rstrip("/").endswith("/integrations/instagram/callback"):
+                raise ValueError("INSTAGRAM_REDIRECT_URI must point at <API>/integrations/instagram/callback")
+        return self
+
+    @property
+    def instagram_missing_config(self) -> list[str]:
+        """Names (never values) of required Instagram settings that are not set."""
+        values = {
+            "INSTAGRAM_APP_ID": self.instagram_app_id,
+            "INSTAGRAM_APP_SECRET": self.instagram_app_secret,
+            "INSTAGRAM_REDIRECT_URI": self.instagram_redirect_uri,
+            "INSTAGRAM_GRAPH_API_VERSION": self.instagram_graph_api_version,
+            "INSTAGRAM_TOKEN_ENCRYPTION_KEY": self.instagram_token_encryption_key,
+        }
+        return [name for name in INSTAGRAM_REQUIRED_ENV if values[name] is None]
+
+    @property
+    def instagram_enabled(self) -> bool:
+        return not self.instagram_missing_config
 
     @model_validator(mode="after")
     def _production_guards(self) -> Settings:

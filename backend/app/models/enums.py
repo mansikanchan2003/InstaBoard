@@ -283,3 +283,18 @@ class ActorKind(StrEnum):
     member = "member"
     system = "system"
     ai = "ai"
+
+
+# --- Instagram API (Phase 5) --------------------------------------------------------------
+class IgConnectionStatus(StrEnum):
+    connected = "connected"
+    needs_reauth = "needs_reauth"  # token expired / revoked / permission removed — user must reconnect
+    error = "error"  # last sync failed for a non-token reason
+    disconnected = "disconnected"  # disconnected in InstaBoard; token deleted
+
+
+class IgSyncStatus(StrEnum):
+    running = "running"
+    success = "success"
+    partial = "partial"
+    failed = "failed"

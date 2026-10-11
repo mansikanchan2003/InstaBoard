@@ -19,6 +19,7 @@ const ReportDetailPage = lazy(() => import('@/pages/reports/ReportDetailPage'));
 const AccountsPage = lazy(() => import('@/pages/accounts/AccountsPage'));
 const ConnectAccountPage = lazy(() => import('@/pages/accounts/ConnectAccountPage'));
 const AccountDetailPage = lazy(() => import('@/pages/accounts/AccountDetailPage'));
+const LiveAccountDetailPage = lazy(() => import('@/pages/accounts/LiveAccountDetailPage'));
 const NotificationsPage = lazy(() => import('@/pages/NotificationsPage'));
 const ActivityLogPage = lazy(() => import('@/pages/ActivityLogPage'));
 const SettingsPage = lazy(() => import('@/pages/SettingsPage'));
@@ -54,6 +55,7 @@ export const routes: RouteObject[] = [
       { path: 'reports/:reportId', element: <ReportDetailPage /> },
       { path: 'accounts', element: <AccountsPage /> },
       { path: 'accounts/connect', element: <ConnectAccountPage /> },
+      { path: 'accounts/live/:connectionId', element: <LiveAccountDetailPage /> },
       { path: 'accounts/:accountId', element: <AccountDetailPage /> },
       { path: 'notifications', element: <NotificationsPage /> },
       { path: 'activity', element: <ActivityLogPage /> },

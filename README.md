@@ -226,8 +226,11 @@ behave alike. Endpoints and example bodies: [backend/README.md](backend/README.m
 
 ### Current limitations (API mode)
 
-- **No Meta / Instagram integration:** `POST /accounts/{id}/sync` and `DELETE /accounts/{id}` return `501`, and
-  the UI shows that message. The connect flow remains a UI walkthrough with no OAuth.
+- **Instagram (Phase 5):**
+  - In API mode, **Accounts → Live Instagram connections** connects real professional accounts through Meta's official Instagram Login, and bounded *Sync now* reads profile, media, insights and comments (if granted).
+  - Live data is shown only in clearly labelled "Live · Instagram API" areas (accounts, live account detail, the dashboard card). The sample dashboards, campaigns and reports remain demo data and never include live numbers.
+  - Not built: background syncing, publishing, DMs, replies, Ads.
+  - Setup is in [backend/README.md](backend/README.md#instagram-integration-phase-5).
 - **No AI provider:** insights, briefs and narratives are stored demo output. `POST /insights/regenerate` returns `501`.
 - **Authentication (Phase 4):** email and password with server-side sessions, plus invitations by link. There is no email delivery, password reset, MFA or SSO yet. See [backend/README.md](backend/README.md#authentication--authorization-phase-4) for the role matrix and remaining risks.
 - **Still client-side in both modes:**
@@ -237,12 +240,24 @@ behave alike. Endpoints and example bodies: [backend/README.md](backend/README.m
   - static UI config: notification trigger labels.
 - **No scheduler or email:** report schedules and recipients are saved, but nothing is delivered.
 
+## Testing with a real Instagram account
+
+The automated tests use a mocked Meta API. To try a real connection:
+
+1. Prepare an Instagram account converted to **Professional** (Business or Creator): in the Instagram app, go to Settings → Account type and tools.
+2. Create the Meta app and add that account as an **Instagram tester**, as described in [backend/README.md](backend/README.md#meta-app-dashboard-setup-done-once-by-an-admin). Accept the tester invite in Instagram.
+3. Fill the `INSTAGRAM_*` values in `backend/.env`. The redirect URI is `http://localhost:8100/api/v1/integrations/instagram/callback`.
+4. Restart the API and run `npm run dev:api`.
+5. Sign in as an Owner or Admin, open **Instagram Accounts**, and click **Connect with Instagram**.
+6. Approve on instagram.com. You return to `/accounts`, the first sync runs, and **View data** shows media and insights.
+7. Try **Disconnect**, and also cancelling on Instagram, which shows "Authorization cancelled".
+
 ## Recommended next steps
 
-1. **Meta integration:**
-   - Facebook Login on the backend, with tokens encrypted at rest and scoped to a workspace.
-   - Ingestion jobs for media, insights and comments, run on a scheduler with rate-limit handling.
-   - Real rows then replace `is_demo` rows.
+1. **Meta integration, continued:**
+   - App Review / Advanced Access.
+   - Scheduled syncs with rate-limit budgeting.
+   - Mapping live media to campaigns, so the sample dashboards can switch to live data.
 2. **Production hardening:**
    - HTTPS deployment, with a shared rate-limit store.
    - Email delivery for invitations and password reset; MFA and SSO.

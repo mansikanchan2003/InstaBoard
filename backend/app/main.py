@@ -8,6 +8,7 @@ Production requires APP_ENV=production, a strong SECRET_KEY, COOKIE_SECURE=true 
 from __future__ import annotations
 
 import logging
+import re
 
 from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,12 +22,33 @@ from app.core.security import RateLimiter
 
 logger = logging.getLogger("instaboard.api")
 
+_SENSITIVE_QUERY = re.compile(r"((?:code|state|signed_request|access_token|client_secret)=)[^&\s\"]+")
+
+
+class RedactSecretsFilter(logging.Filter):
+    """Access logs record request paths; mask OAuth codes/states (Instagram callback) and any token-like params."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        if record.args and isinstance(record.args, tuple):
+            record.args = tuple(_SENSITIVE_QUERY.sub(r"\1[redacted]", a) if isinstance(a, str) else a for a in record.args)
+        elif isinstance(record.msg, str):
+            record.msg = _SENSITIVE_QUERY.sub(r"\1[redacted]", record.msg)
+        return True
+
+
+for _name in ("uvicorn.access", "uvicorn.error"):
+    if not any(isinstance(f, RedactSecretsFilter) for f in logging.getLogger(_name).filters):
+        logging.getLogger(_name).addFilter(RedactSecretsFilter())
+
 DESCRIPTION = """
 Backend for **Eko InstaBoard** (Instagram Campaign Intelligence Platform).
 
 * All seeded records are **demonstration data** (`is_demo = true`) — not live Instagram data.
-* There is **no Meta / Instagram integration** and **no AI provider** in this phase: endpoints that would
-  need one (account sync, disconnect, insight regeneration) return `501 not_available`.
+* **Instagram API with Instagram Login** (Phase 5): `/integrations/instagram/*` connects authorized Instagram
+  professional accounts through Meta's official OAuth flow and runs bounded, read-only manual syncs. Live records are
+  stored separately from the demo dataset (`source = instagram_api`). The integration is disabled unless all
+  `INSTAGRAM_*` settings are configured. The demo-account endpoints (`/accounts/{id}/sync`, `DELETE /accounts/{id}`)
+  still return `501`, and there is **no AI provider**.
 * **Authentication:** HttpOnly session cookie from `POST /api/v1/auth/login`; state-changing requests also need
   the `X-CSRF-Token` header (value from the login / `GET /auth/me` response). Every workspace endpoint is scoped
   to the session's workspace and checked against the caller's role (Owner / Admin / Editor / Viewer).
@@ -37,7 +59,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or get_settings()
     app = FastAPI(
         title=settings.app_name,
-        version="0.2.0",
+        version="0.3.0",
         description=DESCRIPTION,
         docs_url="/docs" if settings.enable_docs else None,
         redoc_url=None,

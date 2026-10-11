@@ -9,7 +9,9 @@ import { ExecutiveBrief } from '@/features/dashboard/ExecutiveBrief';
 import { PerformanceTrends } from '@/features/dashboard/PerformanceTrends';
 import { activeCampaigns } from '@/features/dashboard/selectors';
 import { TopContent } from '@/features/dashboard/TopContent';
+import { LiveInstagramCard } from '@/features/instagram/LiveInstagramCard';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
+import { isDemoMode } from '@/lib/config';
 import { useQuery } from '@/hooks/useQuery';
 import { accountService } from '@/services/accounts';
 import { campaignService } from '@/services/campaigns';
@@ -28,6 +30,7 @@ export default function DashboardPage() {
         followers={overview.data?.followers}
         healthScore={overview.data?.aiHealthScore}
       />
+      {!isDemoMode && <LiveInstagramCard />}
       <QueryState
         query={overview}
         loading={<DashboardSkeleton />}

@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AccountsOverview } from '@/features/accounts/AccountsOverview';
 import { ConnectFlowModal } from '@/features/accounts/connect/ConnectFlowModal';
+import { LiveConnectModal } from '@/features/instagram/LiveConnectModal';
+import { isDemoMode } from '@/lib/config';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 
 /**
@@ -23,7 +25,8 @@ export default function ConnectAccountPage() {
       <div ref={backgroundRef} aria-hidden className="blur-[2px] opacity-40 pointer-events-none select-none">
         <AccountsOverview background />
       </div>
-      <ConnectFlowModal onClose={() => navigate('/accounts')} />
+      {/* demo mode: the labelled walkthrough; api mode: the real Instagram Login flow. */}
+      {isDemoMode ? <ConnectFlowModal onClose={() => navigate('/accounts')} /> : <LiveConnectModal onClose={() => navigate('/accounts')} />}
     </>
   );
 }

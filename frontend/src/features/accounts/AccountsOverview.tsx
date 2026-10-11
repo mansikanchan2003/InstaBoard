@@ -2,8 +2,11 @@ import { useMemo, useState } from 'react';
 import { DemoBadge } from '@/components/ui/Badge';
 import { Button, LinkButton } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
+import { Notice } from '@/components/ui/Misc';
 import { EmptyState, QueryState, Skeleton } from '@/components/ui/States';
+import { LiveConnectionsSection } from '@/features/instagram/LiveConnectionsSection';
 import { useQuery } from '@/hooks/useQuery';
+import { isDemoMode } from '@/lib/config';
 import { accountDetailService } from '@/services/accountDetails';
 import { accountService } from '@/services/accounts';
 import { AccountCard } from './AccountCard';
@@ -17,6 +20,13 @@ export const META_DOCS_URL = 'https://developers.facebook.com/docs/instagram-pla
 
 /** Honest replacement for the export's "Connected to demonstrative enterprise sandbox environment" banner. */
 export function MetaIntegrationBanner({ version = 'v19.0' }: { version?: string }) {
+  if (!isDemoMode) {
+    return (
+      <Notice tone="demo" title="Sample accounts below are demo data">
+        The cards in this section are the bundled demonstration dataset — not Instagram data. Live accounts appear only in “Live Instagram connections” above, and their numbers are never added to these sample totals.
+      </Notice>
+    );
+  }
   return (
     <div className="rounded bg-ai-subtle border border-ai-border px-4 py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-text-primary shadow-sm">
       <div className="flex items-start sm:items-center gap-3">
@@ -73,20 +83,23 @@ export function AccountsOverview({ background = false }: { background?: boolean 
 
   return (
     <div className="space-y-6">
+      {!isDemoMode && !background && <LiveConnectionsSection />}
       <MetaIntegrationBanner version={summary.data?.meta.graphApiVersion} />
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-headline-lg text-headline-md md:text-headline-lg text-text-primary font-bold tracking-tight">Instagram Accounts</h1>
-          <p className="font-body-md text-body-md text-text-secondary mt-0.5">Manage connected accounts and monitor data availability.</p>
+          <h1 className="font-headline-lg text-headline-md md:text-headline-lg text-text-primary font-bold tracking-tight">{isDemoMode ? 'Instagram Accounts' : 'Sample Instagram accounts (demo data)'}</h1>
+          <p className="font-body-md text-body-md text-text-secondary mt-0.5">{isDemoMode ? 'Manage connected accounts and monitor data availability.' : 'Demonstration records used by the sample dashboards. They are not connected to Instagram.'}</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <Button size="md" icon="history" onClick={() => setLogsOpen(true)}>
             Sync Logs
           </Button>
-          <LinkButton to="/accounts/connect" variant="primary" size="md" icon="add">
-            Connect Instagram Account
-          </LinkButton>
+          {isDemoMode && (
+            <LinkButton to="/accounts/connect" variant="primary" size="md" icon="add">
+              Connect Instagram Account
+            </LinkButton>
+          )}
         </div>
       </div>
 

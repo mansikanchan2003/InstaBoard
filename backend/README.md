@@ -1,10 +1,11 @@
-# InstaBoard backend (Phases 2–4)
+# InstaBoard backend (Phases 2–5)
 
 FastAPI + PostgreSQL backend for the existing InstaBoard frontend.
 
 - It serves the frontend's **demonstration dataset**, imported into PostgreSQL. Every seeded row has `is_demo = true`; none of it is live Instagram data.
 - **Authentication and workspace isolation** (Phase 4): email + password sign-in, server-side sessions in an HttpOnly cookie, CSRF protection, Owner/Admin/Editor/Viewer roles, and every tenant row scoped to a workspace. See [Authentication & authorization](#authentication--authorization-phase-4).
-- There is **no Meta/Instagram integration and no AI provider** yet.
+- **Instagram integration** (Phase 5): official Instagram Login OAuth plus bounded, read-only syncs. It is disabled unless configured; see [Instagram integration](#instagram-integration-phase-5).
+- There is **no AI provider** yet.
 - It has **not been deployed or penetration-tested**; read [Security boundaries](#security-boundaries) before exposing it anywhere.
 
 ## Stack
@@ -339,6 +340,143 @@ No one can change their own role, grant Owner, or remove the Owner. The "Member"
   - privilege-escalation attempts (self-promotion, granting Owner, Admin managing Admins);
   - mass assignment rejected (`extra="forbid"`).
 
+## Instagram integration (Phase 5)
+
+InstaBoard connects **Instagram professional (Business or Creator) accounts** through Meta's official **Instagram API with Instagram Login** (Business Login for Instagram), then reads profile, media, insights and, optionally, comments. All of it is read-only: there is no publishing, no direct messages, no replies and no Ads API.
+
+### Verified against Meta's documentation
+
+These were checked on developers.facebook.com/docs/instagram-platform on 2026-10-11, and the docs listed `v26.0` as the latest API version.
+
+| Step | Endpoint |
+| --- | --- |
+| Authorization window | `https://www.instagram.com/oauth/authorize` with `client_id`, `redirect_uri`, `response_type=code`, `scope`, `state`. The code is valid for 1 h and can be used once. |
+| Code → short-lived token (1 h) | `POST https://api.instagram.com/oauth/access_token` (form body, server-side) |
+| Short → long-lived token (60 days) | `GET https://graph.instagram.com/access_token?grant_type=ig_exchange_token` |
+| Refresh (another 60 days) | `GET https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token`. Only allowed for tokens that are **≥ 24 h old and not expired**; a token not refreshed within 60 days expires for good and the user must reconnect. |
+| Reads | `graph.instagram.com/{INSTAGRAM_GRAPH_API_VERSION}/me`, `/{ig-id}/media`, `/{media-id}/insights`, `/{ig-id}/insights`, `/{media-id}/comments` |
+
+- **PKCE:** Meta documents `state`, but no PKCE parameters, for this flow, so none are sent.
+- **Facebook Login:** not implemented. Instagram Login needs no Facebook Page and is Meta's recommended path for new integrations.
+
+**Permissions (scopes).** All are read-only, configured through `INSTAGRAM_OAUTH_SCOPES`, and anything else is rejected at startup:
+
+| Scope | Used for |
+| --- | --- |
+| `instagram_business_basic` (required) | `/me` profile fields and the media list |
+| `instagram_business_manage_insights` (default) | Media and account insights |
+| `instagram_business_manage_comments` (opt-in) | Reading comments. Meta's permission also allows replying and deleting; InstaBoard only reads. |
+
+**Fields and metrics retrieved:**
+
+- **Profile:** `id` (app-scoped), `user_id` (professional account ID), `username`, `name`, `account_type`, `profile_picture_url`, `followers_count`, `follows_count`, `media_count`.
+- **Media:**
+  - Always requested: `id`, `media_type`, `permalink`, `shortcode`, `timestamp`, `media_url`, `thumbnail_url`, `like_count`, `comments_count`.
+  - Optional: `caption` and `media_product_type` are documented as *Facebook-Login-only*, so they are requested optimistically and dropped, with a sync warning, if the API rejects them.
+- **Media insights** (lifetime, FEED/REELS): `views`, `reach`, `likes`, `comments`, `shares`, `saved`, `total_interactions`.
+- **Account insights** (`metric_type=total_value`, `period=day`, last 28 days): `reach`, `views`, `accounts_engaged`, `total_interactions`, `likes`, `comments`, `shares`, `saves`. Daily `reach` is also fetched as a `time_series`.
+- **Comments:** `id`, `text`, `timestamp`, `username`, `like_count`, `hidden`, `parent_id`, and replies.
+
+**Not retrieved, on purpose:**
+
+- `impressions`: deprecated for media created after 2024-07-02, and for account insights since v22.0.
+- `plays`: no longer listed.
+- Demographic metrics (`follower_demographics`, `engaged_audience_demographics`).
+- `online_followers`, story metrics (24 h only), `facebook_views` / `crossposted_views` (these throw unless the media was shared to Facebook).
+- Reel watch-time metrics; `total_*` and `saved_count` / `shares_count` fields (Facebook Login only).
+- Direct messages, mentions, hashtags, the Ads API.
+
+**Missing metrics are stored as `unavailable` with `NULL`, never as 0.** Meta returns an empty set instead of 0 when a metric doesn't apply, and data can lag up to 48 hours.
+
+### Meta App Dashboard setup (done once by an admin)
+
+1. Go to https://developers.facebook.com/apps, click **Create app**, choose the **Business** app type, and link a Business portfolio if asked.
+2. **Add product → Instagram**, then **API setup with Instagram login**.
+3. In **3. Set up Instagram business login → Business login settings**:
+   - Add the OAuth redirect URI exactly as `INSTAGRAM_REDIRECT_URI`. For local development that is `http://localhost:8100/api/v1/integrations/instagram/callback`; in production use `https://<api-host>/api/v1/integrations/instagram/callback`. Meta may add a trailing slash, and the two must match exactly.
+   - Copy the **Instagram app ID** and **Instagram app secret** into `INSTAGRAM_APP_ID` and `INSTAGRAM_APP_SECRET` in `backend/.env`. These are not the Meta app ID and secret.
+   - Optional, needed for App Review: set the **Deauthorize callback URL** to `https://<api-host>/api/v1/integrations/instagram/deauthorize` and the **Data deletion request URL** to `https://<api-host>/api/v1/integrations/instagram/data-deletion`. Meta must be able to reach them, so they need a public HTTPS host.
+4. **App roles → Roles → Instagram testers:** add the Instagram account(s) you will connect, then accept the invitation in that Instagram account under **Settings → Apps and websites → Tester invites**.
+5. Set `INSTAGRAM_GRAPH_API_VERSION` to the current version (check the changelog), generate `INSTAGRAM_TOKEN_ENCRYPTION_KEY` (see `.env.example`), and restart the API. `GET /api/v1/integrations/instagram/status` should now report `"enabled": true`.
+
+**Access levels and App Review:**
+
+- **Standard Access:** while the app is in development mode with Standard Access, only accounts that have a role on the app (testers, admins, developers) can be connected.
+- **Advanced Access:** needed to connect accounts you don't own or manage. That requires **App Review** for each permission (with a screencast of the flow), **Business Verification**, a privacy policy URL, and the data-deletion callback or instructions. Then switch the app to **Live** mode.
+- **Not done here:** none of this has been submitted.
+
+### Security model
+
+- **OAuth state:** `POST /integrations/instagram/connect` (Owner/Admin, CSRF-protected) stores a SHA-256 digest of a random `state`, bound to the user, session and workspace, valid for 10 minutes.
+- **Callback checks:** the callback:
+  - consumes the state atomically, so replays and duplicate callbacks fail;
+  - requires the **same signed-in session**;
+  - re-checks the role;
+  - handles `error=access_denied`;
+  - exchanges the code server-side;
+  - verifies the account is professional and that `/me` matches the token's user;
+  - stores the connection in the **state's** workspace. Any workspace in the callback URL is ignored.
+
+  It always redirects to `FRONTEND_URL/accounts?instagram=…` with a fixed set of reason codes.
+- **Tokens:**
+  - **Storage:** tokens are **encrypted with Fernet** (`cryptography`) using an environment-managed, versioned key, in `instagram_tokens`. The column is deferred-loaded and no API schema contains a token.
+  - **Logs:** httpx request logging is silenced (URLs carry tokens), provider errors are logged by endpoint shape and Graph error code only, and uvicorn access logs mask `code`, `state`, `access_token`, `client_secret` and `signed_request`.
+  - **Disconnect:** disconnecting deletes the token, so the account can no longer be called.
+- **Reliability:**
+  - 10 s timeouts.
+  - Bounded retries (2) for timeouts, network errors, HTTP 5xx and Graph codes 1/2 or `is_transient`.
+  - No retry on rate limits (codes 4/17/32/613, HTTP 429) or on token errors. Code 190 marks the account **Needs reauthorization**.
+- **Manual sync:**
+  - Bounded to 50 media, 25 media-insight lookups and 10 comment pages.
+  - One run at a time per account, with a 60 s cooldown.
+  - No background scheduler.
+
+### Data provenance and retention
+
+- **Separate tables:** live records live in dedicated tables (`instagram_connections`, `instagram_media`, `instagram_media_insights`, `instagram_account_insights`, `instagram_comments`, `instagram_sync_runs`), all with `workspace_id` and `source = instagram_api`. Provider IDs (`ig_user_id`, `ig_media_id`, `ig_comment_id`) are separate from internal IDs and unique per connection, which keeps upserts idempotent.
+- **Demo data:** demo records stay in the original tables with `is_demo = true`, and live numbers are never added to demo totals.
+- **Insight history:** media insights are snapshotted per sync (history kept). Account insights are keyed by their time range; re-fetching a range updates it, because Meta revises data for up to 48 h.
+- **Disconnect (in InstaBoard):** deletes the token **and** all media, insights and comments of that account. A tombstone row (username, dates) and the sync audit remain. Other workspace data is untouched. To revoke Meta's grant as well, the user removes the app in Instagram (**Settings → Apps and websites**).
+- **Deauthorize callback:** deletes the tokens and marks the account *Needs reauthorization*.
+- **Data-deletion callback:** purges everything stored for that Instagram user, including the provider IDs, and returns `{url, confirmation_code}`. Users can check the status at `/integrations/instagram/data-deletion/{code}`.
+
+### Endpoints
+
+| Endpoint | Access |
+| --- | --- |
+| `GET /integrations/instagram/status` | any member |
+| `POST /integrations/instagram/connect` | Owner/Admin (`accounts:manage`), CSRF |
+| `GET /integrations/instagram/callback` | the initiating session + single-use state (called by Instagram's redirect) |
+| `GET /integrations/instagram/accounts`, `/accounts/{id}`, `/media`, `/insights`, `/comments`, `/sync-runs` | any member (own workspace only) |
+| `POST /integrations/instagram/accounts/{id}/sync` | Owner/Admin, CSRF |
+| `POST /integrations/instagram/accounts/{id}/disconnect` | Owner/Admin, CSRF |
+| `POST /integrations/instagram/deauthorize`, `POST /data-deletion`, `GET /data-deletion/{code}` | Meta's `signed_request` (HMAC-SHA256 with the app secret) |
+
+### Tests
+
+`tests/test_instagram.py` has 28 tests. They run against a **mocked** Meta (`httpx.MockTransport`) with fabricated, documented-shape responses; no credentials or network are needed. They cover:
+
+- configuration;
+- encryption and key rotation;
+- anonymous and role checks;
+- CSRF;
+- the full OAuth flow;
+- state replay, expiry and tampering;
+- session binding;
+- denial and malformed callbacks;
+- missing permissions and non-professional accounts;
+- pagination and idempotent re-sync;
+- unavailable metrics;
+- deleted media;
+- retries, timeouts and rate limits;
+- revoked, expired and refreshed tokens;
+- disconnect;
+- cross-workspace isolation;
+- secrets absent from logs and responses;
+- the deauthorize and data-deletion callbacks.
+
+**No live Meta connection has been tested.** See *Testing with a real account* in the root README.
+
 ## Security boundaries
 
 - **Not production-hardened yet.** Before any deployment:
@@ -355,6 +493,6 @@ No one can change their own role, grant Owner, or remove the Owner. The "Member"
 - **Dependency advisories:**
   - **Backend:** `pip-audit` (2026-10-11) reports advisories for **Starlette 0.41.3**, which is pinned by FastAPI 0.115.6. Upgrading FastAPI/Starlette is the next maintenance task.
   - **Frontend:** `npm audit` reports a react-router 6 open-redirect advisory (backslash paths). The app's only user-controlled redirect (`?next=`) is validated by `safeNext`, which rejects backslashes and absolute URLs. The remaining advisories are dev and test tooling only.
-- **No Instagram/Meta tokens, API keys or AI credentials** exist in code, the schema or the configuration. There is no OAuth flow, and the backend never asks for Instagram passwords.
-- **Nothing is published or sent.** No endpoint publishes campaigns, posts replies, sends DMs or WhatsApp messages, or emails reports or invitations. Features that would need an external integration return `501`.
+- **Instagram tokens** exist only server-side: encrypted in `instagram_tokens`, never in code, responses or logs. The app secret and encryption key live only in `backend/.env`. The backend never sees Instagram passwords, because users sign in on instagram.com. There are no AI credentials.
+- **Nothing is published or sent.** No endpoint publishes to Instagram, posts replies, sends DMs or WhatsApp messages, or emails reports or invitations. The demo-account sync and disconnect endpoints (`/accounts/{id}/sync`, `DELETE /accounts/{id}`) still return `501`.
 - **Credentials stay local.** `.env` holds them and is git-ignored. `.env.example` contains placeholders only.
