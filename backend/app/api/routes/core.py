@@ -6,7 +6,7 @@ from typing import Literal
 
 from fastapi import APIRouter, Path, Query, Response, status
 
-from app.api.deps import DB
+from app.api.deps import DB, commit
 from app.schemas import core as s
 from app.schemas.base import JsonDoc
 from app.schemas.inputs import CampaignCreateIn, CampaignPatchIn, LeadCreateIn, LeadPatchIn
@@ -123,7 +123,7 @@ def list_campaigns(db: DB, status_: CampaignStatus | None = Query(default=None, 
 @campaigns.post("", response_model=s.CampaignOut, status_code=status.HTTP_201_CREATED,
                 summary="Save a draft / scheduled campaign in InstaBoard (nothing is published to Instagram)")
 def create_campaign(db: DB, body: CampaignCreateIn):
-    return svc.create_campaign(db, body)
+    return commit(db, svc.create_campaign(db, body))
 
 
 @campaigns.get("/{campaign_id}", response_model=s.CampaignOut)
@@ -133,7 +133,7 @@ def get_campaign(db: DB, campaign_id: str = IdPath()):
 
 @campaigns.patch("/{campaign_id}", response_model=s.CampaignOut, summary="Edit fields and/or status (InstaBoard only)")
 def update_campaign(db: DB, body: CampaignPatchIn, campaign_id: str = IdPath()):
-    return svc.update_campaign(db, campaign_id, body)
+    return commit(db, svc.update_campaign(db, campaign_id, body))
 
 
 @campaigns.get("/{campaign_id}/detail", response_model=s.CampaignDetailExtrasOut | None, summary="Detail extras, or null when none exist")
@@ -180,13 +180,13 @@ def list_leads(db: DB, status_: LeadStatus | None = Query(default=None, alias="s
     return svc.list_leads(db, status=status_, campaign_id=campaign_id, q=q)
 
 
-@leads.post("", response_model=s.LeadOut, status_code=status.HTTP_201_CREATED,
-            summary="Create a lead from a comment (returns the existing lead, 200, when the handle already exists)")
+@leads.post("", response_model=s.LeadCreateResultOut, status_code=status.HTTP_201_CREATED,
+            summary="Create a lead (201), or return the existing lead for the same handle (200, created=false)")
 def create_lead(db: DB, body: LeadCreateIn, response: Response):
-    lead, created = svc.create_lead(db, body)
-    if not created:
+    result = svc.create_lead(db, body)
+    if not result.created:
         response.status_code = status.HTTP_200_OK
-    return lead
+    return commit(db, result)
 
 
 @leads.get("/summary", response_model=s.LeadPipelineSummaryOut)
@@ -194,9 +194,9 @@ def lead_summary(db: DB):
     return svc.lead_summary(db)
 
 
-@leads.patch("/{lead_id}", response_model=s.LeadOut)
+@leads.patch("/{lead_id}", response_model=s.LeadOut, summary="Update status and/or editable details (notes, name, location, phone)")
 def update_lead(db: DB, body: LeadPatchIn, lead_id: str = IdPath()):
-    return svc.update_lead(db, lead_id, body)
+    return commit(db, svc.update_lead(db, lead_id, body))
 
 
 # --- audience / dashboard --------------------------------------------------------------------

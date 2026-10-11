@@ -40,6 +40,13 @@ class NotFoundError(ApiError):
         super().__init__(f"{entity} '{entity_id}' was not found", details={"entity": entity, "id": entity_id})
 
 
+class UnprocessableError(ApiError):
+    """Well-formed request that fails a business rule (e.g. end date before start date)."""
+
+    status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+    code = "validation_error"
+
+
 class ConflictError(ApiError):
     status_code = status.HTTP_409_CONFLICT
     code = "conflict"

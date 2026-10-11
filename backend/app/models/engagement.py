@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Any
 
-from sqlalchemy import Boolean, CheckConstraint, Date, DateTime, Float, ForeignKey, Integer, SmallInteger, String, Text
+from sqlalchemy import Boolean, CheckConstraint, Date, DateTime, Float, ForeignKey, Index, Integer, SmallInteger, String, Text, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base, DemoMixin, TimestampMixin, str_enum
@@ -14,14 +14,17 @@ from .enums import CommentIntent, CommentSentiment, CommentStatus, LeadPotential
 
 class Lead(TimestampMixin, DemoMixin, Base):
     __tablename__ = "leads"
-    __table_args__ = (CheckConstraint("score >= 0 AND score <= 100", name="score_range"),)
+    __table_args__ = (
+        CheckConstraint("score >= 0 AND score <= 100", name="score_range"),
+        # One lead per Instagram handle, case-insensitively (comment → lead conversion de-duplicates on this).
+        Index("uq_leads_handle_lower", text("lower(handle)"), unique=True),
+    )
 
     id: Mapped[str] = mapped_column(String(80), primary_key=True)
     campaign_id: Mapped[str] = mapped_column(ForeignKey("campaigns.id", ondelete="RESTRICT"), index=True)
     content_id: Mapped[str | None] = mapped_column(ForeignKey("content_items.id", ondelete="SET NULL"), index=True)
     name: Mapped[str] = mapped_column(String(160))
-    # One lead per Instagram handle (comment → lead conversion de-duplicates on this).
-    handle: Mapped[str] = mapped_column(String(64), unique=True)
+    handle: Mapped[str] = mapped_column(String(64))
     location: Mapped[str] = mapped_column(String(120))
     score: Mapped[int] = mapped_column(SmallInteger)
     status: Mapped[LeadStatus] = mapped_column(str_enum(LeadStatus, "lead_status"), index=True)
@@ -30,6 +33,8 @@ class Lead(TimestampMixin, DemoMixin, Base):
     first_message: Mapped[str] = mapped_column(Text)
     phone_masked: Mapped[str | None] = mapped_column(String(40))
     notes: Mapped[str | None] = mapped_column(Text)
+    # The comment this lead was converted from (unique → a retried conversion cannot create a second lead).
+    source_comment_id: Mapped[str | None] = mapped_column(ForeignKey("comments.id", ondelete="SET NULL", use_alter=True), unique=True)
     position: Mapped[int] = mapped_column(Integer, server_default="0")
 
 
@@ -42,7 +47,7 @@ class Comment(TimestampMixin, DemoMixin, Base):
     account_id: Mapped[str] = mapped_column(ForeignKey("instagram_accounts.id", ondelete="CASCADE"), index=True)
     content_id: Mapped[str] = mapped_column(ForeignKey("content_items.id", ondelete="CASCADE"), index=True)
     campaign_id: Mapped[str | None] = mapped_column(ForeignKey("campaigns.id", ondelete="SET NULL"), index=True)
-    lead_id: Mapped[str | None] = mapped_column(ForeignKey("leads.id", ondelete="SET NULL"))
+    lead_id: Mapped[str | None] = mapped_column(ForeignKey("leads.id", ondelete="SET NULL"), index=True)
     author_name: Mapped[str] = mapped_column(String(160))
     handle: Mapped[str] = mapped_column(String(64), index=True)
     location: Mapped[str | None] = mapped_column(String(120))

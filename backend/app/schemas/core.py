@@ -209,7 +209,7 @@ LeadSourceLiteral = Literal["comment", "dm", "bio_link", "profile_visit"]
 
 
 class LeadOut(ApiModel):
-    __omit_if_none__ = optional("phone_masked", "notes")
+    __omit_if_none__ = optional("phone_masked", "notes", "source_comment_id")
     id: str
     name: str
     handle: str
@@ -223,6 +223,14 @@ class LeadOut(ApiModel):
     first_message: str
     phone_masked: str | None = None
     notes: str | None = None
+    source_comment_id: str | None = None
+
+
+class LeadCreateResultOut(ApiModel):
+    """POST /leads: ``created`` is false when a lead with the same handle already existed."""
+
+    lead: LeadOut
+    created: bool
 
 
 class LeadPipelineSummaryOut(ApiModel):

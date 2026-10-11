@@ -23,6 +23,24 @@ export type CampaignUpdateInput = Partial<
   Pick<Campaign, 'name' | 'objective' | 'startDate' | 'endDate' | 'accountId' | 'targetRegions' | 'hashtags' | 'budgetInr' | 'leadGoal' | 'primaryAgeGroup'>
 >;
 
+/**
+ * Allowed status changes — the same rules the FastAPI backend enforces (409 otherwise), so demo mode
+ * behaves like api mode. These are InstaBoard planning states; nothing changes on Instagram.
+ */
+export const CAMPAIGN_TRANSITIONS: Record<CampaignStatus, CampaignStatus[]> = {
+  draft: ['scheduled'],
+  scheduled: ['draft', 'active', 'paused'],
+  active: ['paused', 'completed'],
+  paused: ['active', 'completed'],
+  completed: [],
+};
+
+function assertTransition(campaign: Campaign, to: CampaignStatus) {
+  if (campaign.status === to) return;
+  if (!CAMPAIGN_TRANSITIONS[campaign.status].includes(to)) throw new Error(`A ${campaign.status} campaign cannot be moved to ${to}.`);
+  if (to === 'scheduled' && !(campaign.startDate && campaign.endDate)) throw new Error('Set a start date and end date before scheduling this campaign.');
+}
+
 /** In-memory store so prototype edits (create, pause, resume) persist for the session. */
 const store: Campaign[] = structuredClone(campaigns);
 
@@ -87,6 +105,7 @@ export const campaignService = {
       () => {
         const found = store.find((c) => c.id === id);
         if (!found) throw new NotFoundError('Campaign', id);
+        assertTransition(found, status);
         found.status = status;
         return found;
       },

@@ -8,9 +8,16 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import Field, model_validator
+from pydantic import ConfigDict, Field, model_validator
 
 from .base import ApiModel
+
+
+class StrictInput(ApiModel):
+    """Write payload that rejects unknown fields (422) — prevents mass assignment of read-only
+    attributes such as metrics, scores, ids or external Instagram identifiers."""
+
+    model_config = ConfigDict(extra="forbid")
 from .core import LeadSourceLiteral, LeadStatusLiteral
 from .engagement import Email
 
@@ -20,7 +27,7 @@ DateStr = str
 DATE_PATTERN = r"^\d{4}-\d{2}-\d{2}$"
 
 
-class CampaignCreateIn(ApiModel):
+class CampaignCreateIn(StrictInput):
     """POST /campaigns (frontend ``NewCampaignInput``). Saved as a draft / schedule in InstaBoard only."""
 
     name: str = Field(min_length=3, max_length=200)
@@ -44,7 +51,7 @@ class CampaignCreateIn(ApiModel):
         return self
 
 
-class CampaignPatchIn(ApiModel):
+class CampaignPatchIn(StrictInput):
     """PATCH /campaigns/{id}: editable fields and/or ``status`` (frontend ``update`` + ``setStatus``)."""
 
     name: str | None = Field(default=None, min_length=3, max_length=200)
@@ -66,11 +73,28 @@ class CampaignPatchIn(ApiModel):
         return self
 
 
-class LeadPatchIn(ApiModel):
-    status: LeadStatusLiteral
+class LeadPatchIn(StrictInput):
+    """PATCH /leads/{id}. Only these fields are editable; everything else (score, source, campaign,
+    content, handle) is derived from the originating comment and cannot be mass-assigned."""
+
+    status: LeadStatusLiteral | None = None
+    notes: str | None = Field(default=None, max_length=5000)
+    name: str | None = Field(default=None, min_length=1, max_length=160)
+    location: str | None = Field(default=None, max_length=120)
+    phone_masked: str | None = Field(default=None, max_length=40)
+
+    @model_validator(mode="after")
+    def _not_empty(self) -> LeadPatchIn:
+        if not self.model_fields_set:
+            raise ValueError("Provide at least one of: status, notes, name, location, phoneMasked")
+        if "status" in self.model_fields_set and self.status is None:
+            raise ValueError("status cannot be null")
+        if "name" in self.model_fields_set and self.name is None:
+            raise ValueError("name cannot be null")
+        return self
 
 
-class LeadCreateIn(ApiModel):
+class LeadCreateIn(StrictInput):
     """POST /leads (Comments Intelligence → "Convert to lead"). De-duplicated by handle."""
 
     name: str = Field(min_length=1, max_length=160)
@@ -88,7 +112,7 @@ class LeadCreateIn(ApiModel):
 InviteAccess = Literal["Admin", "Editor", "Viewer"]
 
 
-class TeamInviteIn(ApiModel):
+class TeamInviteIn(StrictInput):
     """POST /workspace/members. Adds a pending member; no invitation email is sent in this phase."""
 
     email: Email
@@ -96,7 +120,7 @@ class TeamInviteIn(ApiModel):
     role: str | None = Field(default=None, max_length=120)
 
 
-class TeamAccessIn(ApiModel):
+class TeamAccessIn(StrictInput):
     access: InviteAccess
 
 

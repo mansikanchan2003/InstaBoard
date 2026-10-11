@@ -155,10 +155,11 @@ The frontend `src/services/*.ts` modules call these paths (prefix `/api/v1`) whe
 | `contentService.list / listByCampaign / get` | `GET /content` (`?campaignId&type&q`), `GET /campaigns/{id}/content`, `GET /content/{id}` | `ContentItem[]`, `ContentItem` |
 | `contentAnalyticsService.get` | `GET /content/{id}/analytics` | `ContentAnalytics \| null` |
 | `leadService.list / listByCampaign / summary / campaignFunnel` | `GET /leads` (`?status&campaignId&q`), `GET /campaigns/{id}/leads`, `GET /leads/summary`, `GET /campaigns/{id}/leads/funnel` | `Lead[]`, `LeadPipelineSummary`, `{funnel, channels} \| null` |
-| `leadService.updateStatus / createFromComment` | `PATCH /leads/{id}`, `POST /leads` | `Lead` (POST returns the existing lead, 200, for a known handle) |
+| `leadService.updateStatus / updateDetails / createFromComment` | `PATCH /leads/{id}`, `POST /leads` | `Lead`; POST → `{lead, created}` (201 new / 200 existing handle) |
 | `audienceService.summary / intelligence` | `GET /audience/summary`, `GET /audience/intelligence` | `AudienceSummary`, `AudienceIntelligence` |
 | `commentsService.summary / sentimentTrend / list / get` | `GET /comments/summary`, `/comments/sentiment-trend`, `/comments` (`?status&sentiment&intent&contentId&campaignId`), `/comments/{id}` | `CommentSummary`, `SentimentTrendPoint[]`, `CommentListResult`, `InstagramComment` |
 | `commentsService.update / bulkSetStatus` | `PATCH /comments/{id}`, `POST /comments/bulk` | `InstagramComment`, `{updated}` (no reply is posted to Instagram) |
+| `commentsService.convertToLead` | `POST /comments/{id}/convert-to-lead` | `{lead, comment, created}` — atomic and idempotent (201 first time, 200 on repeats) |
 | `insightsService.overview / list / get / actions` | `GET /insights/overview`, `/insights` (`?category&priority&status`), `/insights/{id}`, `/insights/actions` | stored demo output |
 | `insightsService.setStatus / toggleStep / setActionStatus / markAllActionsReviewed` | `PATCH /insights/{id}`, `POST /insights/{id}/steps/{stepId}/toggle`, `PATCH /insights/actions/{id}`, `POST /insights/actions/review-all` | `Insight`, `RecommendedAction`, `{updated}` |
 | `insightsService.regenerate` | `POST /insights/regenerate` | **501 `not_available`** (no AI provider) |
@@ -180,6 +181,59 @@ The frontend `src/services/*.ts` modules call these paths (prefix `/api/v1`) whe
 | 501 | `not_available` |
 | 503 | `database_unavailable` |
 | 500 | `internal_error`, with no internals exposed |
+
+## Write operations (Phase 3)
+
+Every write runs in **one database transaction** that also adds its audit row, and is **committed before the
+2xx response is returned**. Any failure rolls back the whole operation.
+
+- **Inputs:** validated server-side; write payloads reject unknown fields (no mass assignment).
+- **Read-only fields:** metrics, scores, AI classifications, ids and external Instagram ids cannot be set.
+- **Error statuses:** `422` invalid input or business rule, `404` missing record, `409` invalid state transition or conflict.
+
+| Endpoint | Example body | Notes |
+| --- | --- | --- |
+| `POST /campaigns` | `{"name": "Diwali CSP Push", "objective": "Lead Generation", "accountId": "acc-ekoindia", "startDate": "2024-11-01", "endDate": "2024-11-15", "targetRegions": ["Bihar"], "hashtags": ["#Eko"], "status": "draft"}` | `status` is `draft` or `scheduled` (scheduled needs dates). Never published to Instagram. |
+| `PATCH /campaigns/{id}` | `{"status": "paused"}` or `{"name": "…", "leadGoal": 250}` | Editable: name, objective, dates, account (before start only), regions, hashtags, budget, lead goal, age group, status. |
+| `PATCH /leads/{id}` | `{"status": "qualified"}` / `{"notes": "Called; documents pending"}` | Editable: status, notes, name, location, phoneMasked. Status changes set "last contact"; notes do not. |
+| `POST /leads` | `{"name": "…", "handle": "manoj_y_up", "location": "Ballia, UP", "campaignId": "sbi-csp-october", "contentId": "sbi-csp-mitra-reel", "score": 81, "source": "comment", "firstMessage": "…"}` | De-duplicated by handle (case-insensitive). The content must belong to the campaign. |
+| `POST /comments/{id}/convert-to-lead` | *(no body)* | Creates a lead linked via `leads.source_comment_id` and marks the comment `lead_created`. Repeats, or an existing lead with the same handle, link without duplicating. `409` if the comment has no campaign. |
+| `PATCH /comments/{id}` | `{"status": "reviewed", "flagged": true}` | `lead_created` is only reachable through conversion. |
+| `POST /comments/bulk` | `{"ids": ["…"], "status": "archived"}` | One audit entry per bulk action. |
+| `PATCH /insights/{id}`, `PATCH /insights/actions/{id}` | `{"status": "dismissed"}`, `{"status": "done", "feedback": "…"}` | Stored demo insights only; no AI call. |
+| `POST/PUT/PATCH /reports…` | see `ReportConfig` | Configuration only. Figures are computed from campaign data. Nothing is emailed or scheduled. |
+| `PATCH /notifications/{id}`, `POST /notifications/mark-all-read`, `PUT /notifications/preferences` | `{"read": true}` | Read state and preferences persist. No email, SMS or WhatsApp delivery exists. |
+| `PUT /settings`, `/workspace/members…` | `WorkspaceSettings` / `{"email": "…", "access": "Viewer"}` | Audited with a field-level diff. No invitation email is sent. |
+
+**Campaign status transitions** (anything else returns `409` with `details.allowed`):
+
+| From | Allowed next statuses |
+| --- | --- |
+| `draft` | `scheduled` (requires start and end dates) |
+| `scheduled` | `draft`, `active`, `paused` |
+| `active` | `paused`, `completed` |
+| `paused` | `active`, `completed` |
+| `completed` | none |
+
+**Audit log:** these writes add an `activity_events` row with the session user as actor and a field-level diff:
+- campaign create, edit and status changes
+- lead create, edit and status changes
+- comment conversion and bulk triage
+- insight and recommendation status changes
+- report create, edit, duplicate, regenerate, archive and restore
+- notification preferences, settings and team changes
+
+Free-text lead notes are recorded only as "updated", never copied into the audit log.
+
+**Not implemented, because no UI exists for them yet:**
+- editing content or media metadata
+- comment tags, notes or manual intent reclassification
+
+**Needs a later integration (returns `501`):**
+- account sync and disconnect (Meta)
+- insight regeneration (AI provider)
+
+Replying to comments or DMs is not implemented anywhere.
 
 ## Security boundaries
 

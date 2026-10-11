@@ -28,7 +28,7 @@ def test_create_campaign_validation(client):
     assert client.post(api("/campaigns"), json=no_dates).status_code == 422  # scheduling needs dates
     expired = {**NEW_CAMPAIGN, "accountId": "acc-ekoregional"}
     response = client.post(api("/campaigns"), json=expired)
-    assert response.status_code == 400 and response.json()["error"]["code"] == "bad_request"
+    assert response.status_code == 422 and response.json()["error"]["code"] == "validation_error"
     assert client.post(api("/campaigns"), json={**NEW_CAMPAIGN, "accountId": "acc-missing"}).status_code == 404
 
 
@@ -37,7 +37,7 @@ def test_patch_campaign_status_and_fields(client):
     assert paused.status_code == 200 and paused.json()["status"] == "paused"
     renamed = client.patch(api("/campaigns/sbi-csp-october"), json={"name": "SBI CSP October (edited)", "leadGoal": 250})
     assert renamed.json()["name"] == "SBI CSP October (edited)" and renamed.json()["leadGoal"] == 250
-    assert client.patch(api("/campaigns/sbi-csp-october"), json={"endDate": "2024-09-01"}).status_code == 400
+    assert client.patch(api("/campaigns/sbi-csp-october"), json={"endDate": "2024-09-01"}).status_code == 422
     assert client.patch(api("/campaigns/sbi-csp-october"), json={}).status_code == 422
     assert client.patch(api("/campaigns/nope"), json={"status": "paused"}).status_code == 404
 
@@ -53,11 +53,11 @@ def test_create_lead_from_comment_deduplicates_by_handle(client):
     payload = {"name": "Manoj Yadav", "handle": "manoj_y_up", "location": "Ballia, UP", "campaignId": "sbi-csp-october",
                "contentId": "sbi-csp-mitra-reel", "score": 81, "source": "comment", "firstMessage": "CSP ke liye kaise apply karein?"}
     first = client.post(api("/leads"), json=payload)
-    assert first.status_code == 201 and first.json()["status"] == "new"
+    assert first.status_code == 201 and first.json()["created"] is True and first.json()["lead"]["status"] == "new"
     again = client.post(api("/leads"), json={**payload, "name": "Different Name"})
-    assert again.status_code == 200 and again.json()["id"] == first.json()["id"]
-    existing = client.post(api("/leads"), json={**payload, "handle": "ramesh_m_up"})
-    assert existing.status_code == 200 and existing.json()["id"] == "lead-ramesh-maurya"
+    assert again.status_code == 200 and again.json() == {"lead": first.json()["lead"], "created": False}
+    existing = client.post(api("/leads"), json={**payload, "handle": "RAMESH_M_UP"})  # case-insensitive
+    assert existing.status_code == 200 and existing.json()["lead"]["id"] == "lead-ramesh-maurya"
 
 
 def test_comment_triage_updates_awaiting_count(client):

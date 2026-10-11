@@ -8,7 +8,7 @@ from datetime import date
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
-from app.core.errors import ApiError, NotFoundError, NotImplementedInPhaseError
+from app.core.errors import ConflictError, NotFoundError, NotImplementedInPhaseError, UnprocessableError
 from app.models import (
     AccountDailyMetric,
     AccountKpi,
@@ -32,6 +32,7 @@ from app.schemas import core as s
 from app.schemas.base import ev, num
 from app.schemas.inputs import CampaignCreateIn, CampaignPatchIn, LeadCreateIn, LeadPatchIn
 
+from .audit import diff_rows, record_user_change
 from .common import current_workspace, day_label, get_account, iso_date, iso_ist, next_position_first, reference, session_member
 
 # ===================================================================================== workspace
@@ -250,10 +251,27 @@ def _next_campaign_code(db: Session) -> str:
     return f"#CAM-{max(numbers, default=8800) + 1}"
 
 
+# Allowed campaign status changes. Statuses are InstaBoard's own planning states — changing them
+# never publishes, pauses or edits anything on Instagram.
+CAMPAIGN_TRANSITIONS: dict[str, frozenset[str]] = {
+    "draft": frozenset({"scheduled"}),
+    "scheduled": frozenset({"draft", "active", "paused"}),
+    "active": frozenset({"paused", "completed"}),
+    "paused": frozenset({"active", "completed"}),
+    "completed": frozenset(),
+}
+CAMPAIGN_FIELD_LABELS = {
+    "name": "Name", "objective": "Objective", "start_date": "Start date", "end_date": "End date", "account_id": "Instagram account",
+    "target_regions": "Target regions", "hashtags": "Hashtags", "budget_inr": "Budget (INR)", "lead_goal": "Lead goal",
+    "primary_age_group": "Primary age group", "status": "Status",
+}
+EDITABLE_CAMPAIGN_FIELDS = tuple(k for k in CAMPAIGN_FIELD_LABELS if k != "status")
+
+
 def create_campaign(db: Session, body: CampaignCreateIn) -> s.CampaignOut:
     account = get_account(db, body.account_id)
     if ev(account.status) != "connected":
-        raise ApiError("Campaigns can only be planned for an account whose status is 'connected'", details={"accountId": account.id})
+        raise UnprocessableError("Campaigns can only be planned for an account whose status is 'connected'", details={"accountId": account.id})
     campaign = Campaign(
         id=f"cmp-{secrets.token_hex(4)}", code=_next_campaign_code(db), name=body.name.strip(), objective=body.objective,
         focus=body.objective, status=body.status, start_date=date.fromisoformat(body.start_date) if body.start_date else None,
@@ -265,26 +283,71 @@ def create_campaign(db: Session, body: CampaignCreateIn) -> s.CampaignOut:
     db.add(campaign)
     db.flush()
     db.refresh(campaign)
+    record_user_change(
+        db, category="campaigns", kind="Campaign Created", icon="campaign", title="Campaign Created",
+        summary=f"Created {campaign.code} \"{campaign.name}\" as {body.status}.", target_label=campaign.code,
+        target_to=f"/campaigns/{campaign.id}", module="Campaigns", account_id=campaign.account_id,
+        payload={"type": "CAMPAIGN_CREATED", "campaign_id": campaign.id, "status": body.status},
+        narrative_suffix="Saved in InstaBoard only — nothing was published to Instagram.",
+    )
     return campaign_out(campaign)
+
+
+def _check_transition(campaign: Campaign, target: str) -> None:
+    current = ev(campaign.status)
+    if target == current:
+        return
+    allowed = CAMPAIGN_TRANSITIONS[current]
+    if target not in allowed:
+        raise ConflictError(
+            f"A {current} campaign cannot be moved to {target}.",
+            details={"from": current, "to": target, "allowed": sorted(allowed)},
+        )
+    if target == "scheduled" and not (campaign.start_date and campaign.end_date):
+        raise UnprocessableError("Set a start date and end date before scheduling this campaign.", details={"field": "startDate"})
 
 
 def update_campaign(db: Session, campaign_id: str, body: CampaignPatchIn) -> s.CampaignOut:
     campaign = _get_campaign(db, campaign_id)
     patch = body.model_dump(exclude_unset=True)
-    if "account_id" in patch and patch["account_id"] is not None:
-        get_account(db, patch["account_id"])
+    for key in ("name", "objective", "account_id", "target_regions", "hashtags", "status"):
+        if key in patch and patch[key] is None:
+            raise UnprocessableError(f"{key} cannot be null", details={"field": key})
     for key in ("start_date", "end_date"):
         if key in patch:
             patch[key] = date.fromisoformat(patch[key]) if patch[key] else None
-    for key in ("name", "objective", "account_id", "target_regions", "hashtags", "status"):
-        if key in patch and patch[key] is None:
-            raise ApiError(f"{key} cannot be null")
-    for key, value in patch.items():
-        setattr(campaign, key, value)
+    if "account_id" in patch and patch["account_id"] != campaign.account_id:
+        get_account(db, patch["account_id"])
+        if ev(campaign.status) not in ("draft", "scheduled"):
+            raise ConflictError("The Instagram account can only be changed before a campaign starts.", details={"status": ev(campaign.status)})
+
+    before = {k: getattr(campaign, k) for k in patch}
+    # Only explicitly editable fields are assigned (no mass assignment).
+    for key in EDITABLE_CAMPAIGN_FIELDS:
+        if key in patch:
+            setattr(campaign, key, patch[key])
     if campaign.start_date and campaign.end_date and campaign.end_date < campaign.start_date:
-        raise ApiError("endDate must be on or after startDate")
+        raise UnprocessableError("endDate must be on or after startDate", details={"field": "endDate"})
+    if "status" in patch:
+        _check_transition(campaign, patch["status"])
+        campaign.status = patch["status"]
     db.flush()
+
+    changes = diff_rows(before, patch, CAMPAIGN_FIELD_LABELS)
+    if changes:
+        status_only = list(patch) == ["status"]
+        title = f"Campaign {STATUS_VERBS.get(patch['status'], 'Updated')}" if status_only else "Campaign Updated"
+        record_user_change(
+            db, category="campaigns", kind="Status Change" if status_only else "Campaign Edit", icon="campaign", title=title,
+            summary=f"{campaign.code} \"{campaign.name}\": " + "; ".join(f"{c['field']} {c['before']} → {c['after']}" for c in changes[:3]) + ".",
+            target_label=campaign.code, target_to=f"/campaigns/{campaign.id}", module="Campaigns", account_id=campaign.account_id,
+            payload={"type": "CAMPAIGN_UPDATED", "campaign_id": campaign.id, "fields": sorted(patch)}, diff=changes,
+            narrative_suffix="Changed in InstaBoard only — nothing was changed on Instagram.",
+        )
     return campaign_out(campaign)
+
+
+STATUS_VERBS = {"paused": "Paused", "active": "Resumed", "scheduled": "Scheduled", "draft": "Moved to Draft", "completed": "Completed"}
 
 
 # ======================================================================================= content
@@ -337,7 +400,7 @@ def content_analytics(db: Session, content_id: str) -> dict | None:
 def lead_out(l: Lead) -> s.LeadOut:
     return s.LeadOut(id=l.id, name=l.name, handle=l.handle, location=l.location, campaign_id=l.campaign_id, content_id=l.content_id,
                      score=l.score, status=ev(l.status), source=ev(l.source), last_contact=l.last_contact_label,
-                     first_message=l.first_message, phone_masked=l.phone_masked, notes=l.notes)
+                     first_message=l.first_message, phone_masked=l.phone_masked, notes=l.notes, source_comment_id=l.source_comment_id)
 
 
 def list_leads(db: Session, *, status: str | None = None, campaign_id: str | None = None, q: str | None = None) -> list[s.LeadOut]:
@@ -370,32 +433,85 @@ def lead_summary(db: Session) -> s.LeadPipelineSummaryOut:
     )
 
 
-def update_lead(db: Session, lead_id: str, body: LeadPatchIn) -> s.LeadOut:
+LEAD_FIELD_LABELS = {"status": "Pipeline status", "notes": "Outreach notes", "name": "Name", "location": "Location", "phone_masked": "Phone"}
+
+
+def _get_lead(db: Session, lead_id: str) -> Lead:
     lead = db.get(Lead, lead_id)
     if lead is None:
         raise NotFoundError("Lead", lead_id)
-    lead.status = body.status
-    lead.last_contact_label = "Just now"
+    return lead
+
+
+def update_lead(db: Session, lead_id: str, body: LeadPatchIn) -> s.LeadOut:
+    lead = _get_lead(db, lead_id)
+    patch = body.model_dump(exclude_unset=True)
+    if "notes" in patch and patch["notes"] is not None:
+        patch["notes"] = patch["notes"].strip() or None
+    before = {k: getattr(lead, k) for k in patch}
+    for key in LEAD_FIELD_LABELS:  # explicit allow-list
+        if key in patch:
+            setattr(lead, key, patch[key])
+    changes = diff_rows(before, patch, LEAD_FIELD_LABELS)
+    if "status" in patch and patch["status"] != ev(before["status"]):
+        lead.last_contact_label = "Just now"
     db.flush()
+    if changes:
+        # Notes are free text; the audit row records that they changed, not their content.
+        audit_diff = [c if c["field"] != "Outreach notes" else {"field": c["field"], "before": "…", "after": "updated"} for c in changes]
+        record_user_change(
+            db, category="leads", kind="Lead Update", icon="contact_page",
+            title="Lead Status Changed" if list(patch) == ["status"] else "Lead Updated",
+            summary=f"{lead.name} (@{lead.handle}): " + "; ".join(f"{c['field']} {c['before']} → {c['after']}" for c in audit_diff[:3]) + ".",
+            target_label=f"@{lead.handle}", target_to=f"/leads?lead={lead.id}", module="Leads",
+            payload={"type": "LEAD_UPDATED", "lead_id": lead.id, "fields": sorted(patch)}, diff=audit_diff,
+            narrative_suffix="Stored in InstaBoard only — no message was sent to the lead.",
+        )
     return lead_out(lead)
 
 
-def create_lead(db: Session, body: LeadCreateIn) -> tuple[s.LeadOut, bool]:
-    """Returns (lead, created). An existing lead with the same handle is returned unchanged."""
-    existing = db.scalar(select(Lead).where(func.lower(Lead.handle) == body.handle.lower()))
-    if existing is not None:
-        return lead_out(existing), False
-    _get_campaign(db, body.campaign_id)
-    if body.content_id and db.get(ContentItem, body.content_id) is None:
-        raise NotFoundError("Content", body.content_id)
-    lead = Lead(
-        id=f"lead-{secrets.token_hex(4)}", campaign_id=body.campaign_id, content_id=body.content_id, name=body.name, handle=body.handle,
-        location=body.location, score=body.score, status="new", source=body.source, last_contact_label="Just now",
-        first_message=body.first_message, phone_masked=body.phone_masked, notes=body.notes, position=next_position_first(db, Lead.position),
-    )
+def find_lead_by_handle(db: Session, handle: str) -> Lead | None:
+    return db.scalar(select(Lead).where(func.lower(Lead.handle) == handle.lower()))
+
+
+def validate_lead_refs(db: Session, campaign_id: str, content_id: str | None) -> None:
+    _get_campaign(db, campaign_id)
+    if content_id:
+        content = db.get(ContentItem, content_id)
+        if content is None:
+            raise NotFoundError("Content", content_id)
+        if content.campaign_id and content.campaign_id != campaign_id:
+            raise UnprocessableError(
+                "contentId belongs to a different campaign than campaignId",
+                details={"contentId": content_id, "contentCampaignId": content.campaign_id, "campaignId": campaign_id},
+            )
+
+
+def new_lead(db: Session, *, source_comment_id: str | None = None, **fields) -> Lead:
+    lead = Lead(id=f"lead-{secrets.token_hex(4)}", status="new", last_contact_label="Just now",
+                position=next_position_first(db, Lead.position), source_comment_id=source_comment_id, **fields)
     db.add(lead)
     db.flush()
-    return lead_out(lead), True
+    return lead
+
+
+def create_lead(db: Session, body: LeadCreateIn) -> s.LeadCreateResultOut:
+    """Creates a lead, or returns the existing lead for the same handle (``created=False``)."""
+    existing = find_lead_by_handle(db, body.handle)
+    if existing is not None:
+        return s.LeadCreateResultOut(lead=lead_out(existing), created=False)
+    validate_lead_refs(db, body.campaign_id, body.content_id)
+    lead = new_lead(
+        db, campaign_id=body.campaign_id, content_id=body.content_id, name=body.name, handle=body.handle, location=body.location,
+        score=body.score, source=body.source, first_message=body.first_message, phone_masked=body.phone_masked, notes=body.notes,
+    )
+    record_user_change(
+        db, category="leads", kind="Lead Created", icon="person_add", title="Lead Created",
+        summary=f"Added {lead.name} (@{lead.handle}) to the pipeline as New (source: {body.source}).",
+        target_label=f"@{lead.handle}", target_to=f"/leads?lead={lead.id}", module="Leads",
+        payload={"type": "LEAD_CREATED", "lead_id": lead.id, "campaign_id": lead.campaign_id, "content_id": lead.content_id},
+    )
+    return s.LeadCreateResultOut(lead=lead_out(lead), created=True)
 
 
 # ====================================================================================== audience

@@ -15,9 +15,8 @@ function CommentRow({ comment, data, leadId, onLead }: { comment: ClassifiedComm
   const toast = useToast();
   const { mutate, isPending } = useMutation(leadService.createFromComment, {
     invalidate: ['leads'],
-    onSuccess: (lead) => {
+    onSuccess: ({ lead, created }) => {
       onLead(lead.id);
-      const created = lead.id.startsWith('lead-local-');
       toast({
         title: created ? 'Lead added to pipeline' : 'Already in the pipeline',
         description: created ? `@${comment.handle} was added to Leads${modeText(' (local demo store only — no CRM sync)', ' (InstaBoard database — no CRM sync)')}.` : `@${comment.handle} is already tracked as a lead.`,

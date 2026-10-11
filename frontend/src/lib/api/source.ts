@@ -30,4 +30,18 @@ export async function mutateSource<T>(
   return clone(demo());
 }
 
+/**
+ * Like `mutateSource`, for demo operations that span several in-memory stores (e.g. comment → lead).
+ * In api mode the single server endpoint performs the whole change in one transaction.
+ */
+export async function mutateSourceAsync<T>(
+  demo: () => Promise<T>,
+  api: { method: 'post' | 'put' | 'patch' | 'delete'; path: string; body?: unknown },
+): Promise<T> {
+  if (config.dataSource === 'api') {
+    return api.method === 'delete' ? apiClient.delete<T>(api.path) : apiClient[api.method]<T>(api.path, api.body);
+  }
+  return clone(await demo());
+}
+
 export { ApiNotFoundError, NotFoundError } from './errors';

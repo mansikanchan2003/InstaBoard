@@ -174,6 +174,22 @@ export interface Lead {
   firstMessage: string;
   phoneMasked?: string;
   notes?: string;
+  /** Comment this lead was converted from (set by "Convert to lead"). */
+  sourceCommentId?: ID;
+}
+
+/** Fields a user may edit on a lead (PATCH /leads/{id}); score, source and links are derived. */
+export interface LeadDetailsPatch {
+  notes?: string;
+  name?: string;
+  location?: string;
+  phoneMasked?: string;
+}
+
+/** POST /leads result: `created` is false when the handle already belonged to a lead. */
+export interface LeadCreateResult {
+  lead: Lead;
+  created: boolean;
 }
 
 export interface LeadPipelineSummary {

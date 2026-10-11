@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from typing import Literal
 
-from fastapi import APIRouter, Path, Query, status
+from fastapi import APIRouter, Path, Query, Response, status
 
-from app.api.deps import DB
+from app.api.deps import DB, commit
 from app.schemas import core as cs
 from app.schemas import engagement as s
 from app.schemas.base import JsonDoc
@@ -50,7 +50,16 @@ def sentiment_trend(db: DB):
 
 @comments.post("/bulk", response_model=s.UpdatedCountOut, summary="Bulk triage status (InstaBoard only; nothing is posted to Instagram)")
 def bulk_status(db: DB, body: s.CommentBulkIn):
-    return svc.bulk_comment_status(db, body)
+    return commit(db, svc.bulk_comment_status(db, body))
+
+
+@comments.post("/{comment_id}/convert-to-lead", response_model=s.CommentConvertOut, status_code=status.HTTP_201_CREATED,
+               summary="Convert a comment to a lead (idempotent: repeats return 200 with created=false; nothing is posted to Instagram)")
+def convert_to_lead(db: DB, response: Response, comment_id: str = IdPath()):
+    result = svc.convert_comment_to_lead(db, comment_id)
+    if not result.created:
+        response.status_code = status.HTTP_200_OK
+    return commit(db, result)
 
 
 @comments.get("/{comment_id}", response_model=s.InstagramCommentOut)
@@ -60,7 +69,7 @@ def get_comment(db: DB, comment_id: str = IdPath()):
 
 @comments.patch("/{comment_id}", response_model=s.InstagramCommentOut, summary="Triage a comment (local state only)")
 def update_comment(db: DB, body: s.CommentPatchIn, comment_id: str = IdPath()):
-    return svc.update_comment(db, comment_id, body)
+    return commit(db, svc.update_comment(db, comment_id, body))
 
 
 # --- insights (static paths first) -------------------------------------------------------------
@@ -76,12 +85,12 @@ def list_actions(db: DB):
 
 @insights.post("/actions/review-all", response_model=s.UpdatedCountOut)
 def review_all(db: DB):
-    return svc.review_all_actions(db)
+    return commit(db, svc.review_all_actions(db))
 
 
 @insights.patch("/actions/{action_id}", response_model=s.RecommendedActionOut)
 def set_action_status(db: DB, body: s.ActionStatusIn, action_id: str = IdPath()):
-    return svc.set_action_status(db, action_id, body)
+    return commit(db, svc.set_action_status(db, action_id, body))
 
 
 @insights.post("/regenerate", status_code=status.HTTP_501_NOT_IMPLEMENTED, summary="Not available: no AI provider in this phase")
@@ -103,12 +112,12 @@ def get_insight(db: DB, insight_id: str = IdPath()):
 
 @insights.patch("/{insight_id}", response_model=s.InsightOut)
 def set_insight_status(db: DB, body: s.InsightStatusIn, insight_id: str = IdPath()):
-    return svc.set_insight_status(db, insight_id, body)
+    return commit(db, svc.set_insight_status(db, insight_id, body))
 
 
 @insights.post("/{insight_id}/steps/{step_id}/toggle", response_model=s.InsightOut)
 def toggle_step(db: DB, insight_id: str = IdPath(), step_id: str = IdPath()):
-    return svc.toggle_insight_step(db, insight_id, step_id)
+    return commit(db, svc.toggle_insight_step(db, insight_id, step_id))
 
 
 # --- reports ---------------------------------------------------------------------------------
@@ -122,7 +131,7 @@ def list_reports(db: DB, status_: ReportStatus | None = Query(default=None, alia
 
 @reports.post("", response_model=s.ReportOut, status_code=status.HTTP_201_CREATED, summary="Save a report configuration (no email is sent)")
 def create_report(db: DB, body: s.ReportConfigIn):
-    return svc.create_report(db, body)
+    return commit(db, svc.create_report(db, body))
 
 
 @reports.get("/reference", response_model=s.ReportReferenceOut, summary="Boost spend per campaign and CPL benchmark")
@@ -137,22 +146,22 @@ def get_report(db: DB, report_id: str = IdPath()):
 
 @reports.put("/{report_id}", response_model=s.ReportOut)
 def update_report(db: DB, body: s.ReportConfigIn, report_id: str = IdPath()):
-    return svc.update_report(db, report_id, body)
+    return commit(db, svc.update_report(db, report_id, body))
 
 
 @reports.patch("/{report_id}", response_model=s.ReportOut, summary="Archive / restore")
 def archive_report(db: DB, body: s.ReportArchiveIn, report_id: str = IdPath()):
-    return svc.set_report_archived(db, report_id, body.archived)
+    return commit(db, svc.set_report_archived(db, report_id, body.archived))
 
 
 @reports.post("/{report_id}/regenerate", response_model=s.ReportOut)
 def regenerate_report(db: DB, report_id: str = IdPath()):
-    return svc.regenerate_report(db, report_id)
+    return commit(db, svc.regenerate_report(db, report_id))
 
 
 @reports.post("/{report_id}/duplicate", response_model=s.ReportOut, status_code=status.HTTP_201_CREATED)
 def duplicate_report(db: DB, report_id: str = IdPath()):
-    return svc.duplicate_report(db, report_id)
+    return commit(db, svc.duplicate_report(db, report_id))
 
 
 # --- notifications ---------------------------------------------------------------------------
@@ -168,7 +177,7 @@ def unread_count(db: DB):
 
 @notifications.post("/mark-all-read", response_model=int, summary="Marks every notification read; returns the notification count")
 def mark_all_read(db: DB):
-    return svc.mark_all_read(db)
+    return commit(db, svc.mark_all_read(db))
 
 
 @notifications.get("/preferences", response_model=JsonDoc)
@@ -178,17 +187,17 @@ def get_preferences(db: DB):
 
 @notifications.put("/preferences", response_model=JsonDoc, summary="Save preferences (no email/SMS/WhatsApp delivery exists yet)")
 def save_preferences(db: DB, body: s.NotificationPreferencesIn):
-    return svc.save_notification_preferences(db, body)
+    return commit(db, svc.save_notification_preferences(db, body))
 
 
 @notifications.patch("/{notification_id}", response_model=s.NotificationOut)
 def set_read(db: DB, body: s.NotificationReadIn, notification_id: str = IdPath()):
-    return svc.set_notification_read(db, notification_id, body.read)
+    return commit(db, svc.set_notification_read(db, notification_id, body.read))
 
 
 @notifications.delete("/{notification_id}", response_model=dict[str, str])
 def dismiss(db: DB, notification_id: str = IdPath()):
-    return svc.dismiss_notification(db, notification_id)
+    return commit(db, svc.dismiss_notification(db, notification_id))
 
 
 # --- activity --------------------------------------------------------------------------------
@@ -221,7 +230,7 @@ def get_settings(db: DB):
 
 @settings.put("/settings", response_model=JsonDoc, summary="Save workspace settings (records an audit entry)")
 def save_settings(db: DB, body: WorkspaceSettingsIn):
-    return svc.save_settings(db, body)
+    return commit(db, svc.save_settings(db, body))
 
 
 @settings.get("/settings/environment", response_model=JsonDoc)
@@ -242,17 +251,17 @@ def session_info(db: DB):
 # --- team ------------------------------------------------------------------------------------
 @team.post("", response_model=cs.TeamMemberOut, status_code=status.HTTP_201_CREATED, summary="Add a pending member (no email is sent)")
 def invite_member(db: DB, body: TeamInviteIn):
-    return svc.invite_member(db, body)
+    return commit(db, svc.invite_member(db, body))
 
 
 @team.patch("/{member_id}", response_model=cs.TeamMemberOut)
 def update_member(db: DB, body: TeamAccessIn, member_id: str = IdPath()):
-    return svc.update_member_access(db, member_id, body)
+    return commit(db, svc.update_member_access(db, member_id, body))
 
 
 @team.delete("/{member_id}", response_model=dict[str, str])
 def remove_member(db: DB, member_id: str = IdPath()):
-    return svc.remove_member(db, member_id)
+    return commit(db, svc.remove_member(db, member_id))
 
 
 routers = [comments, insights, reports, notifications, activity, settings, team]

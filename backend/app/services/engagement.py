@@ -7,9 +7,10 @@ from datetime import date, datetime, time, timedelta
 from typing import Any
 
 from sqlalchemy import delete, distinct, func, select, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.core.errors import ApiError, ConflictError, NotFoundError, NotImplementedInPhaseError
+from app.core.errors import ConflictError, NotFoundError, NotImplementedInPhaseError, UnprocessableError
 from app.models import (
     ActivityActor,
     ActivityEvent,
@@ -36,7 +37,8 @@ from app.schemas.core import TeamMemberOut
 from app.schemas.inputs import TeamAccessIn, TeamInviteIn, WorkspaceSettingsIn
 
 from .common import IST, current_workspace, day_label, iso_ist, ist_wallclock, reference, session_member, utcnow
-from .core import member_out
+from .audit import record_activity, record_user_change
+from .core import find_lead_by_handle, lead_out, member_out, new_lead, validate_lead_refs
 
 # ====================================================================================== comments
 
@@ -112,21 +114,89 @@ def get_comment(db: Session, comment_id: str) -> s.InstagramCommentOut:
 
 
 def update_comment(db: Session, comment_id: str, body: s.CommentPatchIn) -> s.InstagramCommentOut:
+    """Local triage state only — no reply or moderation action reaches Instagram."""
     comment = _get_comment(db, comment_id)
     patch = body.model_dump(exclude_unset=True)
+    for key in ("status", "flagged"):
+        if key in patch and patch[key] is None:
+            raise UnprocessableError(f"{key} cannot be null", details={"field": key})
     if patch.get("lead_id") and db.get(Lead, patch["lead_id"]) is None:
         raise NotFoundError("Lead", patch["lead_id"])
-    if "status" in patch and patch["status"] is None or "flagged" in patch and patch["flagged"] is None:
-        raise ApiError("status / flagged cannot be null")
-    for key, value in patch.items():
-        setattr(comment, key, value)
+    lead_after = patch["lead_id"] if "lead_id" in patch else comment.lead_id
+    if patch.get("status") == "lead_created" and not lead_after:
+        raise UnprocessableError("Use POST /comments/{id}/convert-to-lead (or provide leadId) to mark a comment as lead_created.",
+                                 details={"field": "status"})
+    for key in ("status", "flagged", "lead_id"):  # explicit allow-list
+        if key in patch:
+            setattr(comment, key, patch[key])
     db.flush()
     return comment_out(comment)
 
 
 def bulk_comment_status(db: Session, body: s.CommentBulkIn) -> s.UpdatedCountOut:
-    result = db.execute(update(Comment).where(Comment.id.in_(body.ids)).values(status=body.status))
-    return s.UpdatedCountOut(updated=result.rowcount or 0)
+    if body.status == "lead_created":
+        raise UnprocessableError("Comments are marked lead_created by converting them, not by bulk status.", details={"field": "status"})
+    ids = list(dict.fromkeys(body.ids))
+    result = db.execute(update(Comment).where(Comment.id.in_(ids)).values(status=body.status))
+    updated = result.rowcount or 0
+    if updated:
+        record_user_change(
+            db, category="leads", kind="Comment Triage", icon="forum", title="Comments Triaged",
+            summary=f"Set {updated} comment{'' if updated == 1 else 's'} to {body.status.replace('_', ' ')}.",
+            target_label=f"{updated} comments", target_to="/comments", module="Comments Intelligence",
+            payload={"type": "COMMENTS_BULK_STATUS", "status": body.status, "comment_ids": ids[:50]},
+            narrative_suffix="Triage state is stored in InstaBoard only — nothing was posted to Instagram.",
+        )
+    return s.UpdatedCountOut(updated=updated)
+
+
+def convert_comment_to_lead(db: Session, comment_id: str) -> s.CommentConvertOut:
+    """Idempotent: converting the same comment twice (or a commenter who is already a lead) never
+    creates a second lead. Lead creation and the comment update happen in one transaction."""
+    comment = _get_comment(db, comment_id)
+
+    if comment.lead_id:  # already converted / linked → repeated request
+        lead = db.get(Lead, comment.lead_id)
+        if lead is not None:
+            if ev(comment.status) != "lead_created":
+                comment.status = "lead_created"
+                db.flush()
+            return s.CommentConvertOut(lead=lead_out(lead), comment=comment_out(comment), created=False)
+
+    if not comment.campaign_id:
+        raise ConflictError("This comment is not attributed to a campaign, so it cannot become a campaign lead.",
+                            details={"commentId": comment.id})
+
+    lead = db.scalar(select(Lead).where(Lead.source_comment_id == comment.id)) or find_lead_by_handle(db, comment.handle)
+    created = False
+    if lead is None:
+        fields = dict(
+            campaign_id=comment.campaign_id, content_id=comment.content_id, name=comment.author_name, handle=comment.handle,
+            location=comment.location or "Unknown", score=comment.intent_score, source="comment", first_message=comment.text,
+            notes=f"Converted from Instagram comment {comment.ref} in Comments Intelligence.",
+        )
+        validate_lead_refs(db, comment.campaign_id, comment.content_id)
+        try:
+            with db.begin_nested():  # savepoint: a concurrent duplicate only rolls back this insert
+                lead = new_lead(db, source_comment_id=comment.id, **fields)
+            created = True
+        except IntegrityError:
+            lead = db.scalar(select(Lead).where(Lead.source_comment_id == comment.id)) or find_lead_by_handle(db, comment.handle)
+            if lead is None:
+                raise
+
+    comment.lead_id = lead.id
+    comment.status = "lead_created"
+    db.flush()
+    record_user_change(
+        db, category="leads", kind="Comment → Lead", icon="person_add", title="Comment Converted to Lead" if created else "Comment Linked to Lead",
+        summary=(f"Created lead {lead.name} (@{lead.handle}) from comment {comment.ref}." if created
+                 else f"Linked comment {comment.ref} to existing lead {lead.name} (@{lead.handle})."),
+        target_label=f"@{lead.handle}", target_to=f"/leads?lead={lead.id}", module="Leads", account_id=comment.account_id,
+        payload={"type": "COMMENT_CONVERTED", "comment_id": comment.id, "lead_id": lead.id, "created": created},
+        narrative_suffix="No reply was posted to Instagram.",
+    )
+    return s.CommentConvertOut(lead=lead_out(lead), comment=comment_out(comment), created=created)
 
 
 # ====================================================================================== insights
@@ -168,8 +238,17 @@ def get_insight(db: Session, insight_id: str) -> s.InsightOut:
 
 def set_insight_status(db: Session, insight_id: str, body: s.InsightStatusIn) -> s.InsightOut:
     insight = _get_insight(db, insight_id)
+    before = ev(insight.status)
     insight.status = body.status
     db.flush()
+    if before != body.status:
+        record_user_change(
+            db, category="ai", kind="Insight Review", icon="auto_awesome", title=f"Insight {body.status.capitalize()}",
+            summary=f"Marked insight \"{insight.title}\" as {body.status}.", target_label=insight.id,
+            target_to=f"/ai-insights/{insight.id}", module="AI insight", diff=[{"field": "Status", "before": before, "after": body.status}],
+            payload={"type": "INSIGHT_STATUS", "insight_id": insight.id, "status": body.status},
+            narrative_suffix="Insights are stored demo output; no AI model or campaign was changed.",
+        )
     return insight_out(insight)
 
 
@@ -192,9 +271,19 @@ def set_action_status(db: Session, action_id: str, body: s.ActionStatusIn) -> s.
     action = db.get(RecommendedAction, action_id)
     if action is None:
         raise NotFoundError("Recommended action", action_id)
+    before = ev(action.status)
     action.status = body.status
     action.feedback = body.feedback
     db.flush()
+    if before != body.status:
+        record_user_change(
+            db, category="ai", kind="Recommendation", icon="task_alt", title=f"Recommendation {body.status.replace('_', ' ').capitalize()}",
+            summary=f"Set recommended action \"{action.title}\" to {body.status.replace('_', ' ')}.", target_label=action.id,
+            target_to=f"/ai-insights/{action.insight_id}", module="AI insight",
+            diff=[{"field": "Status", "before": before, "after": body.status}],
+            payload={"type": "ACTION_STATUS", "action_id": action.id, "status": body.status, "has_feedback": bool(body.feedback)},
+            narrative_suffix="Tracked in InstaBoard only — InstaBoard does not change Instagram campaigns automatically.",
+        )
     return action_out(action)
 
 
@@ -224,6 +313,15 @@ REPORT_ICONS = {
     "campaign_performance": "description", "content_reel": "movie", "audience": "pie_chart", "comments_sentiment": "forum",
     "lead_generation": "contact_page", "executive_summary": "summarize",
 }
+
+
+def _report_event(db: Session, report: Report, title: str, summary: str, action: str) -> None:
+    record_user_change(
+        db, category="reports", kind="Report", icon="assessment", title=title, summary=f"{report.code} \"{report.title}\": {summary}",
+        target_label=report.code, target_to=f"/reports/{report.id}", module="Reports", account_id=report.account_id,
+        payload={"type": f"REPORT_{action}", "report_id": report.id},
+        narrative_suffix="Only the report configuration is stored; figures are computed from campaign data and nothing was emailed.",
+    )
 
 
 def report_out(r: Report) -> s.ReportOut:
@@ -297,6 +395,7 @@ def create_report(db: Session, body: s.ReportConfigIn) -> s.ReportOut:
     _apply_report_config(db, report, body)
     db.add(report)
     db.flush()
+    _report_event(db, report, "Report Configured", "saved a new report configuration.", "CREATED")
     return report_out(report)
 
 
@@ -314,6 +413,7 @@ def update_report(db: Session, report_id: str, body: s.ReportConfigIn) -> s.Repo
         report.generated_label = "Updated just now"
     report.failure_reason = None
     db.flush()
+    _report_event(db, report, "Report Configuration Updated", "updated the report configuration.", "UPDATED")
     return report_out(report)
 
 
@@ -323,6 +423,7 @@ def regenerate_report(db: Session, report_id: str) -> s.ReportOut:
     report.status, report.failure_reason, report.icon = ReportStatus.ready_demo, None, REPORT_ICONS[ev(report.type)]
     report.generated_at, report.generated_label = utcnow(), "Regenerated just now"
     db.flush()
+    _report_event(db, report, "Report Regenerated", "recomputed from stored campaign data.", "REGENERATED")
     return report_out(report)
 
 
@@ -341,6 +442,7 @@ def duplicate_report(db: Session, report_id: str) -> s.ReportOut:
     )
     db.add(copy)
     db.flush()
+    _report_event(db, copy, "Report Duplicated", f"copied from {source.code}.", "DUPLICATED")
     return report_out(copy)
 
 
@@ -349,6 +451,7 @@ def set_report_archived(db: Session, report_id: str, archived: bool) -> s.Report
     report.status = ReportStatus.archived if archived else ReportStatus.ready
     report.icon = "archive" if archived else REPORT_ICONS[ev(report.type)]
     db.flush()
+    _report_event(db, report, "Report Archived" if archived else "Report Restored", "archived." if archived else "restored.", "ARCHIVED" if archived else "RESTORED")
     return report_out(report)
 
 
@@ -411,8 +514,16 @@ def notification_preferences(db: Session) -> dict:
 
 def save_notification_preferences(db: Session, body: s.NotificationPreferencesIn) -> dict:
     row = _settings_row(db)
+    before = row.notification_preferences
     row.notification_preferences = body.model_dump(by_alias=True)
     db.flush()
+    if before != row.notification_preferences:
+        record_user_change(
+            db, category="settings", kind="Config Change", icon="notifications", title="Notification Preferences Updated",
+            summary="Updated notification channels, thresholds or categories.", target_label="Notifications",
+            target_to="/notifications", module="Notifications", payload={"type": "NOTIFICATION_PREFERENCES_UPDATED"},
+            narrative_suffix="Saved in InstaBoard only — no email, SMS or WhatsApp delivery exists in this phase.",
+        )
     return row.notification_preferences
 
 
@@ -479,16 +590,6 @@ def activity_summary(db: Session) -> s.ActivitySummaryOut:
         operator=total - automated, issues=issues, issues_addressed=addressed, active_operators=active_ops,
         pipeline_health=num(automated_ok / automated * 100) if automated else 100,
     )
-
-
-def record_activity(db: Session, **fields: Any) -> ActivityEvent:
-    """Server-side audit entry for a change made through the API."""
-    event = ActivityEvent(
-        id=f"EVT_API_{secrets.token_hex(5).upper()}", occurred_at=utcnow(), response_status="200 OK",
-        origin="InstaBoard API (local development)", outcome="success", **fields,
-    )
-    db.add(event)
-    return event
 
 
 # ====================================================================================== settings

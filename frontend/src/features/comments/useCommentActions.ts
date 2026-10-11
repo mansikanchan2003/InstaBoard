@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@/hooks/useMutation';
 import { useToast } from '@/components/ui/Toast';
 import { commentsService, type CommentPatch } from '@/services/comments';
-import { leadService } from '@/services/leads';
 import type { CommentStatus, InstagramComment } from '@/types/comments';
 import type { Lead } from '@/types/domain';
 
@@ -24,7 +23,10 @@ export function useCommentActions() {
 
   const update = useMutation((id: string, patch: CommentPatch) => commentsService.update(id, patch), { invalidate: ['comments'] });
   const bulk = useMutation((ids: string[], status: CommentStatus) => commentsService.bulkSetStatus(ids, status), { invalidate: ['comments'] });
-  const create = useMutation((input: Omit<Lead, 'id' | 'status' | 'lastContact'>) => leadService.createFromComment(input), { invalidate: ['leads'] });
+  const convert = useMutation((id: string) => commentsService.convertToLead(id), {
+    invalidate: ['leads', 'comments'],
+    onError: (e) => toast({ tone: 'error', title: 'Lead could not be created', description: e.message }),
+  });
 
   const setStatus = async (comment: InstagramComment, status: CommentStatus) => {
     const res = await update.mutate(comment.id, { status });
@@ -46,37 +48,24 @@ export function useCommentActions() {
   const openLead = (leadId: string) => navigate(`/leads?lead=${encodeURIComponent(leadId)}`);
 
   /**
-   * Converts a comment to a lead. If the commenter's handle is already a lead, opens that lead instead
-   * of creating a duplicate. Returns the created lead (or undefined when an existing lead was opened).
+   * Converts a comment to a lead (one atomic, idempotent request in api mode). If the commenter is
+   * already a lead, the comment is linked to that lead and it is opened — no duplicate is created.
+   * Returns the newly created lead, or undefined when an existing lead was linked/opened.
    */
   const convertToLead = async (comment: InstagramComment, existing: Lead | undefined): Promise<Lead | undefined> => {
-    if (existing) {
-      toast({ tone: 'info', title: `${existing.name} is already a lead`, description: 'Opening the existing lead instead of creating a duplicate.' });
-      openLead(existing.id);
-      return undefined;
-    }
-    if (!comment.campaignId) {
+    if (!comment.campaignId && !existing) {
       toast({ tone: 'warning', title: 'Cannot convert', description: 'This comment is not attributed to a campaign.' });
       return undefined;
     }
-    const lead = await create.mutate({
-      name: comment.authorName,
-      handle: comment.handle,
-      location: comment.location ?? 'Unknown',
-      campaignId: comment.campaignId,
-      contentId: comment.contentId,
-      score: comment.intentScore,
-      source: 'comment',
-      firstMessage: comment.text,
-      notes: `Converted from Instagram comment ${comment.ref} in Comments Intelligence.`,
-    });
-    if (!lead) {
-      toast({ tone: 'error', title: 'Lead could not be created', description: create.error?.message });
+    const result = await convert.mutate(comment.id);
+    if (!result) return undefined;
+    if (!result.created) {
+      toast({ tone: 'info', title: `${result.lead.name} is already a lead`, description: 'Linked this comment to the existing lead instead of creating a duplicate.' });
+      openLead(result.lead.id);
       return undefined;
     }
-    await update.mutate(comment.id, { status: 'lead_created', leadId: lead.id });
-    toast({ tone: 'success', title: `Lead created: ${lead.name}`, description: modeText('Added to the Leads pipeline as "New" (local demo data). Use "Open lead" to view it.', 'Added to the Leads pipeline as "New". Use "Open lead" to view it.') });
-    return lead;
+    toast({ tone: 'success', title: `Lead created: ${result.lead.name}`, description: modeText('Added to the Leads pipeline as "New" (local demo data). Use "Open lead" to view it.', 'Added to the Leads pipeline as "New". Use "Open lead" to view it.') });
+    return result.lead;
   };
 
   return {
@@ -85,7 +74,7 @@ export function useCommentActions() {
     bulkSetStatus,
     convertToLead,
     openLead,
-    isPending: update.isPending || bulk.isPending || create.isPending,
-    isConverting: create.isPending,
+    isPending: update.isPending || bulk.isPending || convert.isPending,
+    isConverting: convert.isPending,
   };
 }

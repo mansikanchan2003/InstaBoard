@@ -1,3 +1,4 @@
+import { modeText } from '@/lib/config';
 import { forwardRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Icon } from '@/components/ui/Icon';
@@ -186,7 +187,7 @@ export function CommentDetailFooter({ comment: c, existingLead, createdLead, con
       {createdLead && (
         <div className="p-2 rounded bg-status-active-subtle border border-status-active/30 text-status-active text-label-sm font-label-sm font-bold flex items-center gap-1.5 flex-wrap" role="status">
           <Icon name="task_alt" className="text-[16px]" />
-          <span>Lead created for {createdLead.name} (demo, local only).</span>
+          <span>Lead created for {createdLead.name}{modeText(' (demo, local only)', '')}.</span>
           <button type="button" onClick={() => onOpenLead(createdLead.id)} className="underline">
             Open lead →
           </button>

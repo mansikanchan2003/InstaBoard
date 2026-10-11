@@ -1,6 +1,6 @@
 import { leadPipelineSummary, leads, octoberLeadChannels, octoberLeadFunnel } from '@/data/leads';
 import { fromSource, mutateSource, NotFoundError } from '@/lib/api/source';
-import type { Lead, LeadStatus } from '@/types/domain';
+import type { Lead, LeadCreateResult, LeadDetailsPatch, LeadStatus } from '@/types/domain';
 
 const store: Lead[] = structuredClone(leads);
 
@@ -30,15 +30,31 @@ export const leadService = {
       { method: 'patch', path: `/leads/${id}`, body: { status } },
     ),
 
-  /** Creates a lead locally from a comment (Comments Intelligence → "Convert to lead"). */
-  createFromComment: (input: Omit<Lead, 'id' | 'status' | 'lastContact'>) =>
+  /** Saves editable details (outreach notes, name, location, phone). */
+  updateDetails: (id: string, patch: LeadDetailsPatch) =>
     mutateSource(
       () => {
-        const existing = store.find((l) => l.handle === input.handle);
-        if (existing) return existing;
+        const found = store.find((l) => l.id === id);
+        if (!found) throw new NotFoundError('Lead', id);
+        const notes = patch.notes === undefined ? found.notes : patch.notes.trim() || undefined;
+        Object.assign(found, patch, { notes });
+        return found;
+      },
+      { method: 'patch', path: `/leads/${id}`, body: patch },
+    ),
+
+  /**
+   * Creates a lead from a classified comment (Reel Analytics → "Assign to CRM"). Returns the existing
+   * lead with `created: false` when the handle is already in the pipeline (case-insensitive).
+   */
+  createFromComment: (input: Omit<Lead, 'id' | 'status' | 'lastContact'>) =>
+    mutateSource<LeadCreateResult>(
+      () => {
+        const existing = store.find((l) => l.handle.toLowerCase() === input.handle.toLowerCase());
+        if (existing) return { lead: existing, created: false };
         const lead: Lead = { ...input, id: `lead-local-${Date.now().toString(36)}`, status: 'new', lastContact: 'Just now' };
         store.unshift(lead);
-        return lead;
+        return { lead, created: true };
       },
       { method: 'post', path: '/leads', body: input },
     ),

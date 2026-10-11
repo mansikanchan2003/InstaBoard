@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Annotated, Any, Literal
 
-from pydantic import Field, StringConstraints, field_validator, model_validator
+from pydantic import ConfigDict, Field, StringConstraints, field_validator, model_validator
 
 from .base import ApiModel, JsonDoc, optional
 
@@ -87,6 +87,8 @@ class SentimentTrendPointOut(ApiModel):
 
 
 class CommentPatchIn(ApiModel):
+    model_config = ConfigDict(extra="forbid")
+
     """PATCH /comments/{id}. Only local triage state — nothing is posted to Instagram."""
 
     status: CommentStatusLiteral | None = None
@@ -98,6 +100,15 @@ class CommentPatchIn(ApiModel):
         if not self.model_fields_set:
             raise ValueError("Provide at least one of: status, flagged, leadId")
         return self
+
+
+class CommentConvertOut(ApiModel):
+    """POST /comments/{id}/convert-to-lead. ``created`` is false on a repeated request or when the
+    commenter was already a lead (the comment is linked to that lead instead)."""
+
+    lead: Any
+    comment: InstagramCommentOut
+    created: bool
 
 
 class CommentBulkIn(ApiModel):

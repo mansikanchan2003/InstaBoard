@@ -70,7 +70,7 @@ endpoints, the database model and the service-to-endpoint contract map are docum
 ```bash
 cd frontend && npm test && npm run build
 cd backend && .venv/Scripts/python -m pytest -q      # DB tests skip (with a reason) when TEST_DATABASE_URL is unreachable
-cd backend && .venv/Scripts/alembic check            # model ↔ migration drift
+cd backend && .venv/Scripts/alembic upgrade head && .venv/Scripts/alembic check   # apply migrations, then check model ↔ migration drift
 ```
 
 ## Stack
@@ -199,7 +199,24 @@ test/           Vitest suites
   the original demo values, run `python -m scripts.seed_demo_data --reset`.
 - No ESLint config was added; quality gates are `tsc` (strict), Vitest and pytest.
 
-### Phase 2 limitations (API mode)
+### What is persisted in API mode (Phase 3)
+
+In API mode, these actions are written to PostgreSQL in one transaction (with an Activity Log entry), and the UI
+updates only after the server confirms:
+
+- **Campaigns:** create, edit, pause/resume/schedule (with server-side status rules), duplicate as draft.
+- **Leads:** status changes and outreach notes.
+- **Comments:** convert to lead (atomic and idempotent, so a double click or retry creates no duplicate);
+  triage review/flag/archive/responded; bulk triage.
+- **AI insights:** review/dismiss, action steps, recommended actions.
+- **Reports:** create, edit, duplicate, regenerate, archive.
+- **Notifications:** read/unread, dismiss, preferences.
+- **Settings and team:** all settings and team changes.
+
+Demo mode applies the same rules (including campaign status transitions) to the in-memory store, so both modes
+behave alike. Endpoints and example bodies: [backend/README.md](backend/README.md#write-operations-phase-3).
+
+### Current limitations (API mode)
 
 - **No Meta / Instagram integration:** `POST /accounts/{id}/sync` and `DELETE /accounts/{id}` return `501`, and
   the UI shows that message. The connect flow remains a UI walkthrough with no OAuth.
@@ -208,12 +225,11 @@ test/           Vitest suites
 - **Still client-side in both modes:**
   - report figures (computed from campaign/content data fetched via the API);
   - CSV downloads;
-  - lead drawer notes (no notes endpoint);
   - the global-search index;
   - static UI config: notification trigger labels, and the session user shown in the header.
 - **No scheduler or email:** report schedules and recipients are saved, but nothing is delivered.
 
-## Recommended next step (Phase 3)
+## Recommended next step (Phase 4)
 
 1. **Authentication and roles:** add sign-in (e.g. OAuth2/OIDC with server-side sessions), resolve the workspace
    from the principal in `app/api/deps.py`, and enforce Owner/Admin/Editor/Viewer on write routes.

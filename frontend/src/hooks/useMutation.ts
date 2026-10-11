@@ -10,24 +10,46 @@ interface MutationOptions<TResult> {
   onError?: (err: Error) => void;
 }
 
-/** Wraps a service mutation with pending/error state and cache invalidation. */
+/** Stable key for "the same submission" (same arguments). */
+function submissionKey(args: unknown[]): string {
+  try {
+    return JSON.stringify(args);
+  } catch {
+    return String(Math.random()); // unserialisable args: never treat as duplicates
+  }
+}
+
+/**
+ * Wraps a service mutation with pending/error state and cache invalidation.
+ *
+ * - The UI updates only after the service (demo store or API) succeeds — no optimistic writes.
+ * - Duplicate submissions are ignored: calling `mutate` again with the same arguments while that call
+ *   is still in flight returns `undefined` without sending a second request (e.g. double clicks).
+ * - After any successful write the activity log is refreshed too, because the backend records an
+ *   audit entry for user-triggered changes.
+ */
 export function useMutation<TArgs extends unknown[], TResult>(
   fn: (...args: TArgs) => Promise<TResult>,
   options: MutationOptions<TResult> = {},
 ) {
   const toast = useToast();
-  const [isPending, setIsPending] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
   const [error, setError] = useState<Error | undefined>();
+  const inFlight = useRef(new Set<string>());
   const latest = useRef({ fn, options, toast });
   latest.current = { fn, options, toast };
 
   const mutate = useCallback(async (...args: TArgs): Promise<TResult | undefined> => {
     const { fn: run, options: opts, toast: notify } = latest.current;
-    setIsPending(true);
+    const key = submissionKey(args);
+    if (inFlight.current.has(key)) return undefined;
+    inFlight.current.add(key);
+    setPendingCount((n) => n + 1);
     setError(undefined);
     try {
       const result = await run(...args);
       opts.invalidate?.forEach(invalidateQueries);
+      invalidateQueries('activity');
       opts.onSuccess?.(result);
       return result;
     } catch (err) {
@@ -37,9 +59,10 @@ export function useMutation<TArgs extends unknown[], TResult>(
       else notify({ tone: 'error', title: 'Action failed', description: e.message });
       return undefined;
     } finally {
-      setIsPending(false);
+      inFlight.current.delete(key);
+      setPendingCount((n) => n - 1);
     }
   }, []);
 
-  return { mutate, isPending, error };
+  return { mutate, isPending: pendingCount > 0, error };
 }

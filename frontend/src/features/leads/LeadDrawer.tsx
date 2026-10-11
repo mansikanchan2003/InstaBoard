@@ -15,9 +15,6 @@ import { leadService } from '@/services/leads';
 import type { LeadStatus } from '@/types/domain';
 import { leadSourceLabel, leadStatuses, suggestedReply, type LeadRow } from './leadUtils';
 
-/** Outreach notes typed in the drawer. Kept in memory for this browser session only (no notes API yet). */
-const sessionNotes = new Map<string, string>();
-
 const quickStatuses: Array<{ status: LeadStatus; className: string }> = [
   { status: 'contacted', className: 'bg-surface-canvas hover:bg-slate-200 border-border-strong font-semibold' },
   { status: 'qualified', className: 'bg-surface-canvas hover:bg-slate-200 border-border-strong font-semibold text-status-active' },
@@ -56,7 +53,7 @@ export function LeadDrawer({ open, leadId, lead, loading, onClose }: { open: boo
 function LeadDetail({ lead, onClose }: { lead: LeadRow; onClose: () => void }) {
   const toast = useToast();
   const notesId = useId();
-  const savedNotes = sessionNotes.get(lead.id) ?? lead.notes ?? '';
+  const savedNotes = lead.notes ?? '';
   const [notes, setNotes] = useState(savedNotes);
   const [pending, setPending] = useState<LeadStatus | null>(null);
   const reply = suggestedReply(lead);
@@ -83,11 +80,20 @@ function LeadDetail({ lead, onClose }: { lead: LeadRow; onClose: () => void }) {
     }
   };
 
-  const saveAndClose = () => {
-    if (notes !== savedNotes) {
-      sessionNotes.set(lead.id, notes);
-      toast({ tone: 'demo', title: 'Notes saved for this session', description: 'Demo only — notes are kept in this browser tab and not synced to a CRM.' });
-    }
+  const saveNotes = useMutation((text: string) => leadService.updateDetails(lead.id, { notes: text }), {
+    invalidate: ['leads'],
+    onError: (e) => toast({ tone: 'error', title: 'Notes were not saved', description: e.message }),
+  });
+
+  /** Saves notes (if changed) and closes only after the save succeeded; on error the drawer stays open with the text intact. */
+  const saveAndClose = async () => {
+    if (notes.trim() === savedNotes.trim()) return onClose();
+    const saved = await saveNotes.mutate(notes);
+    if (!saved) return;
+    toast({
+      title: 'Outreach notes saved',
+      description: modeText('Kept in the demo store for this browser session — not synced to a CRM.', 'Saved to the InstaBoard database — not synced to a CRM.'),
+    });
     onClose();
   };
 
@@ -161,6 +167,8 @@ function LeadDetail({ lead, onClose }: { lead: LeadRow; onClose: () => void }) {
           id={notesId}
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
+          maxLength={5000}
+          disabled={saveNotes.isPending}
           className="w-full h-24 p-2.5 bg-surface-canvas border border-border-strong rounded text-xs text-text-primary focus:outline-none focus:border-border-focused"
           placeholder="Add agent notes (e.g. called via WhatsApp, document requirements shared)..."
         />
@@ -204,8 +212,8 @@ function LeadDetail({ lead, onClose }: { lead: LeadRow; onClose: () => void }) {
       </Notice>
 
       <div className="mt-auto pt-4 border-t border-border-strong">
-        <Button variant="dark" size="md" className="w-full" onClick={saveAndClose}>
-          Save & Close
+        <Button variant="dark" size="md" className="w-full" onClick={saveAndClose} loading={saveNotes.isPending} disabled={update.isPending}>
+          {saveNotes.isPending ? 'Saving…' : 'Save & Close'}
         </Button>
       </div>
     </div>

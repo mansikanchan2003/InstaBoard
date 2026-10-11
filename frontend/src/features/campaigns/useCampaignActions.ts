@@ -12,7 +12,8 @@ export function useCampaignActions() {
   const navigate = useNavigate();
 
   const statusMutation = useMutation((ids: string[], status: CampaignStatus) => Promise.all(ids.map((id) => campaignService.setStatus(id, status))), {
-    invalidate: ['campaigns'],
+    invalidate: ['campaigns', 'activity'],
+    onError: (e) => toast({ tone: 'error', title: 'Could not update status', description: e.message }),
   });
 
   const duplicateMutation = useMutation(
@@ -30,7 +31,7 @@ export function useCampaignActions() {
         primaryAgeGroup: c.primaryAgeGroup,
         status: 'draft',
       }),
-    { invalidate: ['campaigns'] },
+    { invalidate: ['campaigns', 'activity'], onError: (e) => toast({ tone: 'error', title: 'Could not duplicate campaign', description: e.message }) },
   );
 
   /** Toggles active ⇄ paused for one or many campaigns; others are skipped. */
@@ -49,10 +50,7 @@ export function useCampaignActions() {
       eligible.map((c) => c.id),
       status,
     );
-    if (!result) {
-      toast({ tone: 'error', title: 'Could not update status', description: 'Please try again.' });
-      return false;
-    }
+    if (!result) return false; // the error toast (with the server's reason) was already shown
     const skipped = targets.length - eligible.length;
     toast({
       tone: 'demo',
@@ -64,10 +62,7 @@ export function useCampaignActions() {
 
   const duplicate = async (c: Campaign, opts: { open?: boolean } = {}) => {
     const created = await duplicateMutation.mutate(c);
-    if (!created) {
-      toast({ tone: 'error', title: 'Could not duplicate campaign' });
-      return;
-    }
+    if (!created) return;
     toast({ tone: 'demo', title: `Draft "${created.name}" created`, description: 'Saved in InstaBoard only — nothing was published to Instagram.' });
     if (opts.open) navigate(`/campaigns/${created.id}`);
     return created;
